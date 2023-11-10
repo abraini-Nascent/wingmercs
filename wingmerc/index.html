@@ -4,6 +4,17 @@
         <meta charset="UTF-8">
         <title>Wing Mercs</title>
         <style>
+            /* Hide scrollbar for Chrome, Safari and Opera */
+            body::-webkit-scrollbar {
+              display: none;
+            }
+            /* Hide scrollbar for IE, Edge and Firefox */
+            body {
+              -ms-overflow-style: none;  /* IE and Edge */
+              scrollbar-width: none;  /* Firefox */
+            }
+          </style>
+        <style>
             #fps {
                 position: absolute;
                 background-color: black;
@@ -18,7 +29,16 @@
             }
         </style>
     </head>
-    <body>
+    <body id='gameWindow' style='background: #000; margin: 0; padding: 0;
+    image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+    image-rendering: -moz-crisp-edges;          /* Firefox                        */
+    image-rendering: -o-crisp-edges;            /* Opera                          */
+    image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+    image-rendering: pixelated; /* Chrome */
+    image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+    -ms-interpolation-mode: nearest-neighbor;
+    overscroll-behavior: none; /* STOP Bouncing on scrollwheel */
+    '>
         <div id="fps">0</div>
        <script type="module" src="./src/app.ts"></script>
     </body>

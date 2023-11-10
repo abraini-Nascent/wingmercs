@@ -1,13 +1,13 @@
 import { DataConnection, Peer } from "peerjs"
 
-
-
 class Net {
   peer: Peer
   id: string = makeid(6)
   conn: DataConnection
+  static Namespace = "wingmercs-0_0-"
+  get namespace() { return Net.Namespace }
   constructor() {
-    var peer = new Peer("wingmercs-0_0-"+this.id);
+    var peer = new Peer(Net.Namespace+this.id);
     console.log("[net] peer id:", peer.id)
     
     peer.on('open', (id) => {
@@ -16,23 +16,19 @@ class Net {
     
     peer.on('connection', (conn) => {
       this.conn = conn
-      // Receive messages
-      conn.on('data', () => {
-        // console.log('Received', data);
-      });
     });
     this.peer = peer
   }
-  connect(destination) {
-    var conn = this.peer.connect("wingmercs-0_0-"+destination);
-  
+  connect(destination, cb: (boolean) => void) {
+    var conn = this.peer.connect(Net.Namespace+destination);
+    const timeout = setTimeout(() => {
+      conn.close()
+      cb(false)
+    }, 1000);
     conn.on('open', () => {
+      clearTimeout(timeout);
       this.conn = conn
-
-      // Receive messages
-      conn.on('data', () => {
-        // console.log('Received', data);
-      });
+      cb(true);
     });
   }
   send(data: unknown) {
@@ -40,6 +36,9 @@ class Net {
   }
   onData(cb: (data: unknown) => void) {
     this.conn.on('data', (data) => cb(data))
+  }
+  onClose(cb: () => void) {
+    this.conn.on('close', () => cb)
   }
 }
 

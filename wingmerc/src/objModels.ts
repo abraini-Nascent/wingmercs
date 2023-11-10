@@ -1,0 +1,1 @@
+export const ObjModels: { [name: string]: any } = {}
