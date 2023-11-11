@@ -162,6 +162,7 @@ export class PlayerAgent {
       forward.addInPlace(new Vector3(this.playerEntity.velocity.x,this.playerEntity.velocity.y, this.playerEntity.velocity.z))
       world.add({
         meshName: "meteor",
+        meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
         originatorId: this.playerEntity.playerId,
         position: {
           x: this.playerEntity.position.x,

@@ -13,7 +13,7 @@ function generateRandomPointInSphere(radius: number, random: () => number): Vect
   return new Vector3(x, y, z);
 }
 const Sizes = [30,50,100]
-const Scales = [4, 2, 1]
+const Scales = [10, 5, 2]
 const Size = [3, 2, 1]
 const Children = [2, 4, 0]
 const Health = [1, 1, 1]
@@ -46,10 +46,11 @@ export class AsteroidScene {
       const x = radius * Math.sin(theta) * Math.cos(phi);
       const y = radius * Math.sin(theta) * Math.sin(phi);
       const z = radius * Math.cos(theta);
+      const speed = rand(20, 100)
       const velocity = {
-        x: random(),
-        y: random(),
-        z: random()
+        x: random() * speed,
+        y: random() * speed,
+        z: random() * speed
       }
       const direction = Vector3.Zero()
       const rotation = Vector3.Zero() //new Vector3(random(), random(), random()).normalize()
@@ -112,7 +113,7 @@ export function explodeAsteroid(asteroid: Partial<Entity>) {
     const y = 2 * Math.sin(theta) * Math.sin(phi)
     const z = 2 * Math.cos(theta)
     const postition = new Vector3(asteroid.position.x+x, asteroid.position.y+y, asteroid.position.z+z)
-    const speed = rand(2, 10)
+    const speed = rand(20, 100)
     const velocity = new Vector3(
       random(),
       random(),

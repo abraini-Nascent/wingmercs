@@ -58,7 +58,7 @@ class App {
 
     // initialize babylon scene and engine
     const container = AppContainer.instance
-    var engine = new Engine(canvas, false, { antialias: false }, true)
+    var engine = new Engine(canvas, false, { antialias: false }, false)
     var scene = new Scene(engine)
     let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
     this.camera = camera

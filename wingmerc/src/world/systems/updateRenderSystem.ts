@@ -41,9 +41,21 @@ queries.meshed.onEntityAdded.subscribe(
       // create the mesh
       const newNode = new TransformNode(`${entity.meshName}-node-${i}`)
       const children = meshNode.getChildMeshes()
+      let mat: StandardMaterial = undefined
+      if (entity.meshColor != undefined) {
+        // TODO: we could cache and reuse mats of the same color
+        mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
+        mat.emissiveColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
+        mat.diffuseColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
+        mat.specularColor = Color3.Black()
+      }
       for (let mi = 0; mi < children.length; mi += 1) {
         const mesh = children[mi]
+        // TODO: we could actually make instances instead of cloning
         const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
+        if (mat != undefined) {
+          instanceMesh.material = mat
+        }
         //.createInstance(`asteroid-mesh-${i}-${mi}`)
         instanceMesh.isVisible = true
         // instanceMesh.setParent(newNode)

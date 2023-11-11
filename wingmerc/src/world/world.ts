@@ -17,6 +17,7 @@ export type Entity = {
   asteroidSize?: number
   meshName?: string
   mesh?: Mesh
+  meshColor?: { r: number, g: number, b: number, a: number }
   meshInstance?: InstancedMesh
   trail?: true
   trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
