@@ -2,26 +2,29 @@ import { DeviceSourceManager, DeviceType, Engine, Quaternion, TransformNode, Vec
 import { Entity, world } from "../world/world";
 import { DegreeToRadian } from "../utils/math";
 import { net } from "../net";
-
+import { Dirk } from "../data/ships";
 export class PlayerAgent {
   playerEntity: Entity
   dsm: DeviceSourceManager
   node: TransformNode
   onNode: () => void
   
-  pitchSpeed = 80; // Degrees per second
-  yawSpeed   = 80; // Degrees per second
-  rollSpeed  = 90; // Degrees per second
+  // pitchSpeed = 80; // Degrees per second
+  // yawSpeed   = 80; // Degrees per second
+  // rollSpeed  = 90; // Degrees per second
 
-  constructor(engine: Engine) {
+  constructor(engine: Engine, planeTemplate: string = "dirk") {
     
     const playerEntity = world.add({
       owner: net.id,
       local: true,
       meshName: "craftCargoA",
       trail: true,
+      planeTemplate: planeTemplate,
       position: {x: 0, y: 0, z: 0},
       velocity: {x: 0, y: 0, z: 0},
+      setSpeed: Dirk.cruiseSpeed / 2,
+      currentSpeed: Dirk.cruiseSpeed / 2,
       direction: {x: 0, y: 0, z: -1},
       acceleration: {x: 0, y: 0, z: 0},
       rotationalVelocity: {roll: 0, pitch: 0, yaw: 0},
@@ -52,16 +55,19 @@ export class PlayerAgent {
     }
     /// STEER / ROLL PITCH YAW
     let up = 0, down = 0, left = 0, right = 0, rollLeft = 0, rollRight  = 0;
+    // "SHIFT" [16]
     const mod = this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(16) ? true : false
-    // UP 38
+    // "Z" [90]
+    const drift = this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(90) ? true : false
+    // "UP" [38]
     if(this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(38)) {
       up = 1
     }
-    // DOWN 40
+    // "DOWN" [40]
     if(this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(40)) {
       down = 1
     }
-    // RIGHT 39
+    // "RIGHT" [39]
     if(this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(39)) {
       if (mod) {
         rollRight = 1
@@ -69,7 +75,7 @@ export class PlayerAgent {
         right = 1
       }
     }
-    // LEFT 37
+    // "LEFT" [37]
     if(this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(37)) {
       if (mod) {
         rollLeft = 1
@@ -85,12 +91,17 @@ export class PlayerAgent {
     this.playerEntity.rotationalVelocity.yaw = 0
     this.playerEntity.rotationalVelocity.roll = 0
     if (up || down || left || right || rollLeft || rollRight) {
+
+      // TODO: take damage into consideration, damage to thrusters reduces turn rates
+      let pitchSpeed = Dirk.pitch // Degrees per second
+      let yawSpeed   = Dirk.yaw   // Degrees per second
+      let rollSpeed  = Dirk.roll  // Degrees per second
       // Positive for down, negative for up
-      const deltaPitch = (((this.pitchSpeed * (down - up))) / 1000) * dt;
+      const deltaPitch = (((pitchSpeed * (down - up))) / 1000) * dt;
       // Positive for right, negative for left
-      const deltaYaw = (((this.yawSpeed * (right - left))) / 1000) * dt;
+      const deltaYaw = (((yawSpeed * (right - left))) / 1000) * dt;
       // Positive for roll left, negative for roll right
-      const deltaRoll = (((this.rollSpeed * (rollLeft - rollRight))) / 1000) * dt;
+      const deltaRoll = (((rollSpeed * (rollLeft - rollRight))) / 1000) * dt;
       // call modify method
       this.playerEntity.rotationalVelocity.pitch = deltaPitch
       this.playerEntity.rotationalVelocity.yaw = deltaYaw
@@ -108,9 +119,27 @@ export class PlayerAgent {
     if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(18)) {
       breaks = 1
     }
+    // "9" [57]
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(57)) {
+      // TODO: debounce?
+      let newSpeed = Math.max(this.playerEntity.setSpeed - 25, 0)
+      world.update(this.playerEntity, "setSpeed", newSpeed)
+    }
+    // "0" [48]
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(48)) {
+      // TODO: debounce?
+      let newSpeed = Math.min(this.playerEntity.setSpeed + 25, Dirk.cruiseSpeed)
+      world.update(this.playerEntity, "setSpeed", newSpeed)
+    }
     if (afterburner) {
+      // TODO: this should take into consideration damage
+      const burnerAcceleration = (Dirk.afterburnerAccelleration / 1000) * dt
+      let newSpeed = this.playerEntity.currentSpeed
+      if (this.playerEntity.currentSpeed < Dirk.maxSpeed) {
+        newSpeed = Math.min(this.playerEntity.currentSpeed += burnerAcceleration, Dirk.maxSpeed)
+      }
       const forward = new Vector3(0, 0, -1)
-      let burn = afterburner * 1 * (dt / 1000)
+      let burn = (Dirk.afterburnerAccelleration / 1000) * dt
       forward.multiplyInPlace(new Vector3(burn, burn, burn))
       forward.applyRotationQuaternionInPlace(QuaternionFromObj(this.playerEntity.rotationQuaternion))
       const acceleration  = new Vector3(this.playerEntity.acceleration.x, this.playerEntity.acceleration.y, this.playerEntity.acceleration.z)
@@ -124,6 +153,27 @@ export class PlayerAgent {
       this.playerEntity.acceleration.x = acceleration.x
       this.playerEntity.acceleration.y = acceleration.y
       this.playerEntity.acceleration.z = acceleration.z
+
+      // check for drift otherwise
+      if (!drift) {
+        // TODO: this should take into consideration damage
+        const cruiseAcceleration = (Dirk.accelleration / 1000) * dt
+        let newSpeed = this.playerEntity.currentSpeed
+        if (this.playerEntity.currentSpeed < this.playerEntity.setSpeed) {
+          // TODO: this should take into consideration damage
+          newSpeed = Math.min(this.playerEntity.currentSpeed += cruiseAcceleration, Dirk.cruiseSpeed)
+        } else if (this.playerEntity.currentSpeed > this.playerEntity.setSpeed) {
+          newSpeed = Math.max(this.playerEntity.currentSpeed -= cruiseAcceleration, 0)
+        }
+        world.update(this.playerEntity, "currentSpeed", newSpeed)
+        const forward = new Vector3(0, 0, -1)
+        const movement = forward.multiplyByFloats(this.playerEntity.currentSpeed, this.playerEntity.currentSpeed, this.playerEntity.currentSpeed)
+        movement.applyRotationQuaternionInPlace(QuaternionFromObj(this.playerEntity.rotationQuaternion))
+        // we are in arcade mode here, we move forward in the direction we are facing by the speed we are set at
+        this.playerEntity.velocity.x = movement.x
+        this.playerEntity.velocity.y = movement.y
+        this.playerEntity.velocity.z = movement.z
+      }
 
       // dampners
       if (breaks) {

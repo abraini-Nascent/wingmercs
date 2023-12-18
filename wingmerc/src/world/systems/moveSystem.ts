@@ -7,6 +7,11 @@ export function moveSystem() {
     velocity.x += acceleration.x
     velocity.y += acceleration.y
     velocity.z += acceleration.z
+    // TODO: if velocity shoots over cap, 
+    // we still want the plane to move in the direction of the accelleration
+    // but not move any faster
+    // so we should normalize the new velocity vector
+    // and then multiply it by it's max speed
     position.x += velocity.x / 1000
     position.y += velocity.y / 1000
     position.z += velocity.z / 1000

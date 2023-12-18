@@ -8,6 +8,8 @@ import { ShapeType } from "@babylonjs/havok";
 export type Entity = {
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
+  setSpeed?: number
+  currentSpeed?: number
   acceleration?: { x: number; y: number; z: number }
   direction?: { x: number; y: number; z: number }
   rotationalVelocity?: {roll: number, pitch: number, yaw: number }
@@ -31,6 +33,7 @@ export type Entity = {
   paused?: true
   playerId?: string
   originatorId?: string
+  planeTemplate?: string
   // net code components
   local?: boolean // local to client
   owner?: string // who owns the state of this entity
@@ -88,6 +91,8 @@ export class GFrame {
         relinquish: entity.relinquish,
         position: entity.position,
         velocity: entity.velocity,
+        setSpeed: entity.setSpeed,
+        currentSpeed: entity.currentSpeed,
         acceleration: entity.acceleration,
         direction: entity.direction,
         rotation: {
@@ -114,6 +119,7 @@ export class GFrame {
         worth: entity.worth,
         damage: entity.damage,
         trail: entity.trail,
+        planeTemplate: entity.planeTemplate,
         
         originatorId: entity.originatorId,
         totalScore: entity.totalScore,
