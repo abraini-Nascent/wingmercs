@@ -36,60 +36,60 @@ We will build out the same space flight and combat features as classic WC
 - current speed up to max "cruise" speed of the plane always follows direction of plane
 - "drift" using afterburner slide. Afterburner acceleration and velocity over the speed limit of the plane does not match the direction of the plane
 
-### TODO:
-[] flight model
-[] - afterburner slide
-[] - drift
-[] - brake
-[] - arcade constant speed/velocity
-[] - roll pitch yaw independence
-[] gun projectile details
-[] directional shield damage
-[] - render shield
-[] directional hull damage
-[] - render hull damage effects
-[] system damage
-[] - render system damage
-[] - system damage affects flight model
-[] missile details
-[] missile tracking
-[] basic ai
-[] ai vs ai dogfighting
-- initial publish of demo
-[] gamepad controls
-[] joystick controls
-[] vr controls
-[] basic hud
-[] ai horde wave missions
-- second demo
-[] configurable ships
-[] configurable enemies
-[] ship viewer
-[] polish and juice
-- third demo
-[] dynamic missions horde mode
-[] polish and juice
-- fourth demo
-[] purchase and maintain ships
-[] purchase and maintain personal
-[] polish and juice
-- fifth demo
-[] ai overhaul
-[] polish and juice
-- sixth demo
-[] capitol ships
-[] polish and juice
-- seventh demo
-[] 3d cockpits
-- eighth demo
-[] carrier ships
-[] space stations
-- ninth demo
-[] configurable missions
-[] mission selection
-- 10th, v1.0 full release feature complete
-[] native code capability
-[] release on app stores
-[] release on quest
-[] release on steam
-- v1.1 distribute and profit
+## TODO:
+### initial publish of demo
+- [] flight model
+  - [] afterburner slide
+  - [] drift
+  - [] brake
+  - [] arcade constant speed/velocity
+  - [] roll pitch yaw independence
+- [] gun projectile details
+- [] directional shield damage
+  - [] render shield
+- [] directional hull damage
+- [] - render hull damage effects
+- [] system damage
+  - [] render system damage
+  - [] system damage affects flight model
+- [] missile details
+- [] missile tracking
+- [] basic ai
+- [] ai vs ai dogfighting
+### second demo
+- [] gamepad controls
+- [] joystick controls
+- [] vr controls
+- [] basic hud
+- [] ai horde wave missions
+### third demo
+- [] configurable ships
+- [] configurable enemies
+- [] ship viewer
+- [] polish and juice
+### fourth demo
+- [] dynamic missions horde mode
+- [] polish and juice
+### fifth demo
+- [] purchase and maintain ships
+- [] purchase and maintain personal
+- [] polish and juice
+### sixth demo
+- [] ai overhaul
+- [] polish and juice
+### seventh demo
+- [] capitol ships
+- [] polish and juice
+### eighth demo
+- [] 3d cockpits
+### ninth demo
+- [] carrier ships
+- [] space stations
+### 10th, v1.0 full release feature complete
+- [] configurable missions
+- [] mission selection
+### v1.1 distribute and profit
+- [] native code capability
+- [] release on app stores
+- [] release on quest
+- [] release on steam
