@@ -95,13 +95,13 @@ class App {
     var material = new StandardMaterial("mat", scene);
     material.emissiveColor = Color3.White();
     material.wireframe = true
-    const boundrySphereOne = MeshBuilder.CreateSphere("boundry-1", { segments: 10, diameter: 200, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereOne = MeshBuilder.CreateSphere("boundry-1", { segments: 10, diameter: 500, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereOne.material = material
     boundrySphereOne.rotationQuaternion = Quaternion.Identity()
-    const boundrySphereTwo = MeshBuilder.CreateSphere("boundry-2", { segments: 10, diameter: 206, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereTwo = MeshBuilder.CreateSphere("boundry-2", { segments: 10, diameter: 506, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereTwo.material = material 
     boundrySphereTwo.rotationQuaternion = Quaternion.RotationAxisToRef(Vector3.Left(), DegreeToRadian(90), Quaternion.Identity());
-    const boundrySphereThree = MeshBuilder.CreateSphere("boundry-3", { segments: 10, diameter: 203, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereThree = MeshBuilder.CreateSphere("boundry-3", { segments: 10, diameter: 503, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereThree.material = material
     boundrySphereThree.rotationQuaternion = Quaternion.RotationAxisToRef(new Vector3(0, 0, -1), DegreeToRadian(90), Quaternion.RotationAxisToRef(Vector3.Left(), DegreeToRadian(90), Quaternion.Identity()));
 
@@ -266,63 +266,33 @@ class App {
             size: 5.0
           })
           window.velocity = ball
-          // let line = MeshBuilder.CreateLines("velocity", {
-          //   points: [new Vector3(0, 0, 0), new Vector3(0, 0, -1)],
-          //   updatable: true,
-          //   colors: [new Color4(1, 0, 0, 1), new Color4(1, 0, 0, 1)]
-          // }, scene); //scene is optional
-          // window.velocity = line
-          // line.parent = this.player.playerEntity.node
         }
         if (window.driftVelocity == undefined) {
           let ball = MeshBuilder.CreateBox("driftVelocity", {
             size: 5.0
           })
           window.driftVelocity = ball
-          // let line = MeshBuilder.CreateLines("driftVelocity", {
-          //   points: [new Vector3(0, 0, 0), new Vector3(0, 0, -1)],
-          //   updatable: true,
-          //   colors: [new Color4(0, 1, 0, 1), new Color4(0, 1, 0, 1)]
-          // }, scene); //scene is optional
-          // window.driftVelocity = line
         }
         if (this.player.playerEntity.velocity) {
           let ball = window.velocity as Mesh
           ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x) 
           ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y) 
           ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z)
-          // let line = window.velocity as LinesMesh
-          // line = MeshBuilder.CreateLines("velocity", {
-          //   points: [
-          //     new Vector3(this.player.playerEntity.position.x, this.player.playerEntity.position.y, this.player.playerEntity.position.z),
-          //     new Vector3(
-          //       this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x * 100), 
-          //       this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y * 100), 
-          //       this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z * 100))],
-          //   updatable: true,
-          //   colors: [new Color4(1, 0, 0, 1), new Color4(1, 0, 0, 1)],
-          //   instance: line
-          // }, scene); //scene is optional
-          // window.velocity = line
+          if (this.player.playerEntity.breakingVelocity) {
+            ball.position.x += this.player.playerEntity.breakingVelocity.x
+            ball.position.y += this.player.playerEntity.breakingVelocity.y
+            ball.position.z += this.player.playerEntity.breakingVelocity.z
+          }
         }
+        let ball = window.driftVelocity as Mesh
         if (this.player.playerEntity.driftVelocity) {
-          let ball = window.driftVelocity as Mesh
-          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x) 
-          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y) 
+          ball.isVisible = true
+          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x)
+          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y)
           ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.driftVelocity.z)
-          // let line = window.driftVelocity as LinesMesh
-          // line = MeshBuilder.CreateLines("driftVelocity", {
-          //   points: [
-          //     new Vector3(this.player.playerEntity.position.x, this.player.playerEntity.position.y, this.player.playerEntity.position.z), 
-          //     new Vector3(
-          //       this.player.playerEntity.position.x + this.player.playerEntity.driftVelocity.x, 
-          //       this.player.playerEntity.position.y + this.player.playerEntity.driftVelocity.y,
-          //       this.player.playerEntity.position.z + this.player.playerEntity.driftVelocity.z)],
-          //   updatable: true,
-          //   colors: [new Color4(0, 1, 0, 1), new Color4(0, 1, 0, 1)],
-          //   instance: line
-          // }, scene); //scene is optional
-          // window.driftVelocity = line
+          
+        } else {
+          ball.isVisible = false
         }
       }
 

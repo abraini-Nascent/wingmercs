@@ -50,23 +50,25 @@ export function moveCommandSystem(dt: number) {
         let maxAfterburner = Dirk.maxSpeed - setSpeed
         let afterburner = driftVelocity ? new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z) : Vector3.Zero();
         let currentAfterburner = afterburner.length()
+        // TODO: this should take into consideration damage
+        let newSpeed = Dirk.maxSpeed;
         if (currentAfterburner < maxAfterburner) {
-          // TODO: this should take into consideration damage
-          let newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, Dirk.maxSpeed)
-          const forward = new Vector3(0, 0, -1)
-          const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
-          movement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
-          let newDriftVelocity = movement.clone()
-          let difference = newDriftVelocity.subtract(afterburner)
-          if (difference.length() > (afterburnerAcceleration * 2)) {
-            // we are way off from our last afterburner
-            difference = difference.normalize()
-            difference = difference.multiplyByFloats(afterburnerAcceleration, afterburnerAcceleration, afterburnerAcceleration)
-            newDriftVelocity = afterburner.add(difference)
-            // move along the difference of the two velocity vectors by the accelleration 
-          }
-          world.update(entity, "driftVelocity", newDriftVelocity)
-        } 
+          newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, Dirk.maxSpeed)
+        }
+        const forward = new Vector3(0, 0, -1)
+        const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
+        movement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
+        let newDriftVelocity = movement.clone()
+        let difference = newDriftVelocity.subtract(afterburner)
+        if (Math.abs(difference.length()) > (afterburnerAcceleration * 2)) {
+          // we are way off from our last afterburner
+          difference = difference.normalize()
+          difference = difference.multiplyByFloats(afterburnerAcceleration, afterburnerAcceleration, afterburnerAcceleration)
+          newDriftVelocity = afterburner.add(difference)
+          // move along the difference of the two velocity vectors by the accelleration 
+        }
+        console.log("afterburner direction distance", difference.length())
+        world.update(entity, "driftVelocity", newDriftVelocity)
       } else {
         // apply drag to drift velocity
         if (driftVelocity != undefined) {
@@ -135,27 +137,27 @@ export function moveSystem() {
     // but not move any faster
     // so we should normalize the new velocity vector
     // and then multiply it by it's max speed
-    let speed = new Vector3(velocity.x, velocity.y, velocity.z)
+    let speed = new Vector3(velocity.x, velocity.y, velocity.z).length()
     if (driftVelocity != undefined) {
       position.x += driftVelocity.x / 1000
       position.y += driftVelocity.y / 1000
       position.z += driftVelocity.z / 1000
-      speed.addInPlace(new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z))
+      speed += new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z).length()
     }
     if (breakingVelocity != undefined) {
       position.x += breakingVelocity.x / 1000
       position.y += breakingVelocity.y / 1000
       position.z += breakingVelocity.z / 1000
-      speed.addInPlace(new Vector3(breakingVelocity.x, breakingVelocity.y, breakingVelocity.z))
+      speed -= new Vector3(breakingVelocity.x, breakingVelocity.y, breakingVelocity.z).length()
     }
     position.x += velocity.x / 1000
     position.y += velocity.y / 1000
     position.z += velocity.z / 1000
-    world.update(entity, "currentSpeed", speed.length())
+    world.update(entity, "currentSpeed", speed)
   }
 }
 
-const ArenaRadius = 100;
+const ArenaRadius = 250;
 export function warpSystem() {
   for (const entity of queries.moving) {
     const { position, velocity, acceleration } = entity
