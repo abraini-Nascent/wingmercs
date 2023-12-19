@@ -150,11 +150,7 @@ export function moveSystem() {
     velocity.x += acceleration.x
     velocity.y += acceleration.y
     velocity.z += acceleration.z
-    // TODO: if velocity shoots over cap, 
-    // we still want the plane to move in the direction of the accelleration
-    // but not move any faster
-    // so we should normalize the new velocity vector
-    // and then multiply it by it's max speed
+
     let speed = new Vector3(velocity.x, velocity.y, velocity.z).length()
     if (afterburnerVelocity != undefined) {
       position.x += afterburnerVelocity.x / 1000

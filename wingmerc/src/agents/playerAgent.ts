@@ -8,10 +8,6 @@ export class PlayerAgent {
   dsm: DeviceSourceManager
   node: TransformNode
   onNode: () => void
-  
-  // pitchSpeed = 80; // Degrees per second
-  // yawSpeed   = 80; // Degrees per second
-  // rollSpeed  = 90; // Degrees per second
 
   constructor(engine: Engine, planeTemplate: string = "dirk") {
     
@@ -124,78 +120,7 @@ export class PlayerAgent {
     }
 
     world.update(this.playerEntity, "movementCommand", movementCommand)
-    // there is the speed the player set and we try to match that speed
-    // the player can turn the ship, in which case we should then adjust the velocity to match the new direction
-
-
-    // if nothing is happening we should be flying in the direction of the ship at the set speed
-    // if we are under speed we should be accellerating to the set speed
-    // if we are over speed we should be decellerating to the set speed
-    // if we are hitting afterburners we should be be sliding in the direction of the afterburners
-    // if we are hitting drift we should be able to change the ship direction without changing the movement direction
-
-    if (false) {
-      if (afterburner) {
-        // TODO: this should take into consideration damage
-        const burnerAcceleration = (Dirk.afterburnerAccelleration / 1000) * dt
-        let newSpeed = this.playerEntity.currentSpeed
-        if (this.playerEntity.currentSpeed < Dirk.maxSpeed) {
-          newSpeed = Math.min(this.playerEntity.currentSpeed += burnerAcceleration, Dirk.maxSpeed)
-        }
-        const forward = new Vector3(0, 0, -1)
-        let burn = (Dirk.afterburnerAccelleration / 1000) * dt
-        forward.multiplyInPlace(new Vector3(burn, burn, burn))
-        forward.applyRotationQuaternionInPlace(QuaternionFromObj(this.playerEntity.rotationQuaternion))
-        const acceleration  = new Vector3(this.playerEntity.acceleration.x, this.playerEntity.acceleration.y, this.playerEntity.acceleration.z)
-        acceleration.addInPlace(forward)
-        // clamp accelleration
-
-        this.playerEntity.acceleration.x = acceleration.x
-        this.playerEntity.acceleration.y = acceleration.y
-        this.playerEntity.acceleration.z = acceleration.z
-        
-        
-      } else {
-        const acceleration  = new Vector3(this.playerEntity.acceleration.x, this.playerEntity.acceleration.y, this.playerEntity.acceleration.z)
-        Vector3.LerpToRef(acceleration, Vector3.Zero(), 0.33, acceleration)
-        this.playerEntity.acceleration.x = acceleration.x
-        this.playerEntity.acceleration.y = acceleration.y
-        this.playerEntity.acceleration.z = acceleration.z
-
-        // check for drift otherwise
-        if (!drift) {
-          // TODO: this should take into consideration damage
-          const cruiseAcceleration = (Dirk.accelleration / 1000) * dt
-          let newSpeed = this.playerEntity.currentSpeed
-          if (this.playerEntity.currentSpeed < this.playerEntity.setSpeed) {
-            // TODO: this should take into consideration damage
-            newSpeed = Math.min(this.playerEntity.currentSpeed += cruiseAcceleration, Dirk.cruiseSpeed)
-          } else if (this.playerEntity.currentSpeed > this.playerEntity.setSpeed) {
-            newSpeed = Math.max(this.playerEntity.currentSpeed -= cruiseAcceleration, 0)
-          }
-          world.update(this.playerEntity, "currentSpeed", newSpeed)
-          const forward = new Vector3(0, 0, -1)
-          const movement = forward.multiplyByFloats(this.playerEntity.currentSpeed, this.playerEntity.currentSpeed, this.playerEntity.currentSpeed)
-          movement.applyRotationQuaternionInPlace(QuaternionFromObj(this.playerEntity.rotationQuaternion))
-          // we are in arcade mode here, we move forward in the direction we are facing by the speed we are set at
-          this.playerEntity.velocity.x = movement.x
-          this.playerEntity.velocity.y = movement.y
-          this.playerEntity.velocity.z = movement.z
-        }
-
-        // dampners
-        if (breaks) {
-          const velocity  = new Vector3(this.playerEntity.velocity.x, this.playerEntity.velocity.y, this.playerEntity.velocity.z)
-          Vector3.LerpToRef(velocity, Vector3.Zero(), 1 * (dt / 1000), velocity)
-          this.playerEntity.velocity.x = velocity.x
-          this.playerEntity.velocity.y = velocity.y
-          this.playerEntity.velocity.z = velocity.z
-        }
-      }
-    }
-
     
-
     /// FIRE PROJECTILES
     // "ENTER" 13
     // "CONTROL" 17

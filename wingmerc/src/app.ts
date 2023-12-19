@@ -260,48 +260,46 @@ class App {
       cameraSystem(this.player, this.camera)
 
       // show debug axis
-      if (this.player?.playerEntity?.node) {
-        if (window.velocity == undefined) {
-          let ball = MeshBuilder.CreateBox("velocity", {
-            size: 5.0
-          })
-          window.velocity = ball
-        }
-        if (window.driftVelocity == undefined) {
-          let ball = MeshBuilder.CreateBox("driftVelocity", {
-            size: 5.0
-          })
-          window.driftVelocity = ball
-        }
-        if (this.player.playerEntity.velocity) {
-          let ball = window.velocity as Mesh
-          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x) 
-          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y) 
-          ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z)
-          if (this.player.playerEntity.breakingVelocity) {
-            ball.position.x += this.player.playerEntity.breakingVelocity.x
-            ball.position.y += this.player.playerEntity.breakingVelocity.y
-            ball.position.z += this.player.playerEntity.breakingVelocity.z
-          }
-        }
-        let ball = window.driftVelocity as Mesh
-        if (this.player.playerEntity.driftVelocity) {
-          ball.isVisible = true
-          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x)
-          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y)
-          ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.driftVelocity.z)
+      // if (this.player?.playerEntity?.node) {
+      //   if (window.velocity == undefined) {
+      //     let ball = MeshBuilder.CreateBox("velocity", {
+      //       size: 5.0
+      //     })
+      //     window.velocity = ball
+      //   }
+      //   if (window.driftVelocity == undefined) {
+      //     let ball = MeshBuilder.CreateBox("driftVelocity", {
+      //       size: 5.0
+      //     })
+      //     window.driftVelocity = ball
+      //   }
+      //   if (this.player.playerEntity.velocity) {
+      //     let ball = window.velocity as Mesh
+      //     ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x) 
+      //     ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y) 
+      //     ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z)
+      //     if (this.player.playerEntity.breakingVelocity) {
+      //       ball.position.x += this.player.playerEntity.breakingVelocity.x
+      //       ball.position.y += this.player.playerEntity.breakingVelocity.y
+      //       ball.position.z += this.player.playerEntity.breakingVelocity.z
+      //     }
+      //   }
+      //   let ball = window.driftVelocity as Mesh
+      //   if (this.player.playerEntity.driftVelocity) {
+      //     ball.isVisible = true
+      //     ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x)
+      //     ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y)
+      //     ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.driftVelocity.z)
           
-        } else {
-          ball.isVisible = false
-        }
-      }
+      //   } else {
+      //     ball.isVisible = false
+      //   }
+      // }
 
       scene.render()
       // divFps.innerHTML = engine.getFps().toFixed() + " fps";
       if (this.player?.playerEntity?.currentSpeed) {
-        let vel = new Vector3(this.player.playerEntity.velocity.x, this.player.playerEntity.velocity.y, this.player.playerEntity.velocity.z)
         divFps.innerHTML = `${this.player?.playerEntity?.currentSpeed.toFixed(0) ?? 0} mps`;
-        // divFps.innerHTML += `(${this.player.playerEntity.direction.x},${this.player.playerEntity.direction.y},${this.player.playerEntity.direction.z})`
       }
     })
   }
