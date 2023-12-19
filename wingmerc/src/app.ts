@@ -20,13 +20,15 @@ import {
   Quaternion,
   Material,
   Color3,
+  Color4,
+  LinesMesh,
 } from "@babylonjs/core"
 import { net } from "./net"
 import { ObjModels } from "./objModels";
 import { AsteroidScene } from "./map/asteroidScene";
 import { MenuGui } from "./gui/menuGui";
 import { PlayerAgent } from "./agents/playerAgent";
-import { moveSystem, warpSystem } from "./world/systems/moveSystem";
+import { moveCommandSystem, moveSystem, warpSystem } from "./world/systems/moveSystem";
 import { updateRenderSystem } from "./world/systems/updateRenderSystem";
 import { cameraSystem } from "./world/systems/cameraSystem";
 import { netSyncClientSystem } from "./world/systems/netClientSystem";
@@ -244,6 +246,7 @@ class App {
       if (this.player) {
         this.player.checkInput(delta)
       }
+      moveCommandSystem(delta)
       rotationalVelocitySystem()
       moveSystem()
       particleSystem()
@@ -255,11 +258,79 @@ class App {
       }
       updateRenderSystem()
       cameraSystem(this.player, this.camera)
+
+      // show debug axis
+      if (this.player?.playerEntity?.node) {
+        if (window.velocity == undefined) {
+          let ball = MeshBuilder.CreateBox("velocity", {
+            size: 5.0
+          })
+          window.velocity = ball
+          // let line = MeshBuilder.CreateLines("velocity", {
+          //   points: [new Vector3(0, 0, 0), new Vector3(0, 0, -1)],
+          //   updatable: true,
+          //   colors: [new Color4(1, 0, 0, 1), new Color4(1, 0, 0, 1)]
+          // }, scene); //scene is optional
+          // window.velocity = line
+          // line.parent = this.player.playerEntity.node
+        }
+        if (window.driftVelocity == undefined) {
+          let ball = MeshBuilder.CreateBox("driftVelocity", {
+            size: 5.0
+          })
+          window.driftVelocity = ball
+          // let line = MeshBuilder.CreateLines("driftVelocity", {
+          //   points: [new Vector3(0, 0, 0), new Vector3(0, 0, -1)],
+          //   updatable: true,
+          //   colors: [new Color4(0, 1, 0, 1), new Color4(0, 1, 0, 1)]
+          // }, scene); //scene is optional
+          // window.driftVelocity = line
+        }
+        if (this.player.playerEntity.velocity) {
+          let ball = window.velocity as Mesh
+          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x) 
+          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y) 
+          ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z)
+          // let line = window.velocity as LinesMesh
+          // line = MeshBuilder.CreateLines("velocity", {
+          //   points: [
+          //     new Vector3(this.player.playerEntity.position.x, this.player.playerEntity.position.y, this.player.playerEntity.position.z),
+          //     new Vector3(
+          //       this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x * 100), 
+          //       this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y * 100), 
+          //       this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z * 100))],
+          //   updatable: true,
+          //   colors: [new Color4(1, 0, 0, 1), new Color4(1, 0, 0, 1)],
+          //   instance: line
+          // }, scene); //scene is optional
+          // window.velocity = line
+        }
+        if (this.player.playerEntity.driftVelocity) {
+          let ball = window.driftVelocity as Mesh
+          ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x) 
+          ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y) 
+          ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.driftVelocity.z)
+          // let line = window.driftVelocity as LinesMesh
+          // line = MeshBuilder.CreateLines("driftVelocity", {
+          //   points: [
+          //     new Vector3(this.player.playerEntity.position.x, this.player.playerEntity.position.y, this.player.playerEntity.position.z), 
+          //     new Vector3(
+          //       this.player.playerEntity.position.x + this.player.playerEntity.driftVelocity.x, 
+          //       this.player.playerEntity.position.y + this.player.playerEntity.driftVelocity.y,
+          //       this.player.playerEntity.position.z + this.player.playerEntity.driftVelocity.z)],
+          //   updatable: true,
+          //   colors: [new Color4(0, 1, 0, 1), new Color4(0, 1, 0, 1)],
+          //   instance: line
+          // }, scene); //scene is optional
+          // window.driftVelocity = line
+        }
+      }
+
       scene.render()
       // divFps.innerHTML = engine.getFps().toFixed() + " fps";
-      if (this.player?.playerEntity?.velocity) {
+      if (this.player?.playerEntity?.currentSpeed) {
         let vel = new Vector3(this.player.playerEntity.velocity.x, this.player.playerEntity.velocity.y, this.player.playerEntity.velocity.z)
-        divFps.innerHTML = vel.length().toFixed() + " mps";
+        divFps.innerHTML = `${this.player?.playerEntity?.currentSpeed.toFixed(0) ?? 0} mps`;
         // divFps.innerHTML += `(${this.player.playerEntity.direction.x},${this.player.playerEntity.direction.y},${this.player.playerEntity.direction.z})`
       }
     })

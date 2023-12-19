@@ -5,9 +5,11 @@ import { net } from "../net";
 import { rotationalVelocitySystem } from "./systems/rotationalVelocitySystem";
 import { ShapeType } from "@babylonjs/havok";
 
+export type MovementCommand = { pitch: number, roll: number, yaw: number, afterburner: number, drift: number, brake: number, deltaSpeed: number }
 export type Entity = {
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
+  driftVelocity?: { x: number; y: number; z: number }
   setSpeed?: number
   currentSpeed?: number
   acceleration?: { x: number; y: number; z: number }
@@ -21,6 +23,7 @@ export type Entity = {
   mesh?: Mesh
   meshColor?: { r: number, g: number, b: number, a: number }
   meshInstance?: InstancedMesh
+  movementCommand?: MovementCommand,
   trail?: true
   trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
   trailMesh?: TrailMesh
@@ -91,6 +94,7 @@ export class GFrame {
         relinquish: entity.relinquish,
         position: entity.position,
         velocity: entity.velocity,
+        movementCommand: entity.movementCommand,
         setSpeed: entity.setSpeed,
         currentSpeed: entity.currentSpeed,
         acceleration: entity.acceleration,
