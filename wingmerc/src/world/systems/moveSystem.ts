@@ -10,7 +10,7 @@ import { Dirk } from '../../data/ships';
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moving) {
-    const { position, acceleration, velocity, driftVelocity, rotationalVelocity, rotationQuaternion, setSpeed, currentSpeed } = entity;
+    const { position, acceleration, velocity, driftVelocity, breakingPower, rotationalVelocity, rotationQuaternion, setSpeed, currentSpeed } = entity;
     const { movementCommand } = entity;
     
     if (movementCommand != undefined) {
@@ -43,6 +43,8 @@ export function moveCommandSystem(dt: number) {
       //// change speed of the ship
       // TODO: this should take into consideration damage
       const cruiseAcceleration = (Dirk.accelleration / 1000) * dt
+      const afterburnerAcceleration = (Dirk.afterburnerAccelleration / 1000) * dt
+      const breakAcceleration = (Dirk.breakingForce / 1000) * dt
       if (movementCommand.afterburner) {
 
         let maxAfterburner = Dirk.maxSpeed - setSpeed
@@ -50,18 +52,26 @@ export function moveCommandSystem(dt: number) {
         let currentAfterburner = afterburner.length()
         if (currentAfterburner < maxAfterburner) {
           // TODO: this should take into consideration damage
-          let newSpeed = Math.min(currentAfterburner + cruiseAcceleration, Dirk.maxSpeed)
+          let newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, Dirk.maxSpeed)
           const forward = new Vector3(0, 0, -1)
           const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
           movement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
           let newDriftVelocity = movement.clone()
+          let difference = newDriftVelocity.subtract(afterburner)
+          if (difference.length() > (afterburnerAcceleration * 2)) {
+            // we are way off from our last afterburner
+            difference = difference.normalize()
+            difference = difference.multiplyByFloats(afterburnerAcceleration, afterburnerAcceleration, afterburnerAcceleration)
+            newDriftVelocity = afterburner.add(difference)
+            // move along the difference of the two velocity vectors by the accelleration 
+          }
           world.update(entity, "driftVelocity", newDriftVelocity)
         } 
       } else {
         // apply drag to drift velocity
         if (driftVelocity != undefined) {
           let newDriftVelocity = new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z)
-          const driftLength = newDriftVelocity.length() - cruiseAcceleration
+          const driftLength = newDriftVelocity.length() - afterburnerAcceleration
           const velocityNormal = newDriftVelocity.normalizeToNew()
           const drag = velocityNormal.multiplyByFloats(driftLength, driftLength, driftLength)
           // clamp
@@ -72,16 +82,25 @@ export function moveCommandSystem(dt: number) {
           }
         }
       }
-      // if (movementCommand.brake) {
-      //   // we double the drag when braking
-      //   let newDragVelocity = new Vector3(velocity.x, velocity.y, velocity.z)
-      //   const velocityNormal = newDragVelocity.normalizeToNew()
-      //   const drag = velocityNormal.multiplyByFloats(-cruiseAcceleration, -cruiseAcceleration, -cruiseAcceleration)
-      //   let newVelocity = new Vector3(velocity.x, velocity.y, velocity.z)
-      //   newVelocity.addInPlace(drag)
-      // }
+      //// breaking
+      let nextBreakingPower = 0
+      if (!movementCommand.afterburner && movementCommand.brake) {
+        nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, Dirk.breakingLimit)
+        world.update(entity, "breakingPower", nextBreakingPower)
+      } else if (breakingPower != undefined && breakingPower > 0) {
+        nextBreakingPower = Math.max(breakingPower - breakAcceleration, 0)
+        if (nextBreakingPower == 0) {
+          world.removeComponent(entity, "breakingPower")
+        } else {
+          world.update(entity, "breakingPower", nextBreakingPower)
+        }
+      }
+      const breakingForward = new Vector3(0, 0, 1)
+      const breakingMovement = breakingForward.multiplyByFloats(nextBreakingPower, nextBreakingPower, nextBreakingPower)
+      breakingMovement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
+      world.update(entity, "breakingVelocity", breakingMovement)
+
       //// base speed
-      
       let currentVelocity = new Vector3(velocity.x, velocity.y, velocity.z)
       let newSpeed = currentVelocity.length()
       if (Math.abs(newSpeed - setSpeed) < cruiseAcceleration) {
@@ -94,6 +113,7 @@ export function moveCommandSystem(dt: number) {
       } else if (newSpeed > setSpeed) {
         newSpeed = Math.min(Math.max(currentSpeed - cruiseAcceleration, 0), setSpeed)
       }
+
       // world.update(entity, "currentSpeed", newSpeed)
       const forward = new Vector3(0, 0, -1)
       const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
@@ -106,7 +126,7 @@ export function moveCommandSystem(dt: number) {
 
 export function moveSystem() {
   for (const entity of queries.moving) {
-    const { position, velocity, driftVelocity, acceleration } = entity;
+    const { position, velocity, driftVelocity, breakingVelocity, acceleration } = entity;
     velocity.x += acceleration.x
     velocity.y += acceleration.y
     velocity.z += acceleration.z
@@ -121,6 +141,12 @@ export function moveSystem() {
       position.y += driftVelocity.y / 1000
       position.z += driftVelocity.z / 1000
       speed.addInPlace(new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z))
+    }
+    if (breakingVelocity != undefined) {
+      position.x += breakingVelocity.x / 1000
+      position.y += breakingVelocity.y / 1000
+      position.z += breakingVelocity.z / 1000
+      speed.addInPlace(new Vector3(breakingVelocity.x, breakingVelocity.y, breakingVelocity.z))
     }
     position.x += velocity.x / 1000
     position.y += velocity.y / 1000

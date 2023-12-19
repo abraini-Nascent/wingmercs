@@ -17,6 +17,8 @@ export const Dirk = Object.seal({
   yaw: 80,
   accelleration: 150,
   afterburnerAccelleration: 350,
+  breakingForce: 225,
+  breakingLimit: 200,
   cruiseSpeed: 450,
   maxSpeed: 1200,
   guns: [
