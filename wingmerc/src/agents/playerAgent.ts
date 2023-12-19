@@ -60,6 +60,10 @@ export class PlayerAgent {
     const mod = this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(16) ? true : false
     // "Z" [90]
     const drift = this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(90) ? true : false
+    if (drift) {
+      movementCommand.drift = 1
+    }
+
     // "UP" [38]
     if(this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(38)) {
       up = 1

@@ -9,6 +9,7 @@ export type MovementCommand = { pitch: number, roll: number, yaw: number, afterb
 export type Entity = {
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
+  afterburnerVelocity?: { x: number; y: number; z: number }
   driftVelocity?: { x: number; y: number; z: number }
   breakingPower?: number
   breakingVelocity?: { x: number; y: number; z: number }
