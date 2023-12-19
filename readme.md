@@ -38,12 +38,12 @@ We will build out the same space flight and combat features as classic WC
 
 ## TODO:
 ### initial publish of demo
-- [] flight model
-  - [] afterburner slide
-  - [] drift
-  - [] brake
-  - [] arcade constant speed/velocity
-  - [] roll pitch yaw independence
+- [x] flight model
+  - [x] afterburner slide
+  - [x] drift
+  - [x] brake
+  - [x] arcade constant speed/velocity
+  - [x] roll pitch yaw independence
 - [] gun projectile details
 - [] directional shield damage
   - [] render shield
