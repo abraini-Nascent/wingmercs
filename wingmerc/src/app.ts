@@ -28,7 +28,7 @@ import { ObjModels } from "./objModels";
 import { AsteroidScene } from "./map/asteroidScene";
 import { MenuGui } from "./gui/menuGui";
 import { PlayerAgent } from "./agents/playerAgent";
-import { moveCommandSystem, moveSystem, warpSystem } from "./world/systems/moveSystem";
+import { ArenaRadius, moveCommandSystem, moveSystem, warpSystem } from "./world/systems/moveSystem";
 import { updateRenderSystem } from "./world/systems/updateRenderSystem";
 import { cameraSystem } from "./world/systems/cameraSystem";
 import { netSyncClientSystem } from "./world/systems/netClientSystem";
@@ -95,13 +95,13 @@ class App {
     var material = new StandardMaterial("mat", scene);
     material.emissiveColor = Color3.White();
     material.wireframe = true
-    const boundrySphereOne = MeshBuilder.CreateSphere("boundry-1", { segments: 10, diameter: 500, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereOne = MeshBuilder.CreateSphere("boundry-1", { segments: 10, diameter: ArenaRadius*2, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereOne.material = material
     boundrySphereOne.rotationQuaternion = Quaternion.Identity()
-    const boundrySphereTwo = MeshBuilder.CreateSphere("boundry-2", { segments: 10, diameter: 506, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereTwo = MeshBuilder.CreateSphere("boundry-2", { segments: 10, diameter: ArenaRadius*2+6, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereTwo.material = material 
     boundrySphereTwo.rotationQuaternion = Quaternion.RotationAxisToRef(Vector3.Left(), DegreeToRadian(90), Quaternion.Identity());
-    const boundrySphereThree = MeshBuilder.CreateSphere("boundry-3", { segments: 10, diameter: 503, sideOrientation: Mesh.DOUBLESIDE })
+    const boundrySphereThree = MeshBuilder.CreateSphere("boundry-3", { segments: 10, diameter: ArenaRadius*2+3, sideOrientation: Mesh.DOUBLESIDE })
     boundrySphereThree.material = material
     boundrySphereThree.rotationQuaternion = Quaternion.RotationAxisToRef(new Vector3(0, 0, -1), DegreeToRadian(90), Quaternion.RotationAxisToRef(Vector3.Left(), DegreeToRadian(90), Quaternion.Identity()));
 
@@ -248,7 +248,7 @@ class App {
       }
       moveCommandSystem(delta)
       rotationalVelocitySystem()
-      moveSystem()
+      moveSystem(delta)
       particleSystem()
       warpSystem()
       if (this.server) {

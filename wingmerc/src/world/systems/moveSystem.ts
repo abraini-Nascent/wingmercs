@@ -151,28 +151,32 @@ export function moveSystem() {
     velocity.y += acceleration.y
     velocity.z += acceleration.z
 
+    // 16 ms per frame / 1000 = 0.0016 seconds per frame
+    // velocity of 2000mps * 0.0016 = 3.2 meters per frame
+    const deltaSeconds = dt / 1000
+    
     let speed = new Vector3(velocity.x, velocity.y, velocity.z).length()
     if (afterburnerVelocity != undefined) {
-      position.x += afterburnerVelocity.x / 1000
-      position.y += afterburnerVelocity.y / 1000
-      position.z += afterburnerVelocity.z / 1000
+      position.x += afterburnerVelocity.x * deltaSeconds
+      position.y += afterburnerVelocity.y * deltaSeconds
+      position.z += afterburnerVelocity.z * deltaSeconds
       speed += new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z).length()
     }
     if (driftVelocity != undefined) {
-      position.x += driftVelocity.x / 1000
-      position.y += driftVelocity.y / 1000
-      position.z += driftVelocity.z / 1000
+      position.x += driftVelocity.x * deltaSeconds
+      position.y += driftVelocity.y * deltaSeconds
+      position.z += driftVelocity.z * deltaSeconds
       // speed += new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z).length()
     }
     if (breakingVelocity != undefined) {
-      position.x += breakingVelocity.x / 1000
-      position.y += breakingVelocity.y / 1000
-      position.z += breakingVelocity.z / 1000
+      position.x += breakingVelocity.x * deltaSeconds
+      position.y += breakingVelocity.y * deltaSeconds
+      position.z += breakingVelocity.z * deltaSeconds
       speed -= new Vector3(breakingVelocity.x, breakingVelocity.y, breakingVelocity.z).length()
     }
-    position.x += velocity.x / 1000
-    position.y += velocity.y / 1000
-    position.z += velocity.z / 1000
+    position.x += velocity.x * deltaSeconds
+    position.y += velocity.y * deltaSeconds
+    position.z += velocity.z * deltaSeconds
     world.update(entity, "currentSpeed", speed)
   }
 }
