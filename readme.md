@@ -44,7 +44,14 @@ We will build out the same space flight and combat features as classic WC
   - [x] brake
   - [x] arcade constant speed/velocity
   - [x] roll pitch yaw independence
-- [] gun projectile details
+- [x] gun projectile details
+  - [x] add fire position to ship data
+  - [x] create fire command and fire system
+  - [x] fire from position on ship
+  - [x] add ship energy info to ship data
+  - [x] add projectile energy info to ship data
+  - [x] create ship energy system
+- [] basic ai
 - [] directional shield damage
   - [] render shield
 - [] directional hull damage
@@ -54,7 +61,6 @@ We will build out the same space flight and combat features as classic WC
   - [] system damage affects flight model
 - [] missile details
 - [] missile tracking
-- [] basic ai
 - [] ai vs ai dogfighting
 ### second demo
 - [] gamepad controls

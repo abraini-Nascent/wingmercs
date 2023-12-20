@@ -3,7 +3,7 @@
     "target": "es6", // choose our ECMA/JavaScript version (all modern browsers support ES6 so it's your best bet)
     "lib": [ // choose our default ECMA/libraries to import
       "dom", // mandatory for all browser-based apps
-      "es6" // mandatory for targeting ES6
+      "es2017" // mandatory for targeting ES2017
     ],
     "useDefineForClassFields": true, // enable latest ECMA runtime behavior with older ECMA/JavaScript versions (delete this line if target: "ESNext" or "ES2022"+)
     "module": "ESNext", // use the latest ECMA/JavaScript syntax for our import statements and such

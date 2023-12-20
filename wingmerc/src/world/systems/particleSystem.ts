@@ -15,6 +15,7 @@ export function particleSystem() {
     range.total += delta
     if (range.total >= range.max) {
       // end of the line
+      console.log("[ParticleSystem] end of line")
       world.remove(entity)
     }
   }

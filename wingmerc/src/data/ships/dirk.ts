@@ -24,15 +24,23 @@ export const Dirk = Object.seal({
   guns: [
     {
       type: "laser",
-      position: "",
+      position: {
+        x: -0.5,
+        y: -0.5,
+        z: -0.5
+      },
     },
     {
       type: "laser",
-      position: "",
+      position: {
+        x: 0.5,
+        y: -0.5,
+        z: -0.5
+      },
     }
   ],
   // todo:
-  //  position on mode
+  //  position on model
   weapons: [
     {
       type: "dumbfire",
@@ -42,5 +50,10 @@ export const Dirk = Object.seal({
       type: "heatseeking",
       count: 1
     }
-  ]
+  ],
+  // TODO: this should also act like guns and weapons where we pull in a type
+  engine: {
+    rate: 20,
+    maxCapacity: 200
+  }
 })

@@ -14,7 +14,7 @@ export function moveCommandSystem(dt: number) {
     const { movementCommand } = entity;
     
     if (movementCommand != undefined) {
-      console.log(new Vector3(velocity.x, velocity.y, velocity.z).length(), afterburnerVelocity != undefined ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z).length() : 0);
+      // console.log(new Vector3(velocity.x, velocity.y, velocity.z).length(), afterburnerVelocity != undefined ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z).length() : 0);
       // reset rotational velocity
       rotationalVelocity.pitch = 0
       rotationalVelocity.yaw = 0
@@ -144,7 +144,11 @@ export function moveCommandSystem(dt: number) {
   }
 }
 
-export function moveSystem() {
+/**
+ * 
+ * @param dt delta time in milliseconds
+ */
+export function moveSystem(dt: number) {
   for (const entity of queries.moving) {
     const { position, velocity, driftVelocity, afterburnerVelocity, breakingVelocity, acceleration } = entity;
     velocity.x += acceleration.x
@@ -181,7 +185,7 @@ export function moveSystem() {
   }
 }
 
-const ArenaRadius = 250;
+export const ArenaRadius = 2500;
 export function warpSystem() {
   for (const entity of queries.moving) {
     const { position, velocity, acceleration } = entity

@@ -6,6 +6,12 @@ import { rotationalVelocitySystem } from "./systems/rotationalVelocitySystem";
 import { ShapeType } from "@babylonjs/havok";
 
 export type MovementCommand = { pitch: number, roll: number, yaw: number, afterburner: number, drift: number, brake: number, deltaSpeed: number }
+export type FireCommand = { gun: number, weapon: number }
+export type ShipEngine = {
+  rate: number,
+  maxCapacity: number,
+  currentCapacity: number,
+}
 export type Entity = {
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
@@ -27,6 +33,7 @@ export type Entity = {
   meshColor?: { r: number, g: number, b: number, a: number }
   meshInstance?: InstancedMesh
   movementCommand?: MovementCommand,
+  fireCommand?: FireCommand,
   trail?: true
   trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
   trailMesh?: TrailMesh
@@ -45,10 +52,14 @@ export type Entity = {
   owner?: string // who owns the state of this entity
   relinquish?: boolean // give the state of the entity to the server
   damage?: number
-  gun?: {
-    delay: number,
-    delta: number,
+  guns?: {
+    [gunId: number]: {
+      class: string,
+      delta: number,
+      possition: { x: number, y: number, z: number }
+    }
   }
+  engine?: ShipEngine
   range?: { 
     max: number,
     total: number,
@@ -65,11 +76,13 @@ export const queries = {
   rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
   meshed: world.with("meshName"),
   physics: world.with("bodyType"),
-  guns: world.with("gun"),
+  guns: world.with("guns"),
+  engines: world.with("engine"),
   particle: world.with("range"),
   local: world.with("local"),
   players: world.with("playerId"),
-  trailers: world.with("trail", "node")
+  trailers: world.with("trail", "node"),
+  fireCommands: world.with("fireCommand"),
 }
 
 /**

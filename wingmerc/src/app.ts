@@ -36,9 +36,11 @@ import { netSyncServerSystem } from "./world/systems/netServerSystem";
 import { rotationalVelocitySystem } from "./world/systems/rotationalVelocitySystem";
 import { particleSystem } from "./world/systems/particleSystem";
 import { gunCooldownSystem } from "./world/systems/gunCooldownSystem";
+import "./world/systems/weaponsSystem";
 import { AppContainer } from "./app.container";
 import "./world/systems/updatePhysicsSystem";
 import { DegreeToRadian } from "./utils/math";
+import { engineRechargeSystem } from "./world/systems/engineRechargeSystem";
 const divFps = document.getElementById("fps");
 
 class App {
@@ -243,6 +245,7 @@ class App {
       }
       const delta = engine.getDeltaTime()
       gunCooldownSystem(delta)
+      engineRechargeSystem(delta)
       if (this.player) {
         this.player.checkInput(delta)
       }

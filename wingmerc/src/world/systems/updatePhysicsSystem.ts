@@ -39,6 +39,8 @@ queries.physics.onEntityAdded.subscribe(
 )
 const handleThing = (plugin: HavokPlugin) => {
   plugin.onCollisionObservable.add((collision) => {
+    console.log("[Collision]")
+    return
     // what are we going to do with collisions? this is like, every collision in the game
     const colliderEntity = world.entity(collision.collider.entityId)
     const collidedAgainstEntity = world.entity(collision.collidedAgainst.entityId)
@@ -47,43 +49,35 @@ const handleThing = (plugin: HavokPlugin) => {
     }
     setTimeout(() => {
       // damage
-    if (colliderEntity.health && collidedAgainstEntity.damage) {
-      colliderEntity.health -= collidedAgainstEntity.damage
-      world.update(collidedAgainstEntity, "damage", 0)
-      console.log("Bang")
-    }
-    if (colliderEntity.damage && collidedAgainstEntity.health) {
-      collidedAgainstEntity.health -= colliderEntity.damage
-      world.update(colliderEntity, "damage", 0)
-      console.log("Bang")
-    }
-    if (collidedAgainstEntity?.health <= 0) {
-      console.log("BOOM")
-      explodeAsteroid(collidedAgainstEntity)
-      world.remove(collidedAgainstEntity)
-    }
-    if (colliderEntity?.health <= 0) {
-      console.log("BOOM")
-      explodeAsteroid(colliderEntity)
-      world.remove(colliderEntity)
-    }
-    // remove spent bullets
-    if (colliderEntity.damage) {
-      world.remove(colliderEntity)
-      // we removed the entity but the mesh and physics still exist and can warp through things...
-    }
-    if (collidedAgainstEntity.damage) {
-      world.remove(collidedAgainstEntity)
-    }
+      if (colliderEntity.health && collidedAgainstEntity.damage) {
+        colliderEntity.health -= collidedAgainstEntity.damage
+        world.update(collidedAgainstEntity, "damage", 0)
+        console.log("Bang")
+      }
+      if (colliderEntity.damage && collidedAgainstEntity.health) {
+        collidedAgainstEntity.health -= colliderEntity.damage
+        world.update(colliderEntity, "damage", 0)
+        console.log("Bang")
+      }
+      if (collidedAgainstEntity?.health <= 0) {
+        console.log("BOOM")
+        explodeAsteroid(collidedAgainstEntity)
+        world.remove(collidedAgainstEntity)
+      }
+      if (colliderEntity?.health <= 0) {
+        console.log("BOOM")
+        explodeAsteroid(colliderEntity)
+        world.remove(colliderEntity)
+      }
+      // remove spent bullets
+      if (colliderEntity.damage) {
+        world.remove(colliderEntity)
+        // we removed the entity but the mesh and physics still exist and can warp through things...
+      }
+      if (collidedAgainstEntity.damage) {
+        world.remove(collidedAgainstEntity)
+      }
     }, 1)
-    
-
-    /** Questions?
-     * How do we handle side effects like explosions, asteroids breaking down and spawning new asteroids...
-     * 
-     * - for now we will handle it here, but in a timeout block so it can happen next event loop tick and not block the physics system
-     * */
-    
   })
 }
 if (AppContainer.instance.havokPlugin != undefined) {
