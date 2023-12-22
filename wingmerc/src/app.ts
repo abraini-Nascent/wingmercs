@@ -41,6 +41,7 @@ import { AppContainer } from "./app.container";
 import "./world/systems/updatePhysicsSystem";
 import { DegreeToRadian } from "./utils/math";
 import { engineRechargeSystem } from "./world/systems/engineRechargeSystem";
+import { aiSystem } from "./world/systems/aiSystem";
 const divFps = document.getElementById("fps");
 
 class App {
@@ -154,7 +155,7 @@ class App {
     let models: [string, string, string][] = [
       ["craftCargoA", "craft_cargoA", "/assets/craft_cargoA.glb"],
       ["craftCargoB", "craft_cargoB", "/assets/craft_cargoB.glb"],
-      ["craftSpeederA", "craft_speederA", "/assets/craft_speederA.glb"],
+      ["craftSpeederA", "craft_speederA", "/assets/craft_speederA_scaled.glb"],
       ["meteor", "meteor", "/assets/meteor.glb"],
       ["meteorHalf", "meteor_half", "/assets/meteor_half.glb"],
       ["meteorDetailed", "meteor_detailed", "/assets/meteor_detailed.glb"],
@@ -200,7 +201,7 @@ class App {
         console.log("[App] gui said start")
         this.server = true
         if (this.asteroidScene == undefined) {
-          this.asteroidScene = new AsteroidScene(10, 50)
+          this.asteroidScene = new AsteroidScene(10, ArenaRadius)
         }
         this.gui.close()
         this.gui = undefined
@@ -215,6 +216,7 @@ class App {
       }
       this.gui.setPeerId(net.id)
       this.player = new PlayerAgent(engine)
+      AppContainer.instance.player = this.player
     }
     Promise.all([
       new Promise((resolve) => {
@@ -249,6 +251,7 @@ class App {
       if (this.player) {
         this.player.checkInput(delta)
       }
+      aiSystem(delta)
       moveCommandSystem(delta)
       rotationalVelocitySystem()
       moveSystem(delta)
@@ -264,12 +267,12 @@ class App {
 
       // show debug axis
       // if (this.player?.playerEntity?.node) {
-      //   if (window.velocity == undefined) {
-      //     let ball = MeshBuilder.CreateBox("velocity", {
-      //       size: 5.0
-      //     })
-      //     window.velocity = ball
-      //   }
+      if (window.velocity == undefined) {
+        let ball = MeshBuilder.CreateBox("velocity", {
+          size: 1.0
+        })
+        window.velocity = ball
+      }
       //   if (window.driftVelocity == undefined) {
       //     let ball = MeshBuilder.CreateBox("driftVelocity", {
       //       size: 5.0

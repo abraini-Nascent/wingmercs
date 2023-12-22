@@ -2,6 +2,8 @@ import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
 import { Entity, world } from "../world/world";
 import { ObjModels } from "../objModels";
+import { Dirk } from "../data/ships";
+import { net } from "../net";
 
 function generateRandomPointInSphere(radius: number, random: () => number): Vector3 {
   const phi = random() * Math.PI * 2;
@@ -84,6 +86,26 @@ export class AsteroidScene {
         bodyType: "animated"
       })
     }
+
+    for (let i = 0; i < 3; i += 1) {
+      // const r = radius * Math.sqrt(random())
+      // const theta = random() * 2 * Math.PI
+      // const phi = random() * Math.PI;
+      // const x = r * Math.cos(theta)
+      // const z = r * Math.sin(theta)
+      // const y = r * Math.cos(phi)
+      
+
+      const r = radius * random()
+      const phi = random() * Math.PI * 2;
+      const costheta = 2 * random() - 1;
+      const theta = Math.acos(costheta);
+      const x = r * Math.sin(theta) * Math.cos(phi);
+      const y = r * Math.sin(theta) * Math.sin(phi);
+      const z = r * Math.cos(theta);
+      // add enemy ship
+      createEnemyShip(x, y, z)
+    }
   }
 }
 
@@ -150,4 +172,43 @@ export function explodeAsteroid(asteroid: Partial<Entity>) {
       bodyType: "animated"
     })
   }
+}
+
+export function createEnemyShip(x, y, z) {
+  const guns = Dirk.guns.reduce((guns, gun, index) => {
+    guns[index] = {
+      class: gun.type,
+      possition: { ...gun.position },
+      delta: 0
+    }
+    return guns
+  }, {})
+  const shipEngine = {
+    currentCapacity: Dirk.engine.maxCapacity,
+    maxCapacity: Dirk.engine.maxCapacity,
+    rate: Dirk.engine.rate,
+  }
+  const enemyEntity = world.add({
+    owner: net.id,
+    local: true,
+    ai: { type: "basic", blackboard: {} },
+    meshName: "craftSpeederA",
+    trail: true,
+    planeTemplate: "Dirk",
+    position: {x, y, z},
+    velocity: {x: 0, y: 0, z: 0},
+    setSpeed: Dirk.cruiseSpeed / 2,
+    currentSpeed: Dirk.cruiseSpeed / 2,
+    direction: {x: 0, y: 0, z: -1},
+    acceleration: {x: 0, y: 0, z: 0},
+    rotationalVelocity: {roll: 0, pitch: 0, yaw: 0},
+    rotationQuaternion: {w: 1, x: 0, y:0, z:0},
+    rotation: {x: 0, y: 0, z: -1},
+    health: 100,
+    totalScore: 0,
+    guns,
+    engine: shipEngine,
+    scale: { x: 2, y: 2, z: 2 }
+  })
+  return enemyEntity
 }

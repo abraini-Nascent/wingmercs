@@ -11,7 +11,7 @@ export class RubberbandCameraController {
   private followTarget: Vector3;
   follow: {position: Vector3, rotationQuaternion: Quaternion}; // type the duck
 
-  constructor(camera: TargetCamera, follow: {position: Vector3, rotationQuaternion: Quaternion}, radius: number = 5) {
+  constructor(camera: TargetCamera, follow: {position: Vector3, rotationQuaternion: Quaternion}, radius: number = 50) {
     this.camera = camera;
     this.radius = radius;
     this.follow = follow;

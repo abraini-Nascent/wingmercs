@@ -28,7 +28,7 @@ export class PlayerAgent {
     const playerEntity = world.add({
       owner: net.id,
       local: true,
-      meshName: "craftCargoA",
+      meshName: "craftSpeederA",
       trail: true,
       planeTemplate: planeTemplate,
       position: {x: 0, y: 0, z: 0},

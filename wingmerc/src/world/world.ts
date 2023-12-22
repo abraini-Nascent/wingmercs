@@ -13,6 +13,7 @@ export type ShipEngine = {
   currentCapacity: number,
 }
 export type Entity = {
+  ai?: { type: string, blackboard: {[key: string]: any} }
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
@@ -83,6 +84,7 @@ export const queries = {
   players: world.with("playerId"),
   trailers: world.with("trail", "node"),
   fireCommands: world.with("fireCommand"),
+  ai: world.with("ai"),
 }
 
 /**
