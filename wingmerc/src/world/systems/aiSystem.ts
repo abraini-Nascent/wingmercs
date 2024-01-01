@@ -49,16 +49,12 @@ export function aiSystem(dt: number) {
     //   cinamaticRoll = 1
     // }
     const brake = Math.abs(input.pitch) > 0.9 || Math.abs(input.yaw) > 0.9 ? 1 : 0
-    console.log("[AI] breaking", brake)
     world.update(entity, "rotationalVelocity", input)
     world.update(entity, "setSpeed", Dirk.cruiseSpeed)
     world.update(entity, "movementCommand", {
       pitch: input.pitch,
       yaw: input.yaw,
       roll: cinamaticRoll,
-      // pitch: 0,
-      // yaw: 0,
-      // roll: 0,
       deltaSpeed: 0,
       afterburner: 0,
       // brake: brake,

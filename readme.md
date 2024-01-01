@@ -51,19 +51,21 @@ We will build out the same space flight and combat features as classic WC
   - [x] add ship energy info to ship data
   - [x] add projectile energy info to ship data
   - [x] create ship energy system
-- [] basic ai
-- [] directional shield damage
-  - [] render shield
-- [] directional hull damage
-- [] - render hull damage effects
+- [x] basic ai
+- [x] directional shield damage
+  - [x] render shield
+  - [] render shield damage effects
+- [x] directional hull damage
+  - [] render hull damage effects
 - [] system damage
   - [] render system damage
   - [] system damage affects flight model
 - [] missile details
 - [] missile tracking
+- [x] space debris particle system for movement detection
 - [] ai vs ai dogfighting
 ### second demo
-- [] gamepad controls
+- [x] gamepad controls
 - [] joystick controls
 - [] vr controls
 - [] basic hud

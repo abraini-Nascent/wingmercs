@@ -1,9 +1,11 @@
 import { DeviceSourceManager, DeviceType, Engine, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
-import { Entity, FireCommand, MovementCommand, world } from "../world/world";
+import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, world } from "../world/world";
 import { DegreeToRadian } from "../utils/math";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
+import { Inspector } from "@babylonjs/inspector";
+import { AppContainer } from "../app.container";
 export class PlayerAgent {
   playerEntity: Entity
   dsm: DeviceSourceManager
@@ -11,7 +13,7 @@ export class PlayerAgent {
   onNode: () => void
 
   constructor(engine: Engine, planeTemplate: string = "dirk") {
-    
+
     const guns = Dirk.guns.reduce((guns, gun, index) => {
       guns[index] = {
         class: gun.type,
@@ -25,10 +27,25 @@ export class PlayerAgent {
       maxCapacity: Dirk.engine.maxCapacity,
       rate: Dirk.engine.rate,
     }
+    const shipShields: ShipShields = {
+      maxFore: Dirk.shields.fore,
+      currentFore: Dirk.shields.fore,
+      maxAft: Dirk.shields.aft,
+      currentAft: Dirk.shields.aft,
+      energyDrain: Dirk.shields.energyDrain,
+      rechargeRate: Dirk.shields.rechargeRate,
+    }
+    const shipArmor: ShipArmor = {
+      back: Dirk.armor.back,
+      front: Dirk.armor.front,
+      left: Dirk.armor.left,
+      right: Dirk.armor.right,
+    }
     const playerEntity = world.add({
       owner: net.id,
       local: true,
       meshName: "craftSpeederA",
+      // hullName: Dirk.hullModel,
       trail: true,
       planeTemplate: planeTemplate,
       position: {x: 0, y: 0, z: 0},
@@ -44,6 +61,8 @@ export class PlayerAgent {
       totalScore: 0,
       guns,
       engine: shipEngine,
+      shields: shipShields,
+      armor: shipArmor,
       playerId: net.id
     })
     this.playerEntity = playerEntity
@@ -132,7 +151,6 @@ export class PlayerAgent {
     }
 
     world.update(this.playerEntity, "movementCommand", movementCommand)
-    
     /// FIRE PROJECTILES
     // "ENTER" 13
     // "CONTROL" 17
@@ -141,11 +159,17 @@ export class PlayerAgent {
       fire  = 1
     }
     if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(17)) {
-    fire = 1
+      fire = 1
     }
     if (fire) {
       const fireCommand: FireCommand = { gun: 1, weapon: 0 }
       world.addComponent(this.playerEntity, "fireCommand", fireCommand) 
+    }
+
+    // "TILDE", // [176]
+    // ... YOUR SCENE CREATION
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(192)) {
+      Inspector.Show(AppContainer.instance.scene, {})
     }
   }
 }

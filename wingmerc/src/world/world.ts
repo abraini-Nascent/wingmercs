@@ -12,6 +12,20 @@ export type ShipEngine = {
   maxCapacity: number,
   currentCapacity: number,
 }
+export type ShipShields = {
+  maxFore: number,
+  maxAft: number,
+  currentFore: number,
+  currentAft: number,
+  rechargeRate: number,
+  energyDrain: number,
+}
+export type ShipArmor = {
+  front: number,
+  back: number,
+  left: number,
+  right: number,
+}
 export type Entity = {
   ai?: { type: string, blackboard: {[key: string]: any} }
   position?: { x: number; y: number; z: number }
@@ -29,6 +43,8 @@ export type Entity = {
   rotation?: {x: number; y: number; z: number}
   scale?: {x: number; y: number; z: number}
   asteroidSize?: number
+  hullName?: string
+  hullMesh?: Mesh
   meshName?: string
   mesh?: Mesh
   meshColor?: { r: number, g: number, b: number, a: number }
@@ -61,6 +77,8 @@ export type Entity = {
     }
   }
   engine?: ShipEngine
+  shields?: ShipShields
+  armor?: ShipArmor
   range?: { 
     max: number,
     total: number,
@@ -77,8 +95,10 @@ export const queries = {
   rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
   meshed: world.with("meshName"),
   physics: world.with("bodyType"),
+  colliders: world.with("body"),
   guns: world.with("guns"),
   engines: world.with("engine"),
+  shields: world.with("shields"),
   particle: world.with("range"),
   local: world.with("local"),
   players: world.with("playerId"),

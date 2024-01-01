@@ -1,17 +1,20 @@
 export const Dirk = Object.seal({
   name: "dirk",
   model: "craftSpeederA",
+  hullModel: "craftSpeederAHull",
   shields: {
-    fore: 50,
-    aft: 50
+    fore: 500,
+    aft: 500,
+    rechargeRate: 20,
+    energyDrain: 2,
   },
   armor: {
-    front: 25,
-    back: 22,
-    left: 20,
-    right: 20,
+    front: 250,
+    back: 220,
+    left: 200,
+    right: 200,
   },
-  health: 5,
+  health: 50,
   pitch: 80,
   roll: 80,
   yaw: 80,

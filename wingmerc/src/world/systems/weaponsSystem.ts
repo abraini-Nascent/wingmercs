@@ -72,7 +72,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
           width: 0.2,
           length: 2,
         },
-        bodyType: "animated"
+        // bodyType: "animated"
       });
     }
   }

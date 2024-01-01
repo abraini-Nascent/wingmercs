@@ -60,6 +60,22 @@ queries.meshed.onEntityAdded.subscribe(
         instanceMesh.isVisible = true
         // instanceMesh.setParent(newNode)
       }
+      if (entity.hullName) {
+        const hullMesh =  ObjModels[entity.hullName] as TransformNode
+        const hullChildren = hullMesh.getChildMeshes()
+        for (let mi = 0; mi < hullChildren.length; mi += 1) {
+          const mesh = hullChildren[mi]
+          // TODO: we could actually make instances instead of cloning
+          const instanceMesh = (mesh as Mesh).clone(`${entity.hullName}-hull-${i}-${mi}`, newNode)
+          const mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
+          mat.emissiveColor = new Color3(0, 0, 0.5)
+          mat.diffuseColor = new Color3(0, 0, 0.5)
+          mat.specularColor = Color3.Black()
+          mat.alpha = 0.25
+          instanceMesh.material = mat
+          instanceMesh.isVisible = true
+        }
+      }
       world.addComponent(entity, "node", newNode)
     }
   })()

@@ -1,4 +1,4 @@
-import { HavokPlugin, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShape, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
+import { HavokPlugin, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShape, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { ObjModels } from "../../objModels"
 import { AppContainer } from "../../app.container"
@@ -29,7 +29,24 @@ queries.physics.onEntityAdded.subscribe(
       const body = new PhysicsBody(node, physicsType, false, app.scene)
       // maybe intense but we need to let the body update to the nodes position
       body.disablePreStep = false
-      body.shape = new PhysicsShapeSphere(Vector3.Zero(), 1, app.scene)
+      // TODO this should be baked into the glb or a seperate matching glb instead of generated
+      // let meshes = node.getChildMeshes()
+      // meshes.shift()
+      // meshes = meshes.map((mesh) => mesh.clone("meh", node))
+      // meshes.forEach((mesh) => mesh.scaling = new Vector3(2, 2, 2))
+      // const wholeMesh = Mesh.MergeMeshes(meshes as Mesh[])
+      // const hullShape = new PhysicsShapeConvexHull(wholeMesh, app.scene)
+      // dispose of merged meshes
+      // meshes.forEach((mesh) => mesh.dispose())
+      // const sphereShape = new PhysicsShapeSphere(Vector3.Zero(), 1, app.scene)
+      let hullShape
+      if (entity.hullName) {
+        hullShape = (ObjModels[entity.hullName] as TransformNode).getChildMeshes()[0] as Mesh
+        hullShape = new PhysicsShapeMesh(hullShape, app.scene)
+      } else {
+        hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
+      }
+      body.shape = hullShape
       body.entityId = world.id(entity)
       body.setCollisionCallbackEnabled(true)
       world.addComponent(entity, "body", body)
@@ -39,7 +56,7 @@ queries.physics.onEntityAdded.subscribe(
 )
 const handleThing = (plugin: HavokPlugin) => {
   plugin.onCollisionObservable.add((collision) => {
-    console.log("[Collision]")
+    // console.log("[Collision]")
     return
     // what are we going to do with collisions? this is like, every collision in the game
     const colliderEntity = world.entity(collision.collider.entityId)

@@ -1,6 +1,7 @@
+import { ShipArmor } from './../world/world';
 import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
-import { Entity, world } from "../world/world";
+import { Entity, ShipArmor, ShipShields, world } from "../world/world";
 import { ObjModels } from "../objModels";
 import { Dirk } from "../data/ships";
 import { net } from "../net";
@@ -188,11 +189,27 @@ export function createEnemyShip(x, y, z) {
     maxCapacity: Dirk.engine.maxCapacity,
     rate: Dirk.engine.rate,
   }
+  const shipShields: ShipShields = {
+    maxFore: Dirk.shields.fore,
+    currentFore: Dirk.shields.fore,
+    maxAft: Dirk.shields.aft,
+    currentAft: Dirk.shields.aft,
+    energyDrain: Dirk.shields.energyDrain,
+    rechargeRate: Dirk.shields.rechargeRate,
+  }
+  const shipArmor: ShipArmor = {
+    back: Dirk.armor.back,
+    front: Dirk.armor.front,
+    left: Dirk.armor.left,
+    right: Dirk.armor.right,
+  }
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    ai: { type: "basic", blackboard: {} },
-    meshName: "craftSpeederA",
+    // ai: { type: "basic", blackboard: {} },
+    meshName: Dirk.model,
+    hullName: Dirk.hullModel,
+    bodyType: "animated",
     trail: true,
     planeTemplate: "Dirk",
     position: {x, y, z},
@@ -208,7 +225,9 @@ export function createEnemyShip(x, y, z) {
     totalScore: 0,
     guns,
     engine: shipEngine,
-    scale: { x: 2, y: 2, z: 2 }
+    shields: shipShields,
+    armor: shipArmor,
+    // scale: { x: 2, y: 2, z: 2 }
   })
   return enemyEntity
 }

@@ -17,13 +17,13 @@ export function rotationalVelocitySystem() {
     var axis = new Vector3(0, 0, -1);
     var partRotQuat  = new Quaternion();
 
-    Quaternion.RotationAxisToRef(axis, roll / 100, partRotQuat);
+    Quaternion.RotationAxisToRef(axis, toRadians(roll), partRotQuat);
     (rotationQuaternionB as Quaternion).multiplyInPlace(partRotQuat);
 
-    Quaternion.RotationAxisToRef(axis.set(-1, 0, 0), pitch / 100, partRotQuat);
+    Quaternion.RotationAxisToRef(axis.set(-1, 0, 0), toRadians(pitch), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
 
-    Quaternion.RotationAxisToRef(axis.set(0, 1, 0), yaw / 100, partRotQuat);
+    Quaternion.RotationAxisToRef(axis.set(0, 1, 0), toRadians(yaw), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
     
     rotationQuaternionB.toEulerAnglesToRef(rotationVec);
@@ -36,8 +36,14 @@ export function rotationalVelocitySystem() {
     rotation.y = rotationVec.y
     rotation.x = rotationVec.x
     rotation.z = rotationVec.z
-    direction.y = rotationVec.y
-    direction.x = rotationVec.x
-    direction.z = rotationVec.z
+    const forward = new Vector3(0, 0, -1)
+    forward.applyRotationQuaternionInPlace(rotationQuaternionB)
+    direction.y = forward.y
+    direction.x = forward.x
+    direction.z = forward.z
   }
+}
+
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180)
 }

@@ -22,6 +22,7 @@ import {
   Color3,
   Color4,
   LinesMesh,
+  FreeCamera,
 } from "@babylonjs/core"
 import { net } from "./net"
 import { ObjModels } from "./objModels";
@@ -42,6 +43,9 @@ import "./world/systems/updatePhysicsSystem";
 import { DegreeToRadian } from "./utils/math";
 import { engineRechargeSystem } from "./world/systems/engineRechargeSystem";
 import { aiSystem } from "./world/systems/aiSystem";
+import { shieldRechargeSystem } from "./world/systems/shieldRechargeSystem";
+import { InputAgent } from "./agents/inputAgent";
+import { SpaceDebrisAgent } from "./agents/spaceDebrisAgent";
 const divFps = document.getElementById("fps");
 
 class App {
@@ -49,6 +53,8 @@ class App {
   asteroidScene: AsteroidScene
   gui: MenuGui
   player: PlayerAgent
+  spaceDebris: SpaceDebrisAgent
+  input: InputAgent
   camera: TargetCamera
   server: boolean = false
   constructor() {
@@ -65,7 +71,9 @@ class App {
     const container = AppContainer.instance
     var engine = new Engine(canvas, false, { antialias: false }, false)
     var scene = new Scene(engine)
-    let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
+    // let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
+    const camera = new FreeCamera("sceneCamera", new Vector3(0, 0, 0), scene)
+    camera.inputs.clear();
     this.camera = camera
     var light1: HemisphericLight = new HemisphericLight(
       "light1",
@@ -156,6 +164,7 @@ class App {
       ["craftCargoA", "craft_cargoA", "/assets/craft_cargoA.glb"],
       ["craftCargoB", "craft_cargoB", "/assets/craft_cargoB.glb"],
       ["craftSpeederA", "craft_speederA", "/assets/craft_speederA_scaled.glb"],
+      ["craftSpeederAHull", "craft_speederA", "/assets/craft_speederA_hull.glb"],
       ["meteor", "meteor", "/assets/meteor.glb"],
       ["meteorHalf", "meteor_half", "/assets/meteor_half.glb"],
       ["meteorDetailed", "meteor_detailed", "/assets/meteor_detailed.glb"],
@@ -216,6 +225,8 @@ class App {
       }
       this.gui.setPeerId(net.id)
       this.player = new PlayerAgent(engine)
+      this.input = new InputAgent()
+      this.spaceDebris = new SpaceDebrisAgent(scene)
       AppContainer.instance.player = this.player
     }
     Promise.all([
@@ -247,9 +258,13 @@ class App {
       }
       const delta = engine.getDeltaTime()
       gunCooldownSystem(delta)
+      shieldRechargeSystem(delta)
       engineRechargeSystem(delta)
       if (this.player) {
         this.player.checkInput(delta)
+      }
+      if (this.input) {
+        this.input.checkInput(delta)
       }
       aiSystem(delta)
       moveCommandSystem(delta)
@@ -263,16 +278,19 @@ class App {
         netSyncClientSystem(delta)
       }
       updateRenderSystem()
+      if (this.spaceDebris) {
+        this.spaceDebris.update(delta)
+      }
       cameraSystem(this.player, this.camera)
 
       // show debug axis
       // if (this.player?.playerEntity?.node) {
-      if (window.velocity == undefined) {
-        let ball = MeshBuilder.CreateBox("velocity", {
-          size: 1.0
-        })
-        window.velocity = ball
-      }
+      // if (window.velocity == undefined) {
+      //   let ball = MeshBuilder.CreateBox("velocity", {
+      //     size: 1.0
+      //   })
+      //   window.velocity = ball
+      // }
       //   if (window.driftVelocity == undefined) {
       //     let ball = MeshBuilder.CreateBox("driftVelocity", {
       //       size: 5.0
