@@ -46,6 +46,7 @@ import { aiSystem } from "./world/systems/aiSystem";
 import { shieldRechargeSystem } from "./world/systems/shieldRechargeSystem";
 import { InputAgent } from "./agents/inputAgent";
 import { SpaceDebrisAgent } from "./agents/spaceDebrisAgent";
+import { RegisterDeathComes } from "./world/systems/deathRattleSystem";
 const divFps = document.getElementById("fps");
 
 class App {
@@ -83,6 +84,8 @@ class App {
     container.camera = camera
     container.engine = engine
     container.scene = scene
+
+    RegisterDeathComes()
     // skybox generated from
     //https://tools.wwwtyro.net/space-3d/index.html#animationSpeed=1&fov=80&nebulae=true&pointStars=true&resolution=256&seed=4ro5nl4knq80&stars=true&sun=true
     const skybox = MeshBuilder.CreateBox("skyBox", { size: 10000.0 }, scene);

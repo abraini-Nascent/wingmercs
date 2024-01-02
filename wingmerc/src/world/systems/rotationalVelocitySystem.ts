@@ -7,6 +7,7 @@ import { queries } from "../world";
  */
 export function rotationalVelocitySystem() {
   for (const { direction, rotation, rotationQuaternion, rotationalVelocity } of queries.rotating) {
+
     // change the raw objects to babylonjs classes
     // TODO: store these as babylon vecs in the world, this is a lot of instantiation
     let rotationVec = new Vector3(rotation.x, rotation.y, rotation.z);

@@ -79,6 +79,7 @@ export type Entity = {
   engine?: ShipEngine
   shields?: ShipShields
   armor?: ShipArmor
+  deathRattle?: boolean
   range?: { 
     max: number,
     total: number,
@@ -105,6 +106,7 @@ export const queries = {
   trailers: world.with("trail", "node"),
   fireCommands: world.with("fireCommand"),
   ai: world.with("ai"),
+  deathComes: world.with("deathRattle"),
 }
 
 /**

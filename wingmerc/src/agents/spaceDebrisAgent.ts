@@ -16,7 +16,7 @@ export class SpaceDebrisAgent {
 
   constructor(scene: Scene) {
     const myParticleSystem = new ParticleSystem("space_debris", CAPACITY, scene)
-    myParticleSystem.particleTexture = new Texture("assets/space_debris.png")
+    myParticleSystem.particleTexture = new Texture("assets/space_debris.png", scene, null, null, Texture.NEAREST_SAMPLINGMODE)
 
     myParticleSystem.emitter = Vector3.Zero()
     myParticleSystem.gravity = Vector3.Zero()

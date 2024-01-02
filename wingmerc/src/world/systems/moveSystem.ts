@@ -151,6 +151,7 @@ export function moveCommandSystem(dt: number) {
 export function moveSystem(dt: number) {
   for (const entity of queries.moving) {
     const { position, velocity, driftVelocity, afterburnerVelocity, breakingVelocity, acceleration } = entity;
+
     velocity.x += acceleration.x
     velocity.y += acceleration.y
     velocity.z += acceleration.z

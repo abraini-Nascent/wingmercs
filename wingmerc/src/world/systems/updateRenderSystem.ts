@@ -8,6 +8,7 @@ import { AppContainer } from "../../app.container"
  */
 export function updateRenderSystem() {
   for (const { position, node, rotationQuaternion, rotation, scale } of queries.updateRender) {
+
     let transform = node as TransformNode
     transform.position.x = position.x
     transform.position.y = position.y
