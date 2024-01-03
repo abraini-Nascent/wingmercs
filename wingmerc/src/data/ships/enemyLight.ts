@@ -1,29 +1,29 @@
-export const Dirk = Object.seal({
-  name: "dirk",
+export const EnemyLight = Object.seal({
+  name: "light_fighter",
   model: "craftSpeederA",
   hullModel: "craftSpeederAHull",
   shields: {
-    fore: 60,
-    aft: 60,
-    rechargeRate: 2,
-    energyDrain: 2,
+    fore: 50,
+    aft: 50,
+    rechargeRate: 3,
+    energyDrain: 3,
   },
   armor: {
-    front: 65,
-    back: 65,
-    left: 45,
-    right: 45,
+    front: 40,
+    back: 40,
+    left: 30,
+    right: 30,
   },
   health: 50,
   pitch: 80,
-  roll: 90,
+  roll: 80,
   yaw: 80,
-  accelleration: 150,
-  afterburnerAccelleration: 350,
-  breakingForce: 225,
-  breakingLimit: 200,
-  cruiseSpeed: 500,
-  maxSpeed: 1400,
+  accelleration: 30,
+  afterburnerAccelleration: 60,
+  breakingForce: 30,
+  breakingLimit: 100,
+  cruiseSpeed: 400,
+  maxSpeed: 1200,
   guns: [
     {
       type: "laser",
@@ -47,10 +47,6 @@ export const Dirk = Object.seal({
   weapons: [
     {
       type: "dumbfire",
-      count: 2
-    },
-    {
-      type: "heatseeking",
       count: 1
     }
   ],

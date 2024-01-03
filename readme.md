@@ -34,7 +34,9 @@ We will build out the same space flight and combat features as classic WC
 - independent pitch, roll, and yaw rates
 - independent acceleration, velocity, and direction
 - current speed up to max "cruise" speed of the plane always follows direction of plane
+- brake to temporarily slow down to make tighter turns
 - "drift" using afterburner slide. Afterburner acceleration and velocity over the speed limit of the plane does not match the direction of the plane
+- "drift" by cutting off the lock between direction of the plane and "cruise" speed
 
 ## TODO:
 ### initial publish of demo
@@ -56,7 +58,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] render shield
   - [] render shield damage effects
 - [x] directional hull damage
-  - [] render hull damage effects
+  - [x] render hull damage effects
 - [] system damage
   - [] render system damage
   - [] system damage affects flight model

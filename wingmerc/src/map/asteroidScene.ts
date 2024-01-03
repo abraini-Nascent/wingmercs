@@ -2,7 +2,7 @@ import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
 import { Entity, ShipArmor, ShipShields, world } from "../world/world";
 import { ObjModels } from "../objModels";
-import { Dirk } from "../data/ships";
+import { EnemyLight } from "../data/ships";
 import { net } from "../net";
 
 function generateRandomPointInSphere(radius: number, random: () => number): Vector3 {
@@ -175,7 +175,7 @@ export function explodeAsteroid(asteroid: Partial<Entity>) {
 }
 
 export function createEnemyShip(x, y, z) {
-  const guns = Dirk.guns.reduce((guns, gun, index) => {
+  const guns = EnemyLight.guns.reduce((guns, gun, index) => {
     guns[index] = {
       class: gun.type,
       possition: { ...gun.position },
@@ -184,37 +184,37 @@ export function createEnemyShip(x, y, z) {
     return guns
   }, {})
   const shipEngine = {
-    currentCapacity: Dirk.engine.maxCapacity,
-    maxCapacity: Dirk.engine.maxCapacity,
-    rate: Dirk.engine.rate,
+    currentCapacity: EnemyLight.engine.maxCapacity,
+    maxCapacity: EnemyLight.engine.maxCapacity,
+    rate: EnemyLight.engine.rate,
   }
   const shipShields: ShipShields = {
-    maxFore: Dirk.shields.fore,
-    currentFore: Dirk.shields.fore,
-    maxAft: Dirk.shields.aft,
-    currentAft: Dirk.shields.aft,
-    energyDrain: Dirk.shields.energyDrain,
-    rechargeRate: Dirk.shields.rechargeRate,
+    maxFore: EnemyLight.shields.fore,
+    currentFore: EnemyLight.shields.fore,
+    maxAft: EnemyLight.shields.aft,
+    currentAft: EnemyLight.shields.aft,
+    energyDrain: EnemyLight.shields.energyDrain,
+    rechargeRate: EnemyLight.shields.rechargeRate,
   }
   const shipArmor: ShipArmor = {
-    back: Dirk.armor.back,
-    front: Dirk.armor.front,
-    left: Dirk.armor.left,
-    right: Dirk.armor.right,
+    back: EnemyLight.armor.back,
+    front: EnemyLight.armor.front,
+    left: EnemyLight.armor.left,
+    right: EnemyLight.armor.right,
   }
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
     ai: { type: "basic", blackboard: {} },
-    meshName: Dirk.model,
-    hullName: Dirk.hullModel,
+    meshName: EnemyLight.model,
+    hullName: EnemyLight.hullModel,
     bodyType: "animated",
     trail: true,
-    planeTemplate: "Dirk",
+    planeTemplate: "EnemyLight",
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},
-    setSpeed: Dirk.cruiseSpeed / 2,
-    currentSpeed: Dirk.cruiseSpeed / 2,
+    setSpeed: EnemyLight.cruiseSpeed / 2,
+    currentSpeed: EnemyLight.cruiseSpeed / 2,
     direction: {x: 0, y: 0, z: -1},
     acceleration: {x: 0, y: 0, z: 0},
     rotationalVelocity: {roll: 0, pitch: 0, yaw: 0},
