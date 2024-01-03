@@ -188,6 +188,7 @@ export function moveSystem(dt: number) {
 
 export const ArenaRadius = 2500;
 export function warpSystem() {
+  return;
   for (const entity of queries.moving) {
     const { position, velocity, acceleration } = entity
     const posVec = new Vector3(position.x, position.y, position.z)

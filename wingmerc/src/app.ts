@@ -94,18 +94,23 @@ class App {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     const skycube = new CubeTexture("assets/skybox", scene, null, true, 
-    //px, py, pz, nx, ny, nz
-    ["assets/skybox/skybox_right.png", "assets/skybox/skybox_top.png", "assets/skybox/skybox_front.png", "assets/skybox/skybox_left.png", "assets/skybox/skybox_bottom.png", "assets/skybox/skybox_back.png"],
+      //px, py, pz, nx, ny, nz
+      ["assets/skybox/skybox_right.png", "assets/skybox/skybox_top.png", "assets/skybox/skybox_front.png", "assets/skybox/skybox_left.png", "assets/skybox/skybox_bottom.png", "assets/skybox/skybox_back.png"],
+      () => {
+        skycube.updateSamplingMode(Texture.NEAREST_NEAREST);
+      }
     );
-    skycube.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE);
+    skycube.anisotropicFilteringLevel = 0;
     skycube.wrapU = Texture.CLAMP_ADDRESSMODE;
     skycube.wrapV = Texture.CLAMP_ADDRESSMODE;
     skycube.wrapR = Texture.CLAMP_ADDRESSMODE;
+    skybox.infiniteDistance = true
     skyboxMaterial.reflectionTexture = skycube
     skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
     skybox.renderingGroupId = 0;
 
-    // boundy sphere
+    // boundy spheres
+    /*
     var material = new StandardMaterial("mat", scene);
     material.emissiveColor = Color3.White();
     material.wireframe = true
@@ -147,7 +152,7 @@ class App {
         rotationQuaternionB.toEulerAnglesToRef(rotationVec);
       }
     })
-
+    */
     // hide/show the Inspector
     window.addEventListener("keydown", (ev) => {
       // Shift+Ctrl+Alt+I
