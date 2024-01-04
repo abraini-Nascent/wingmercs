@@ -14,6 +14,70 @@ export const EnemyLight = Object.seal({
     left: 30,
     right: 30,
   },
+  systems: {
+    quadrant: {
+      fore: [
+        {
+          system: "guns",
+          weight: 1
+        },
+        {
+          system: "radar",
+          weight: 1
+        },
+        {
+          system: "thrusters",
+          weight: 1
+        },
+        {
+          system: "targeting",
+          weight: 1
+        },
+        {
+          system: "weapons",
+          weight: 1
+        },
+
+      ],
+      aft: [
+        {
+          system: "afterburners",
+          weight: 1
+        },
+        {
+          system: "thrusters",
+          weight: 1
+        },
+        {
+          system: "engines",
+          weight: 1
+        },
+        {
+          system: "battery",
+          weight: 1
+        },
+        {
+          system: "shield",
+          weight: 1
+        },
+        {
+          system: "power",
+          weight: 1
+        },
+      ]
+    },
+    base: {
+      thrusters: 25,
+      engines: 25,
+      power: 25,
+      battery: 25,
+      shield: 25,
+      radar: 25,
+      targeting: 25,
+      guns: 25,
+      weapons: 50,
+    }
+  },
   health: 50,
   pitch: 80,
   roll: 80,

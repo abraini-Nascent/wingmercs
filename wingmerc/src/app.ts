@@ -235,7 +235,8 @@ class App {
       this.player = new PlayerAgent(engine)
       this.input = new InputAgent()
       this.spaceDebris = new SpaceDebrisAgent(scene)
-      AppContainer.instance.player = this.player
+      AppContainer.instance.player = this.player;
+      (window as any).appContainer = AppContainer.instance
     }
     Promise.all([
       new Promise((resolve) => {

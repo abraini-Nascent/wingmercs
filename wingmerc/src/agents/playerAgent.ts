@@ -1,5 +1,5 @@
 import { DeviceSourceManager, DeviceType, Engine, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
-import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, world } from "../world/world";
+import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { DegreeToRadian } from "../utils/math";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
@@ -41,6 +41,42 @@ export class PlayerAgent {
       left: Dirk.armor.left,
       right: Dirk.armor.right,
     }
+    const shipSystems: ShipSystems = {
+      quadrant: {
+        fore: JSON.parse(JSON.stringify(Dirk.systems.quadrant.fore)) as {
+          system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
+          weight: number
+        }[], // :\
+        aft: JSON.parse(JSON.stringify(Dirk.systems.quadrant.fore)) as {
+          system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
+          weight: number
+        }[] // why you gotta be to awkward there bud :\
+      },
+      state: {
+        afterburners: Dirk.systems.base.afterburners,
+        thrusters: Dirk.systems.base.thrusters,
+        engines: Dirk.systems.base.engines,
+        power: Dirk.systems.base.power,
+        battery: Dirk.systems.base.battery,
+        shield: Dirk.systems.base.shield,
+        radar: Dirk.systems.base.radar,
+        targeting: Dirk.systems.base.targeting,
+        guns: Dirk.systems.base.guns,
+        weapons: Dirk.systems.base.weapons,
+      },
+      base: {
+        afterburners: Dirk.systems.base.afterburners,
+        thrusters: Dirk.systems.base.thrusters,
+        engines: Dirk.systems.base.engines,
+        power: Dirk.systems.base.power,
+        battery: Dirk.systems.base.battery,
+        shield: Dirk.systems.base.shield,
+        radar: Dirk.systems.base.radar,
+        targeting: Dirk.systems.base.targeting,
+        guns: Dirk.systems.base.guns,
+        weapons: Dirk.systems.base.weapons,
+      }
+    }
     const playerEntity = world.add({
       owner: net.id,
       local: true,
@@ -63,6 +99,7 @@ export class PlayerAgent {
       engine: shipEngine,
       shields: shipShields,
       armor: shipArmor,
+      systems: shipSystems,
       playerId: net.id
     })
     this.playerEntity = playerEntity

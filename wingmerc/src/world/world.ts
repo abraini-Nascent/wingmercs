@@ -26,6 +26,42 @@ export type ShipArmor = {
   left: number,
   right: number,
 }
+export type ShipSystems = {
+  quadrant: {
+    fore: {
+      system: "afterburners"|"battery"|"engines"|"guns"|"power"|"radar"|"shield"|"targeting"|"thrusters"|"weapons",
+      weight: number
+    }[],
+    aft: {
+      system: "afterburners"|"battery"|"engines"|"guns"|"power"|"radar"|"shield"|"targeting"|"thrusters"|"weapons",
+      weight: number
+    }[]
+  },
+  state: {
+    afterburners: number,
+    battery: number,
+    engines: number,
+    guns: number,
+    power: number,
+    radar: number,
+    shield: number,
+    targeting: number,
+    thrusters: number,
+    weapons: number,
+  },
+  base: {
+    afterburners: number,
+    battery: number,
+    engines: number,
+    guns: number,
+    power: number,
+    radar: number,
+    shield: number,
+    targeting: number,
+    thrusters: number,
+    weapons: number,
+  }
+}
 export type Entity = {
   ai?: { type: string, blackboard: {[key: string]: any} }
   position?: { x: number; y: number; z: number }
@@ -78,6 +114,7 @@ export type Entity = {
   }
   engine?: ShipEngine
   shields?: ShipShields
+  systems?: ShipSystems
   armor?: ShipArmor
   deathRattle?: boolean
   range?: { 

@@ -29,6 +29,7 @@ We will build out the same space flight and combat features as classic WC
   - Power Plant: weapon energy and shield recovery time
   - Shield Gen: max shield value
   - Radar: displaying enemy type, damage, and distance
+  - Targeting: if the player can lock onto a target, increase time to get missile lock
   - Guns & Weapons: removes capability to use them
 #### Flight Model
 - independent pitch, roll, and yaw rates
@@ -54,24 +55,34 @@ We will build out the same space flight and combat features as classic WC
   - [x] add projectile energy info to ship data
   - [x] create ship energy system
 - [x] basic ai
+  - [ ] ai shoots at target
+  - [ ] ai launches missiles
+  - [ ] ai chooses target
 - [x] directional shield damage
   - [x] render shield
-  - [] render shield damage effects
+  - [x] render shield damage effects
 - [x] directional hull damage
   - [x] render hull damage effects
-- [] system damage
-  - [] render system damage
-  - [] system damage affects flight model
+- [x] system damage
+  - [x] render system damage
+  - [x] system damage affects flight model
+  - [x] system damage affects power and shields
+  - [ ] system damage destroys guns and weapons
+  - [ ] system damage affects targeting and radar
 - [] missile details
 - [] missile tracking
 - [x] space debris particle system for movement detection
-- [] ai vs ai dogfighting
-### second demo
+- [] ai vs ai dogfighting demo mode
+- [] dynamically load ship stats from data files (unhardcode values)
+- [] basic hud
 - [x] gamepad controls
+- [] respawn killed ships
+- [] heal player every three dead ships
+### second demo
 - [] joystick controls
 - [] vr controls
-- [] basic hud
-- [] ai horde wave missions
+- [] configurable hud
+- [] ai horde wave missions with points
 ### third demo
 - [] configurable ships
 - [] configurable enemies

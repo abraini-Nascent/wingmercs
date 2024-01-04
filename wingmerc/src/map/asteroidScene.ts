@@ -1,6 +1,6 @@
 import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
-import { Entity, ShipArmor, ShipShields, world } from "../world/world";
+import { Entity, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { ObjModels } from "../objModels";
 import { EnemyLight } from "../data/ships";
 import { net } from "../net";
@@ -202,6 +202,42 @@ export function createEnemyShip(x, y, z) {
     left: EnemyLight.armor.left,
     right: EnemyLight.armor.right,
   }
+  const shipSystems: ShipSystems = {
+    quadrant: {
+      fore: JSON.parse(JSON.stringify(EnemyLight.systems.quadrant.fore)) as {
+        system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
+        weight: number
+      }[], // :\
+      aft: JSON.parse(JSON.stringify(EnemyLight.systems.quadrant.fore)) as {
+        system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
+        weight: number
+      }[] // why you gotta be to awkward there bud :\
+    },
+    state: {
+      afterburners: EnemyLight.systems.base.thrusters,
+      thrusters: EnemyLight.systems.base.thrusters,
+      engines: EnemyLight.systems.base.engines,
+      power: EnemyLight.systems.base.power,
+      battery: EnemyLight.systems.base.battery,
+      shield: EnemyLight.systems.base.shield,
+      radar: EnemyLight.systems.base.radar,
+      targeting: EnemyLight.systems.base.targeting,
+      guns: EnemyLight.systems.base.guns,
+      weapons: EnemyLight.systems.base.weapons,
+    },
+    base: {
+      afterburners: EnemyLight.systems.base.thrusters,
+      thrusters: EnemyLight.systems.base.thrusters,
+      engines: EnemyLight.systems.base.engines,
+      power: EnemyLight.systems.base.power,
+      battery: EnemyLight.systems.base.battery,
+      shield: EnemyLight.systems.base.shield,
+      radar: EnemyLight.systems.base.radar,
+      targeting: EnemyLight.systems.base.targeting,
+      guns: EnemyLight.systems.base.guns,
+      weapons: EnemyLight.systems.base.weapons,
+    }
+  }
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
@@ -226,6 +262,7 @@ export function createEnemyShip(x, y, z) {
     engine: shipEngine,
     shields: shipShields,
     armor: shipArmor,
+    systems: shipSystems,
     // scale: { x: 2, y: 2, z: 2 }
   })
   return enemyEntity

@@ -14,6 +14,71 @@ export const Dirk = Object.seal({
     left: 45,
     right: 45,
   },
+  systems: {
+    quadrant: {
+      fore: [
+        {
+          system: "guns",
+          weight: 1
+        },
+        {
+          system: "radar",
+          weight: 1
+        },
+        {
+          system: "thrusters",
+          weight: 1
+        },
+        {
+          system: "targeting",
+          weight: 1
+        },
+        {
+          system: "weapons",
+          weight: 1
+        },
+
+      ],
+      aft: [
+        {
+          system: "afterburners",
+          weight: 1
+        },
+        {
+          system: "thrusters",
+          weight: 1
+        },
+        {
+          system: "engines",
+          weight: 1
+        },
+        {
+          system: "battery",
+          weight: 1
+        },
+        {
+          system: "shield",
+          weight: 1
+        },
+        {
+          system: "power",
+          weight: 1
+        },
+      ]
+    },
+    base: {
+      afterburners: 50,
+      thrusters: 50,
+      engines: 50,
+      power: 50,
+      battery: 50,
+      shield: 50,
+      radar: 50,
+      targeting: 50,
+      guns: 50,
+      weapons: 50,
+    }
+  },
   health: 50,
   pitch: 80,
   roll: 90,

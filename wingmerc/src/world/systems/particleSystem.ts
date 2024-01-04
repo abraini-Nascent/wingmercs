@@ -1,6 +1,7 @@
 import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vector3 } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
+import { RouletteSelectionStochastic, rand, random } from "../../utils/random"
 
 export function particleSystem() {
   for (const entity of queries.particle) {
@@ -64,10 +65,10 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
     // find signed angle of flat vector
     const incomingRadians = Vector3.GetAngleBetweenVectors(Vector3.Forward(true), flatVector, Vector3.Up())
     const incomingDegrees = ToDegree(incomingRadians)
-
+    const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
     if (hitEntity.shields != undefined) {
       console.log("hit from incoming angle", incomingDegrees)
-      if (Math.abs(incomingDegrees) < 90 && hitEntity.shields.currentFore >= 0) {
+      if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
         hitEntity.shields.currentFore -= damage
         if (hitEntity.shields.currentFore < 0) {
           damage = Math.abs(hitEntity.shields.currentFore)
@@ -79,7 +80,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         if (damage == 0) {
           ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         }
-      } else if (Math.abs(incomingDegrees) >= 90 && hitEntity.shields.currentAft >= 0) {
+      } else if (quadrant == "aft" && hitEntity.shields.currentAft >= 0) {
         hitEntity.shields.currentAft -= damage
         if (hitEntity.shields.currentAft < 0) {
           damage = Math.abs(hitEntity.shields.currentAft)
@@ -130,7 +131,35 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         // start knocking down system health
         if (damage > 0 && hitEntity.health != undefined) {
-          hitEntity.health -= damage
+          /*
+          https://www.wcnews.com/news/update/14668#:~:text=The%20amount%20of%20internal%20damage,and%20additional%20generic%20ship%20damage.
+          Unnamed Character:
+          The ship starts taking generic ship damage as well as damage to specific ship components.
+          The damage is determined at random and by the quadrant hit. For example, 
+          a hit on the front quadrant can result in destroying to the ship computer, 
+          losing communication, losing a weapon; a hit on the rear quadrant can result 
+          in damage to the fuel tank, the engine; the shield generator can be destroyed 
+          from any quadrant; etc. The ship also accumulates generic damage and will be 
+          destroyed when the upper limit is reached; the upper limit also varies by ship type
+          */
+          /* I don't know what the random damage calculation should be, so I'm going to go with another origin systems damage model:
+          in ultima underworld damage is split into a bunch of d6's and 1 to any remainder,
+          this means hitting certain thesholds quarentees minimum damage
+           */
+          damage = Math.round(damage)
+          const d6 = Math.floor(damage / 6)
+          const remaining = damage - (d6 * 6)
+          let randomDamage = 0
+          for (let i = 0; i < d6; i += 1) {
+            randomDamage += rand(1, 6)
+          }
+          if (remaining > 0) {
+            randomDamage += rand(1, remaining)
+          }
+          hitEntity.health -= randomDamage
+          const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
+          hitEntity.systems.state[damagedSystem] -= randomDamage
+          // TODO: weapons and guns systems should be handled specially to pick a random weapon or gun to damage
           // double up particle effects and play a different sound
           ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
           if (hitEntity.health <= 0 && hitEntity.deathRattle == undefined) {
@@ -200,4 +229,11 @@ function ConeParticleEmitter(texture: string, point: Vector3, scene: Scene) {
   particleSystem.disposeOnStop = true
   // Start the particle system
   particleSystem.start()
+}
+
+function selectSystemForQuadrant(entity: Entity, quadrant: "fore" | "aft") {
+  const systems = entity.systems.quadrant[quadrant]
+  const weights = systems.map((system) => { return system.weight })
+  const index = RouletteSelectionStochastic(weights)
+  return systems[index].system
 }

@@ -10,9 +10,17 @@ import { Dirk } from '../../data/ships';
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moving) {
-    const { position, acceleration, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, setSpeed, currentSpeed } = entity;
+    const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed } = entity;
+    let { setSpeed } = entity;
     const { movementCommand } = entity;
     
+    // scale back speeds based on damage, minimum 20% capability even if destroyed
+    const maxDamagedSpeed = Dirk.maxSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
+    const maxDamagedCruiseSpeed = Dirk.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
+    if (maxDamagedCruiseSpeed < setSpeed) {
+      setSpeed = maxDamagedCruiseSpeed
+      world.update(entity, "setSpeed", setSpeed)
+    }
     if (movementCommand != undefined) {
       // console.log(new Vector3(velocity.x, velocity.y, velocity.z).length(), afterburnerVelocity != undefined ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z).length() : 0);
       // reset rotational velocity
@@ -22,11 +30,9 @@ export function moveCommandSystem(dt: number) {
       //// change direction of the ship...
       if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
 
-        // TODO: take damage into consideration, damage to thrusters reduces turn rates
-        // TODO: get the ship stats from the entity
-        let pitchSpeed = Dirk.pitch // Degrees per second
-        let yawSpeed   = Dirk.yaw   // Degrees per second
-        let rollSpeed  = Dirk.roll  // Degrees per second
+        let pitchSpeed = Dirk.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 10% capability even if "destroyed"
+        let yawSpeed   = Dirk.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))   // Degrees per second, min 10% capability even if "destroyed"
+        let rollSpeed  = Dirk.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))  // Degrees per second, min 10% capability even if "destroyed"
         // Positive for down, negative for up
         const deltaPitch = (((pitchSpeed * (movementCommand.pitch ?? 0))) / 1000) * dt;
         // Positive for right, negative for left
@@ -42,18 +48,18 @@ export function moveCommandSystem(dt: number) {
 
       //// change speed of the ship
       // TODO: this should take into consideration damage
-      const cruiseAcceleration = (Dirk.accelleration / 1000) * dt
-      const afterburnerAcceleration = (Dirk.afterburnerAccelleration / 1000) * dt
-      const breakAcceleration = (Dirk.breakingForce / 1000) * dt
+      const cruiseAcceleration = (Dirk.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
+      const afterburnerAcceleration = (Dirk.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
+      const breakAcceleration = (Dirk.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       if (movementCommand.afterburner) {
 
-        let maxAfterburner = Dirk.maxSpeed - setSpeed
+        let maxAfterburner = maxDamagedSpeed - setSpeed
         let afterburner = afterburnerVelocity ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z) : Vector3.Zero();
         let currentAfterburner = afterburner.length()
         // TODO: this should take into consideration damage
-        let newSpeed = Dirk.maxSpeed;
+        let newSpeed = maxDamagedSpeed;
         if (currentAfterburner < maxAfterburner) {
-          newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, Dirk.maxSpeed)
+          newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, maxDamagedSpeed)
         }
         const forward = new Vector3(0, 0, -1)
         const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
