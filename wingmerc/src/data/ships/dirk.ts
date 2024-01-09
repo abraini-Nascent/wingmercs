@@ -111,12 +111,12 @@ export const Dirk = Object.seal({
   //  position on model
   weapons: [
     {
-      type: "dumbfire",
+      type: "heatseeking",
       count: 2
     },
     {
       type: "heatseeking",
-      count: 1
+      count: 2
     }
   ],
   // TODO: this should also act like guns and weapons where we pull in a type

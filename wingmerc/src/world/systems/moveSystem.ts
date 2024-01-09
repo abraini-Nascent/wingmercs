@@ -9,7 +9,7 @@ import { Dirk } from '../../data/ships';
  * @param dt delta time in milliseconds
  */
 export function moveCommandSystem(dt: number) {
-  for (const entity of queries.moving) {
+  for (const entity of queries.moveCommanded) {
     const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed } = entity;
     let { setSpeed } = entity;
     const { movementCommand } = entity;

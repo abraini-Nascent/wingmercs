@@ -1,10 +1,4 @@
 import { DeviceSourceManager, DeviceType, Engine, ParticleSystem, Quaternion, Scene, Texture, TransformNode, Vector3 } from "@babylonjs/core";
-import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, world } from "../world/world";
-import { DegreeToRadian } from "../utils/math";
-import { net } from "../net";
-import { Dirk } from "../data/ships";
-import * as Guns from "../data/guns";
-import { Inspector } from "@babylonjs/inspector";
 import { AppContainer } from "../app.container";
 
 const CAPACITY = 300

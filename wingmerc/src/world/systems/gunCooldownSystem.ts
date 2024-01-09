@@ -11,4 +11,11 @@ export function gunCooldownSystem(dt: number) {
       }
     }
   }
+  for (const entity of queries.weapons) {
+    const { weapons } = entity
+    weapons.delta -= dt
+    if (weapons.delta < 0) {
+      weapons.delta = 0
+    }
+  }
 }

@@ -36,7 +36,6 @@ export class InputAgent {
     const drift = 0
     
     if (gamepad.buttonA) {
-      console.log("[A]")
       this.driftTime += dt
       if (this.driftTime > DriftThreshold) {
         movementCommand.drift = 1
@@ -82,12 +81,15 @@ export class InputAgent {
 
     world.update(AppContainer.instance.player.playerEntity, "movementCommand", movementCommand)
 
-    const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0 }
+    const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0, lock: false }
     if (gamepad.rightTrigger > 0.2) {
       fireCommand.gun = 1
     }
-    if (gamepad.buttonY) {
+    if (gamepad.buttonX) {
       fireCommand.weapon = 1
+    }
+    if (gamepad.buttonY) {
+      fireCommand.lock = true
     }
     world.update(AppContainer.instance.player.playerEntity, "fireCommand", fireCommand)
   }

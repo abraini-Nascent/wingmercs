@@ -1,13 +1,15 @@
-import { Color3, Mesh, Quaternion, StandardMaterial, TrailMesh, TransformNode } from "@babylonjs/core"
+import { Color3, Material, Mesh, MeshBuilder, Quaternion, StandardMaterial, TrailMesh, TransformNode } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { ObjModels } from "../../objModels"
 import { AppContainer } from "../../app.container"
 
+
+let targetingBox: Mesh
 /**
  * applies the entity's component details to the babylonjs transform node
  */
 export function updateRenderSystem() {
-  for (const { position, node, rotationQuaternion, rotation, scale } of queries.updateRender) {
+  for (const { position, node, rotationQuaternion, rotation, scale, targeting } of queries.updateRender) {
 
     let transform = node as TransformNode
     transform.position.x = position.x
@@ -28,6 +30,26 @@ export function updateRenderSystem() {
     if (scale != undefined) {
       transform.scaling.set(scale.x, scale.y, scale.z)
     }
+
+    // temp hack for now
+    if (targeting != undefined) {
+      if (targetingBox == undefined) {
+        targetingBox = MeshBuilder.CreateBox("targetingBox", {size: 10})
+        const mat = new StandardMaterial("targeting box mat")
+        mat.diffuseColor = new Color3(1, 0, 0)
+        mat.emissiveColor = new Color3(1, 0 ,0)
+        mat.specularColor = new Color3(0,0,0)
+        targetingBox.material = mat
+      }
+      if (targeting.gunInterceptPosition != undefined) {
+        targetingBox.position.x = targeting.gunInterceptPosition.x
+        targetingBox.position.y = targeting.gunInterceptPosition.y
+        targetingBox.position.z = targeting.gunInterceptPosition.z
+        targetingBox.isVisible = true
+      } else {
+        targetingBox.isVisible = false
+      }
+    } 
   }
 }
 

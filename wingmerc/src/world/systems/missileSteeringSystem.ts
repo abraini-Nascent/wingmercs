@@ -1,35 +1,83 @@
+import * as Weapons from "./../../data/weapons"
+import { Weapon } from './../../data/weapons/weapon';
 import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vector3 } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { RouletteSelectionStochastic, rand, random } from "../../utils/random"
+import { DegreeToRadian, calculateSteering, firstOrderIntercept, lookDirectionToQuaternion, rotateByAngle } from "../../utils/math";
 
-export function particleSystem() {
-  for (const entity of queries.particle) {
-    const { position, particleRange } = entity
+
+export function missileSteeringSystem(dt: number) {
+  missiles:
+  for (const entity of queries.missiles) {
+    const { position, missileRange } = entity
     if (position == undefined) {
       // lul wut
-      world.removeComponent(entity, "particleRange")
+      world.removeComponent(entity, "missileRange")
       continue
     }
-    // check if particle passed through an entity
-    var raycastResult = new PhysicsRaycastResult()
-    var start = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)
+    // check if missile is in explosion range to anything
+    var start = new Vector3(missileRange.lastPosition.x, missileRange.lastPosition.y, missileRange.lastPosition.z)
     var end = new Vector3(position.x, position.y, position.z)
-    const physicsEngine = AppContainer.instance.scene.getPhysicsEngine()
-    physicsEngine.raycastToRef(start, end, raycastResult);
-    if (raycastResult.hasHit) {
-      console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
-      registerHit(world.entity(raycastResult.body.entityId), entity, raycastResult)
+    // FOR NOW: we are assuming a target sparse environment
+    // if it has health, it can make us explode
+    const weaponClass = Weapons[missileRange.type] as Weapon
+    if (missileRange.total > 200) { // minimum range before warhead is active
+      for (const possibleTarget of queries.damageable) {
+        const possibleTargetPosition = Vector3FromObj(possibleTarget.position)
+        const distance = end.subtract(possibleTargetPosition).length()
+
+        // TODO: This min distance should come from the weapon
+        // TODO: the missile should keep trying to get closed until it can't since the closer it explodes the more damage it does
+        if (distance < 150) {
+          // BOOM
+          registerHit(possibleTarget, entity, distance, weaponClass)
+          console.log("[MissileSystem] BOOM")
+          world.remove(entity)
+          continue missiles;
+        }
+      }
     }
-    // check if particle is end of life
-    const deltaV = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)
+    // steer the missile
+    // TODO: I think this should be a generic "guided" property
+    if (weaponClass.class == "heatseeking") {
+      const target = world.entity(missileRange.target)
+      if (target == undefined) {
+        // maybe the target deaded?
+        console.log("[MissileSystem] exploded")
+        ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)
+        world.remove(entity)
+      }
+      const targetPosition = Vector3FromObj(target.position)
+      const targetVelocity = Vector3FromObj(target.velocity)
+      const pointToIntercept = firstOrderIntercept(end, Vector3.Zero(), targetPosition, targetVelocity, weaponClass.speed)
+      if (pointToIntercept) {
+
+        const currentRoration = QuaternionFromObj(entity.rotationQuaternion)
+        const deltaAngle = 180 * dt / 1000
+        const deltas = calculateSteering(end, currentRoration, pointToIntercept)
+        const rotationalVelocity = { pitch: 0, roll: 0, yaw: 0, ...entity.rotationalVelocity }
+        rotationalVelocity.pitch = deltas.pitch * deltaAngle
+        rotationalVelocity.roll  = deltas.roll  * deltaAngle
+        rotationalVelocity.yaw   = deltas.yaw   * deltaAngle
+        world.update(entity, "rotationalVelocity", rotationalVelocity)
+        const forward = new Vector3(0, 0, -1)
+        const movement = forward.multiplyByFloats(weaponClass.speed, weaponClass.speed, weaponClass.speed)
+        movement.applyRotationQuaternionInPlace(QuaternionFromObj(currentRoration)) // this means the rotation is one frame behind :\
+        let newVelocity = movement
+        world.update(entity, "velocity", newVelocity)
+      }
+    }
+    // check if missile is end of life
+    const deltaV = new Vector3(missileRange.lastPosition.x, missileRange.lastPosition.y, missileRange.lastPosition.z)
     deltaV.subtractInPlace(new Vector3(position.x, position.y, position.z))
     const delta = deltaV.length()
-    particleRange.total += delta
-    particleRange.lastPosition = { x: position.x, y: position.y, z: position.z }
-    if (particleRange.total >= particleRange.max) {
+    missileRange.total += delta
+    missileRange.lastPosition = { x: position.x, y: position.y, z: position.z }
+    if (missileRange.total >= missileRange.max) {
       // end of the line
-      console.log("[ParticleSystem] end of line")
+      console.log("[MissileSystem] end of line")
+      ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)
       world.remove(entity)
     }
   }
@@ -46,13 +94,14 @@ export function particleSystem() {
  */ 
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
-function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRaycastResult) {
-  let damage = particleEntity.damage ?? 1
+function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number, missileClass: Weapon) {
+  let damage = missileClass.damage
   if (hitEntity.position == undefined) { return }
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
     // determine if we were hit in the front of back shields
     const hitEntityPosition = Vector3FromObj(hitEntity.position)
-    const directionOfHit = hitEntityPosition.subtract(hit.hitPointWorld)
+    const missileEntityPosition = Vector3FromObj(missileEntity.position)
+    const directionOfHit = hitEntityPosition.subtract(missileEntityPosition)
     directionOfHit.normalize()
     console.log(`direction of hit ${directionOfHit}`)
     // rotate the vector by ship rotation to get the vector in world space
@@ -78,7 +127,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         }
         console.log("hit front shield", hitEntity.shields.currentFore, damage)
         if (damage == 0) {
-          ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
+          ConeParticleEmitter("assets/shield_spark.png", missileEntityPosition, AppContainer.instance.scene)
         }
       } else if (quadrant == "aft" && hitEntity.shields.currentAft >= 0) {
         hitEntity.shields.currentAft -= damage
@@ -90,7 +139,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         }
         console.log("hit back shield", hitEntity.shields.currentAft, damage)
         if (damage == 0) {
-          ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
+          ConeParticleEmitter("assets/shield_spark.png", missileEntityPosition, AppContainer.instance.scene)
         }
       }
       if (damage > 0 && hitEntity.armor != undefined) {
@@ -128,7 +177,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
           }
           console.log("hit left armor", hitEntity.armor.left)
         }
-        ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
+        ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)
         // start knocking down system health
         if (damage > 0 && hitEntity.health != undefined) {
           /*
@@ -161,7 +210,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
           hitEntity.systems.state[damagedSystem] -= randomDamage
           // TODO: weapons and guns systems should be handled specially to pick a random weapon or gun to damage
           // double up particle effects and play a different sound
-          ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
+          ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)
           if (hitEntity.health <= 0 && hitEntity.deathRattle == undefined) {
             // death animation or something
             world.addComponent(hitEntity, "deathRattle", true)
@@ -185,6 +234,53 @@ function ToDegree(radians: number): number {
 }
 
 function ConeParticleEmitter(texture: string, point: Vector3, scene: Scene) {
+  //Cone around emitter
+  var radius = 2
+  var angle = Math.PI / 3
+
+  // Create a particle system
+  var particleSystem = new ParticleSystem("particles", 20, scene)
+
+  //Texture of each particle
+  particleSystem.particleTexture = new Texture(texture, scene, null, null, Texture.NEAREST_SAMPLINGMODE)
+
+  // Where the particles come from
+  particleSystem.emitter = point.clone()
+
+  // Colors of all particles
+  // particleSystem.color1 = new BABYLON.Color4(0.7, 0.8, 1.0, 1.0);
+  // particleSystem.color2 = new BABYLON.Color4(0.2, 0.5, 1.0, 1.0);
+  // particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+
+  // Size of each particle (random between...
+  particleSystem.minSize = 0.1
+  particleSystem.maxSize = 0.5
+
+  // Life time of each particle (random between...
+  particleSystem.minLifeTime = 0.3
+  particleSystem.maxLifeTime = 1.5
+
+  // Emission rate
+  particleSystem.emitRate = 10002
+
+
+  /******* Emission Space ********/
+  const coneEmiter = particleSystem.createConeEmitter(radius, angle)
+  coneEmiter.emitFromSpawnPointOnly = true
+  /// wait how do we set direction?
+
+  // Speed
+  particleSystem.minEmitPower = 2
+  particleSystem.maxEmitPower = 4
+  particleSystem.updateSpeed = 0.1
+
+  particleSystem.targetStopDuration = 1
+  particleSystem.disposeOnStop = true
+  // Start the particle system
+  particleSystem.start()
+}
+
+function ExplosionParticleEmitter(texture: string, point: Vector3, scene: Scene) {
   //Cone around emitter
   var radius = 2
   var angle = Math.PI / 3

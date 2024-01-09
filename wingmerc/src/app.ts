@@ -40,13 +40,14 @@ import { gunCooldownSystem } from "./world/systems/gunCooldownSystem";
 import "./world/systems/weaponsSystem";
 import { AppContainer } from "./app.container";
 import "./world/systems/updatePhysicsSystem";
-import { DegreeToRadian } from "./utils/math";
 import { engineRechargeSystem } from "./world/systems/engineRechargeSystem";
 import { aiSystem } from "./world/systems/aiSystem";
 import { shieldRechargeSystem } from "./world/systems/shieldRechargeSystem";
 import { InputAgent } from "./agents/inputAgent";
 import { SpaceDebrisAgent } from "./agents/spaceDebrisAgent";
 import { RegisterDeathComes } from "./world/systems/deathRattleSystem";
+import { missileTargetingSystem } from "./world/systems/missileTargetingSystem";
+import { missileSteeringSystem } from "./world/systems/missileSteeringSystem";
 const divFps = document.getElementById("fps");
 
 class App {
@@ -280,6 +281,8 @@ class App {
       rotationalVelocitySystem()
       moveSystem(delta)
       particleSystem()
+      missileSteeringSystem(delta)
+      missileTargetingSystem(delta)
       warpSystem()
       if (this.server) {
         netSyncServerSystem(delta)

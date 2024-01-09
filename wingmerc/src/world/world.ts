@@ -6,7 +6,7 @@ import { rotationalVelocitySystem } from "./systems/rotationalVelocitySystem";
 import { ShapeType } from "@babylonjs/havok";
 
 export type MovementCommand = { pitch: number, roll: number, yaw: number, afterburner: number, drift: number, brake: number, deltaSpeed: number }
-export type FireCommand = { gun: number, weapon: number }
+export type FireCommand = { gun: number, weapon: number, lock: boolean }
 export type ShipEngine = {
   rate: number,
   maxCapacity: number,
@@ -62,6 +62,13 @@ export type ShipSystems = {
     weapons: number,
   }
 }
+export type TargetState = {
+  gunInterceptPosition: { x: number, y: number, z: number }
+  targetingDirection: { x: number, y: number, z: number }
+  targetingTime: number
+  targetLocked: number
+  missileLocked: boolean
+}
 export type Entity = {
   ai?: { type: string, blackboard: {[key: string]: any} }
   position?: { x: number; y: number; z: number }
@@ -105,6 +112,8 @@ export type Entity = {
   owner?: string // who owns the state of this entity
   relinquish?: boolean // give the state of the entity to the server
   damage?: number
+  targeting?: TargetState
+  isTargetable?: boolean
   guns?: {
     [gunId: number]: {
       class: string,
@@ -112,16 +121,29 @@ export type Entity = {
       possition: { x: number, y: number, z: number }
     }
   }
+  weapons?: {
+    mounts: { type: string, count: number }[]
+    selected: number
+    delta: number
+  }
   engine?: ShipEngine
   shields?: ShipShields
   systems?: ShipSystems
   armor?: ShipArmor
   deathRattle?: boolean
-  range?: { 
+  particleRange?: { 
     max: number,
     total: number,
     lastPosition: { x: number; y: number; z: number },
   }
+  missileRange?: { 
+    max: number,
+    total: number,
+    lastPosition: { x: number; y: number; z: number },
+    type: string
+    target: number
+  }
+  camera?: boolean
 }
 
 export const world = new World<Entity>()
@@ -130,20 +152,27 @@ export const world = new World<Entity>()
 export const queries = {
   updateRender: world.with("position", "node"),
   moving: world.with("position", "velocity", "acceleration"),
+  moveCommanded: world.with("movementCommand"),
   rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
   meshed: world.with("meshName"),
   physics: world.with("bodyType"),
   colliders: world.with("body"),
   guns: world.with("guns"),
+  weapons: world.with("weapons"),
   engines: world.with("engine"),
   shields: world.with("shields"),
-  particle: world.with("range"),
+  particle: world.with("particleRange"),
+  missiles: world.with("missileRange"),
+  targeting: world.with("targeting"),
   local: world.with("local"),
   players: world.with("playerId"),
   trailers: world.with("trail", "node"),
   fireCommands: world.with("fireCommand"),
+  targets: world.with("isTargetable"),
   ai: world.with("ai"),
   deathComes: world.with("deathRattle"),
+  damageable: world.with("health"),
+  cameras: world.with("camera")
 }
 
 /**

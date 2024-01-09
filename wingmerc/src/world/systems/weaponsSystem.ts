@@ -1,11 +1,13 @@
 import { Quaternion, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import * as Guns from "../../data/guns"
+import * as Weapons from "../../data/weapons"
 import { Gun } from "../../data/guns/gun";
+import { Weapon } from './../../data/weapons/weapon';
 
 console.log("[WeaponsSystem] online");
 queries.fireCommands.onEntityAdded.subscribe((entity) => {
-  // entity wants to fire
+  // entity wants to fire guns
   const { fireCommand } = entity;
   if (fireCommand.gun) {
     // TODO which guns are being fired? for now we fire them all
@@ -60,7 +62,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
           z: forward.z
         },
         acceleration: { x: 0, y: 0, z: 0 },
-        range: {
+        particleRange: {
           max: gunClass.range,
           total: 0,
           lastPosition: { ...startPosition }
@@ -76,10 +78,148 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
       });
     }
   }
+  // entity wants to fire weapons
+  if (fireCommand.weapon) {
+    const { position, direction, rotation, rotationQuaternion, targeting, weapons } = entity
+    if (targeting != undefined && weapons != undefined 
+      && targeting.missileLocked && weapons.mounts[weapons.selected].count > 0 && weapons.delta == 0) {
+        const weaponClass: Weapon = Weapons[weapons.mounts[weapons.selected].type]
+        weapons.mounts[weapons.selected].count -= 1
+        if (weapons.mounts[weapons.selected].count == 0) {
+          // find next available weapon
+          for (let i = 0, found = false; i < weapons.mounts.length && found == false; i += 1) {
+            weapons.selected += 1
+            if (weapons.selected >= weapons.mounts.length) {
+              weapons.selected = 0
+            }
+            found = weapons.mounts[weapons.selected].count > 0
+          }
+        }
+        weapons.delta = weaponClass.delay
+        world.update(entity, "weapons", weapons)
+        // missile away
+        console.log("[Weapons] !!Missile Away!!")
+        const startPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        }
+        const forward = new Vector3(0, 0, -1)
+        let burn = weaponClass.speed
+        forward.multiplyInPlace(new Vector3(burn, burn, burn))
+        forward.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
+        // create missile
+        world.add({
+          meshName: "meteor", // use meteor for now
+          meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
+          originatorId: ""+world.id(entity),
+          position: { ...startPosition },
+          direction: {
+            x: direction.x,
+            y: direction.y,
+            z: direction.z,
+          },
+          velocity: {
+            x: forward.x,
+            y: forward.y,
+            z: forward.z
+          },
+          rotationQuaternion: {
+            x: rotationQuaternion.x,
+            y: rotationQuaternion.y,
+            z: rotationQuaternion.z,
+            w: rotationQuaternion.w,
+          },
+          rotation: {
+            x: rotation.x,
+            y: rotation.y,
+            z: rotation.z,
+          },
+          acceleration: { x: 0, y: 0, z: 0 },
+          missileRange: {
+            type: weaponClass.class,
+            target: targeting.targetLocked,
+            max: weaponClass.range,
+            total: 0,
+            lastPosition: { ...startPosition }
+          },
+          damage: 20,
+          trail: true,
+          trailOptions: {
+            color: {r: 10/255, g: 10/255, b: 10/255, a: 1},
+            width: 0.2,
+            length: 2000,
+          },
+          camera: true,
+          // bodyType: "animated"
+        });
+    }
+  }
+  // locking
+  if (fireCommand.lock) {
+    console.log("[WeaponSystems] attempting lock")
+    // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
+    const entityId = world.id(entity)
+    const { direction, position, targeting } = entity
+    const entityDirection = Vector3FromObject(direction)
+    const entityPosition = Vector3FromObject(position)
+    let smallestDistance = Number.MAX_SAFE_INTEGER
+    let closestTarget: number = undefined
+    for (const target of queries.targets.entities) {
+      const targetId = world.id(target)
+      const targetPosition = Vector3FromObject(target.position)
+      if (entityId == targetId) {
+        continue
+      }
+      const directionToTarget = targetPosition.subtract(entityPosition).normalize()
+      const delta = AngleBetweenVectors(entityDirection, directionToTarget)
+      if (ToDegree(delta) > 45) {
+        // this isn't a valid target
+        continue
+      }
+      if (delta < smallestDistance) {
+        smallestDistance = delta
+        closestTarget = targetId
+      }
+    }
+    console.log("[WeaponSystems] locked target", closestTarget)
+    if (targeting.targetLocked != closestTarget) {
+      // reset target time when target changes
+      targeting.targetingTime = 0
+    }
+    targeting.targetLocked = closestTarget
+    world.update(entity, "targeting", targeting)
+  }
   // remove the command
   world.removeComponent(entity, "fireCommand")
 })
 
 function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
   return new Quaternion(obj.x, obj.y, obj.z, obj.w);
+}
+
+function Vector3FromObject(obj: {x: number, y: number, z: number}): Vector3 {
+  return new Vector3(obj.x, obj.y, obj.z);
+}
+
+// unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180
+function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number {
+  // Calculate the dot product of normalized vectors
+  const dotProduct = Vector3.Dot(vector1.normalize(), vector2.normalize());
+
+  // Ensure dot product is within valid range [-1, 1]
+  const clampedDotProduct = clamp(dotProduct, -1, 1);
+
+  // Calculate the angle in radians using the arc cosine
+  const angleRadians = Math.acos(clampedDotProduct);
+
+  return angleRadians;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function ToDegree(radians: number): number {
+  return radians * 180 / Math.PI
 }

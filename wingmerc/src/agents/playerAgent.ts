@@ -1,6 +1,5 @@
 import { DeviceSourceManager, DeviceType, Engine, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
 import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
-import { DegreeToRadian } from "../utils/math";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
@@ -22,6 +21,13 @@ export class PlayerAgent {
       }
       return guns
     }, {})
+    const weapons = Dirk.weapons.reduce((weapons, weapon) => {
+      weapons.mounts.push({
+        type: weapon.type,
+        count: weapon.count
+      })
+      return weapons
+    }, { selected: 0, mounts: [], delta: 0 })
     const shipEngine = {
       currentCapacity: Dirk.engine.maxCapacity,
       maxCapacity: Dirk.engine.maxCapacity,
@@ -96,10 +102,19 @@ export class PlayerAgent {
       health: 100,
       totalScore: 0,
       guns,
+      weapons,
       engine: shipEngine,
       shields: shipShields,
       armor: shipArmor,
       systems: shipSystems,
+      targeting: {
+        missileLocked: false,
+        targetingDirection: { x: 0, y: 0, z: -1 },
+        targetLocked: -1,
+        targetingTime: 0,
+        gunInterceptPosition: undefined
+      },
+      isTargetable: true,
       playerId: net.id
     })
     this.playerEntity = playerEntity
