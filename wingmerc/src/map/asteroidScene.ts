@@ -1,7 +1,7 @@
 import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
 import { Entity, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
-import { ObjModels } from "../objModels";
+import { ObjModels } from "../assetLoader/objModels";
 import { EnemyLight } from "../data/ships";
 import { net } from "../net";
 
@@ -248,7 +248,7 @@ export function createEnemyShip(x, y, z) {
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    // ai: { type: "basic", blackboard: {} },
+    ai: { type: "basic", blackboard: {} },
     meshName: EnemyLight.model,
     hullName: EnemyLight.hullModel,
     bodyType: "animated",

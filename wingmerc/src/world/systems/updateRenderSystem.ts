@@ -1,6 +1,6 @@
 import { Color3, Material, Mesh, MeshBuilder, Quaternion, StandardMaterial, TrailMesh, TransformNode } from "@babylonjs/core"
 import { queries, world } from "../world"
-import { ObjModels } from "../../objModels"
+import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
 
 

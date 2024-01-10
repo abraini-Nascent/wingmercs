@@ -16,5 +16,5 @@ export const heatseeking: Weapon = Object.seal({
   /** time to lock in milliseconds */
   timeToLock: 3000,
   /** travel speed in mps */
-  speed: 1000,
+  speed: 1200,
 })

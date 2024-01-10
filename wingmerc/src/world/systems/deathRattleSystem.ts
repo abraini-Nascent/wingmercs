@@ -2,63 +2,60 @@ import { ParticleSystem, PhysicsMotionType, Scene, Texture, Vector3 } from "@bab
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 
-
-export function RegisterDeathComes() {
-  /**
-   * makes a ship do the death rattle
-   * TODO: this is assuming its a ship or something that moves, this will need to change when turrents arrive
-   */
-  queries.deathComes.onEntityAdded.subscribe(
-    (() => {
-      let i = 0
-      return (entity) => {
-        if (entity.ai != undefined) {
-          // dead don't think
-          world.removeComponent(entity, "ai")
-        }
-        // for a simple death animation we are going to enable the physics system and thwack it hard
-        // simulating a dagroll death
-        // add add lots of particles
-        const originalPosition = new Vector3(entity.position.x, entity.position.y, entity.position.z)
-        if (entity.body != undefined) {
-          // FIXME this isn't working
-          let impulse = new Vector3(Math.random(), Math.random(), Math.random())
-          const magnitude = 300 * Math.random()
-          // entity.acceleration = impulse.clone()
-          entity.rotationalVelocity = { roll: impulse.x, pitch: impulse.y, yaw: impulse.z }
-          /*
-          world.removeComponent(entity, "velocity")
-          world.removeComponent(entity, "driftVelocity")
-          world.removeComponent(entity, "acceleration")
-          world.removeComponent(entity, "position")
-          entity.body.disablePreStep = true
-          let impulse = new Vector3(Math.random(), Math.random(), Math.random())
-          const magnitude = 300 * Math.random()
-          impulse = impulse.normalize()
-          const offsetPosition = originalPosition.add(impulse)
-          impulse.maximizeInPlaceFromFloats(magnitude, magnitude, magnitude)
-          entity.body.setMotionType(PhysicsMotionType.DYNAMIC)
-          entity.body.applyImpulse(impulse, originalPosition)
-          entity.body.applyForce(impulse, originalPosition)
-          // entity.body.applyImpulse(impulse, offsetPosition)
-          */
-        }
-        const scene = AppContainer.instance.scene
-        const trailParticle = TrailParticleEmitter("assets/hull_spark", originalPosition, scene)
-        const onBeforeRender = scene.onBeforeRenderObservable.add((scene, event) => {
-          if (trailParticle.isAlive()) {
-            const emitter: Vector3 = trailParticle.emitter as Vector3
-            emitter.copyFrom(entity.node.position)
-          }
-        })
-        setTimeout(() => {
-          onBeforeRender.remove()
-          world.remove(entity)
-        }, 3000)
+/**
+ * makes a ship do the death rattle
+ * TODO: this is assuming its a ship or something that moves, this will need to change when turrents arrive
+ */
+queries.deathComes.onEntityAdded.subscribe(
+  (() => {
+    let i = 0
+    return (entity) => {
+      if (entity.ai != undefined) {
+        // dead don't think
+        world.removeComponent(entity, "ai")
       }
-    })()
-  )
-}
+      // for a simple death animation we are going to enable the physics system and thwack it hard
+      // simulating a dagroll death
+      // add add lots of particles
+      const originalPosition = new Vector3(entity.position.x, entity.position.y, entity.position.z)
+      if (entity.body != undefined) {
+        // FIXME this isn't working
+        let impulse = new Vector3(Math.random(), Math.random(), Math.random())
+        const magnitude = 300 * Math.random()
+        // entity.acceleration = impulse.clone()
+        entity.rotationalVelocity = { roll: impulse.x, pitch: impulse.y, yaw: impulse.z }
+        /*
+        world.removeComponent(entity, "velocity")
+        world.removeComponent(entity, "driftVelocity")
+        world.removeComponent(entity, "acceleration")
+        world.removeComponent(entity, "position")
+        entity.body.disablePreStep = true
+        let impulse = new Vector3(Math.random(), Math.random(), Math.random())
+        const magnitude = 300 * Math.random()
+        impulse = impulse.normalize()
+        const offsetPosition = originalPosition.add(impulse)
+        impulse.maximizeInPlaceFromFloats(magnitude, magnitude, magnitude)
+        entity.body.setMotionType(PhysicsMotionType.DYNAMIC)
+        entity.body.applyImpulse(impulse, originalPosition)
+        entity.body.applyForce(impulse, originalPosition)
+        // entity.body.applyImpulse(impulse, offsetPosition)
+        */
+      }
+      const scene = AppContainer.instance.scene
+      const trailParticle = TrailParticleEmitter("assets/hull_spark", originalPosition, scene)
+      const onBeforeRender = scene.onBeforeRenderObservable.add((scene, event) => {
+        if (trailParticle.isAlive()) {
+          const emitter: Vector3 = trailParticle.emitter as Vector3
+          emitter.copyFrom(entity.node.position)
+        }
+      })
+      setTimeout(() => {
+        onBeforeRender.remove()
+        world.remove(entity)
+      }, 3000)
+    }
+  })()
+)
 
 function TrailParticleEmitter(texture: string, point: Vector3, scene: Scene): ParticleSystem {
   //Cone around emitter

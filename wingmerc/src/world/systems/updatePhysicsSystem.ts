@@ -1,6 +1,6 @@
 import { HavokPlugin, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShape, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
-import { ObjModels } from "../../objModels"
+import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
 import { explodeAsteroid } from "../../map/asteroidScene";
 

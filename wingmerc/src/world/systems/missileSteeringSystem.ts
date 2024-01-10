@@ -151,7 +151,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.front)
             hitEntity.armor.front = 0
           }
-          console.log("hit front armor", hitEntity.armor.front)
+          console.log("hit front armor", hitEntity.armor.front, damage)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
@@ -159,7 +159,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.right)
             hitEntity.armor.right = 0
           }
-          console.log("hit right armor", hitEntity.armor.right)
+          console.log("hit right armor", hitEntity.armor.right, damage)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
@@ -167,7 +167,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.back)
             hitEntity.armor.back = 0
           }
-          console.log("hit back armor", hitEntity.armor.back)
+          console.log("hit back armor", hitEntity.armor.back, damage)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
@@ -175,7 +175,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.left)
             hitEntity.armor.left = 0
           }
-          console.log("hit left armor", hitEntity.armor.left)
+          console.log("hit left armor", hitEntity.armor.left, damage)
         }
         ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)
         // start knocking down system health
@@ -208,6 +208,8 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
           hitEntity.health -= randomDamage
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           hitEntity.systems.state[damagedSystem] -= randomDamage
+          console.log("damaged system:", damagedSystem, randomDamage)
+          console.log("remaining health:", hitEntity.health)
           // TODO: weapons and guns systems should be handled specially to pick a random weapon or gun to damage
           // double up particle effects and play a different sound
           ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)

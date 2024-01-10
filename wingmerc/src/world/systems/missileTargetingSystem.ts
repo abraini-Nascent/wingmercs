@@ -69,7 +69,7 @@ export function missileTargetingSystem(dt: number) {
     // const missileLocked = AngleBetweenVectors(targetPosition.subtract(entityPosition).normalize(), targetingDirection.normalize()) <= angle
     // targeting.missileLocked = missileLocked
     if (missileLocked) {
-      console.log(["[TARGETING] missile locked!"])
+      // console.log("[TARGETING] missile locked!")
     }
     world.update(entity, "targeting", targeting)
   }
