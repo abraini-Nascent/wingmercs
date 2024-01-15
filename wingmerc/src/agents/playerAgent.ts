@@ -5,6 +5,7 @@ import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
 import { Inspector } from "@babylonjs/inspector";
 import { AppContainer } from "../app.container";
+import { Gun } from "../data/guns/gun";
 export class PlayerAgent {
   playerEntity: Entity
   dsm: DeviceSourceManager
@@ -14,10 +15,12 @@ export class PlayerAgent {
   constructor(engine: Engine, planeTemplate: string = "dirk") {
 
     const guns = Dirk.guns.reduce((guns, gun, index) => {
+      const gunClass = Guns[gun.type] as Gun
       guns[index] = {
         class: gun.type,
         possition: { ...gun.position },
-        delta: 0
+        delta: 0,
+        currentHealth: gunClass.health
       }
       return guns
     }, {})

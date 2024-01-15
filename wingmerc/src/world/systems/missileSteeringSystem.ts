@@ -3,7 +3,7 @@ import { Weapon } from './../../data/weapons/weapon';
 import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vector3 } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
-import { RouletteSelectionStochastic, rand, random } from "../../utils/random"
+import { RouletteSelectionStochastic, rand, random, randomItem } from "../../utils/random"
 import { DegreeToRadian, calculateSteering, firstOrderIntercept, lookDirectionToQuaternion, rotateByAngle } from "../../utils/math";
 
 
@@ -85,12 +85,7 @@ export function missileSteeringSystem(dt: number) {
 
 /**
  * TODO: 
- * Visual cue on hitting shield or armor or health
  * Audio cue on hitting shield or armor or health
- * Should damage be located in this system? what about missile/weapon damage?
- * - What about systems damage?
- * Ship should die when health gets to zero
- * Ship should explode when it dies
  */ 
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
@@ -207,7 +202,29 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
           }
           hitEntity.health -= randomDamage
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
-          hitEntity.systems.state[damagedSystem] -= randomDamage
+          switch (damagedSystem) {
+            case "guns": {
+              // pick a random gun to damage
+              const entityGuns = Object.values(hitEntity.guns).filter(g => g.currentHealth > 0)
+              if (entityGuns.length > 0) {
+                const damagedGun = randomItem(entityGuns)
+                damagedGun.currentHealth = Math.max(0, damagedGun.currentHealth - randomDamage)
+              }
+              break;
+            }
+            case "weapons": {
+              // pick a random weapon to destroy
+              const entityWeapons = hitEntity.weapons.mounts.filter(w => w.count > 0)
+              if (entityWeapons.length > 0) {
+                const damagedWeapon = randomItem(entityWeapons)
+                damagedWeapon.count = Math.max(0, damagedWeapon.count - 1)
+              }
+              break;
+            }
+            default: 
+              hitEntity.systems.state[damagedSystem] = Math.max(0, hitEntity.systems.state[damagedSystem] - randomDamage)
+            break;
+          }
           console.log("damaged system:", damagedSystem, randomDamage)
           console.log("remaining health:", hitEntity.health)
           // TODO: weapons and guns systems should be handled specially to pick a random weapon or gun to damage

@@ -118,7 +118,8 @@ export type Entity = {
     [gunId: number]: {
       class: string,
       delta: number,
-      possition: { x: number, y: number, z: number }
+      possition: { x: number, y: number, z: number },
+      currentHealth: number
     }
   }
   weapons?: {

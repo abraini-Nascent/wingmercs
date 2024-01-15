@@ -15,20 +15,86 @@ import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocity
 import { shieldRechargeSystem } from "../../world/systems/shieldRechargeSystem";
 import { updateRenderSystem } from "../../world/systems/updateRenderSystem";
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
-import { AsteroidScene } from '../../map/asteroidScene';
+import { AsteroidScene, createEnemyShip } from '../../map/asteroidScene';
+import { Entity, queries } from '../../world/world';
+import * as Ships from '../../data/ships';
+import { random } from '../../utils/random';
+import { CombatHud } from './spaceCombatHUD';
 
 const divFps = document.getElementById("fps");
-
+const radius = 5000;
 export class SpaceCombatScene implements GameScene {
 
   spaceDebris: SpaceDebrisAgent
   asteroidScene: AsteroidScene
+  totalKillCount: number = 0
+  waveCount: number = 0
+  waveKillCount: number = 0
+  lastSpawnCount: number = 0
+  hud: CombatHud
 
   constructor() {
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisAgent(appContainer.scene)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
     this.asteroidScene = new AsteroidScene(10, ArenaRadius)
+    queries.deathComes.onEntityAdded.subscribe(this.onDeath)
+    this.hud = new CombatHud()
+    this.spawnShips()
+  }
+
+  deinit() {
+    queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
+  }
+
+  onDeath = (entity: Entity) => {
+    if (entity.playerId != undefined) {
+      // TODO: the player died
+      return
+    }
+    this.totalKillCount += 1
+    this.waveKillCount += 1
+    const endOfBlock = this.waveKillCount == 3
+    // heal the player and reset weapons if they have killed three enemies
+    if (this.lastSpawnCount == this.waveKillCount) {
+      this.waveCount += 1
+      this.waveKillCount = 0
+      this.spawnShips()
+    }
+    if (endOfBlock) {
+      const playerEntity = AppContainer.instance.player.playerEntity
+      const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
+      playerEntity.health = shipTemplate.health
+      playerEntity.systems.state = { ...playerEntity.systems.base }
+      playerEntity.armor = { ...playerEntity.armor }
+      playerEntity.shields.currentAft = playerEntity.shields.maxAft
+      playerEntity.shields.currentFore = playerEntity.shields.maxFore
+      playerEntity.weapons.mounts.forEach((mount, index) => {
+        mount.count = shipTemplate.weapons[index].count
+      })
+      // TODO: play a healing sound or triumph music note or something
+    }
+  }
+
+  spawnShips() {
+    let newShipAmount = this.lastSpawnCount + 1
+    if (newShipAmount > 3) {
+      newShipAmount = 1
+    }
+    this.lastSpawnCount = 0
+    for (let i = 0; i < newShipAmount; i += 1) {
+      const r = radius * random()
+      const phi = random() * Math.PI * 2;
+      const costheta = 2 * random() - 1;
+      const theta = Math.acos(costheta);
+      const x = r * Math.sin(theta) * Math.cos(phi);
+      const y = r * Math.sin(theta) * Math.sin(phi);
+      const z = r * Math.cos(theta);
+      const playerEntityPosition = AppContainer.instance.player.playerEntity.position
+      // add enemy ship
+      createEnemyShip(x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z)
+      this.lastSpawnCount += 1
+    }
   }
 
   runLoop = (delta: number) => {
@@ -56,6 +122,7 @@ export class SpaceCombatScene implements GameScene {
       this.spaceDebris.update(delta)
     }
     cameraSystem(appContainer.player, appContainer.camera)
+    this.hud.updateScreen(delta)
   
     // show debug axis
     // if (this.player?.playerEntity?.node) {

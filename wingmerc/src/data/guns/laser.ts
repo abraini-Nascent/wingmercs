@@ -15,4 +15,6 @@ export const laser: Gun = Object.seal({
   delay: 250,
   /** travel speed in mps */
   speed: 2000,
+  /** how much damage it can take before being destroyed */
+  health: 10
 })

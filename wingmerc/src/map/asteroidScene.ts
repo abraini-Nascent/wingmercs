@@ -4,6 +4,8 @@ import { Entity, ShipArmor, ShipShields, ShipSystems, world } from "../world/wor
 import { ObjModels } from "../assetLoader/objModels";
 import { EnemyLight } from "../data/ships";
 import { net } from "../net";
+import { Gun } from "../data/guns/gun";
+import * as Guns from "../data/guns";
 
 function generateRandomPointInSphere(radius: number, random: () => number): Vector3 {
   const phi = random() * Math.PI * 2;
@@ -86,26 +88,6 @@ export class AsteroidScene {
         bodyType: "animated"
       })
     }
-
-    for (let i = 0; i < 3; i += 1) {
-      // const r = radius * Math.sqrt(random())
-      // const theta = random() * 2 * Math.PI
-      // const phi = random() * Math.PI;
-      // const x = r * Math.cos(theta)
-      // const z = r * Math.sin(theta)
-      // const y = r * Math.cos(phi)
-      
-
-      const r = radius * random()
-      const phi = random() * Math.PI * 2;
-      const costheta = 2 * random() - 1;
-      const theta = Math.acos(costheta);
-      const x = r * Math.sin(theta) * Math.cos(phi);
-      const y = r * Math.sin(theta) * Math.sin(phi);
-      const z = r * Math.cos(theta);
-      // add enemy ship
-      createEnemyShip(x, y, z)
-    }
   }
 }
 
@@ -176,10 +158,12 @@ export function explodeAsteroid(asteroid: Partial<Entity>) {
 
 export function createEnemyShip(x, y, z) {
   const guns = EnemyLight.guns.reduce((guns, gun, index) => {
+    const gunClass = Guns[gun.type] as Gun
     guns[index] = {
       class: gun.type,
       possition: { ...gun.position },
-      delta: 0
+      delta: 0,
+      currentHealth: gunClass.health
     }
     return guns
   }, {})

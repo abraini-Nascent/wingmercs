@@ -13,4 +13,6 @@ export type Gun = {
   delay: number,
   /** travel speed in mps */
   speed: number,
+  /** how much damage it can take before being destroyed */
+  health: number
 }

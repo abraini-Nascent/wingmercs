@@ -15,31 +15,21 @@ import {
   Texture,
   FreeCamera,
 } from "@babylonjs/core"
-import { AsteroidScene } from "./map/asteroidScene";
-import { MenuGui } from "./gui/menuGui";
-import { PlayerAgent } from "./agents/playerAgent";
 import "./world/systems/weaponsSystem";
 import { AppContainer } from "./app.container";
 import "./world/systems/updatePhysicsSystem";
-import { InputAgent } from "./agents/inputAgent";
-import { SpaceDebrisAgent } from "./agents/spaceDebrisAgent";
 import "./world/systems/deathRattleSystem";
 import { loadAssets } from "./assetLoader/assetLoader";
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
 
 class App {
   assetsManager: AssetsManager
-  asteroidScene: AsteroidScene
-  gui: MenuGui
-  player: PlayerAgent
-  spaceDebris: SpaceDebrisAgent
-  input: InputAgent
   camera: TargetCamera
   server: boolean = false
   constructor() {
     (window as any).appContainer = AppContainer.instance;
     // create the canvas html element and attach it to the webpage
-    var canvas = document.createElement("canvas")
+    const canvas = document.createElement("canvas")
     canvas.style.width = "100%"
     canvas.style.height = "100%"
     canvas.width = window.innerWidth
@@ -49,13 +39,13 @@ class App {
 
     // initialize babylon scene and engine
     const container = AppContainer.instance
-    var engine = new Engine(canvas, false, { antialias: false }, false)
-    var scene = new Scene(engine)
+    const engine = new Engine(canvas, false, { antialias: false }, false)
+    const scene = new Scene(engine)
     // let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
     const camera = new FreeCamera("sceneCamera", new Vector3(0, 0, 0), scene)
     camera.inputs.clear();
     this.camera = camera
-    var light1: HemisphericLight = new HemisphericLight(
+    const light1: HemisphericLight = new HemisphericLight(
       "light1",
       new Vector3(-1, -1, 0),
       scene

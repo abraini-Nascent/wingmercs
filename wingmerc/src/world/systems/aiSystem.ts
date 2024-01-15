@@ -2,7 +2,7 @@ import { MovementCommand } from '../world';
 import { Quaternion, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
-import { Dirk } from '../../data/ships';
+import * as Ships from '../../data/ships';
 
 /**
  * 
@@ -49,8 +49,10 @@ export function aiSystem(dt: number) {
     //   cinamaticRoll = 1
     // }
     const brake = Math.abs(input.pitch) > 0.9 || Math.abs(input.yaw) > 0.9 ? 1 : 0
+    const shipTemplateName = entity.planeTemplate
+    const shipTemplate: { cruiseSpeed: number } = Ships[shipTemplateName] ?? Ships.EnemyLight
     world.update(entity, "rotationalVelocity", input)
-    world.update(entity, "setSpeed", Dirk.cruiseSpeed)
+    world.update(entity, "setSpeed", shipTemplate.cruiseSpeed)
     world.update(entity, "movementCommand", {
       pitch: input.pitch,
       yaw: input.yaw,

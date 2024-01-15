@@ -2,7 +2,7 @@ import { MovementCommand } from './../world';
 import { Quaternion, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
-import { Dirk } from '../../data/ships';
+import * as Ships from '../../data/ships';
 
 /**
  * 
@@ -13,10 +13,12 @@ export function moveCommandSystem(dt: number) {
     const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed } = entity;
     let { setSpeed } = entity;
     const { movementCommand } = entity;
-    
+    const shipTemplateName = entity.planeTemplate
+    const shipTemplate: { cruiseSpeed: number, maxSpeed: number, pitch: number, yaw: number, roll: number, accelleration: number, afterburnerAccelleration: number, breakingForce: number, breakingLimit: number } = Ships[shipTemplateName] ?? Ships.Dirk
+
     // scale back speeds based on damage, minimum 20% capability even if destroyed
-    const maxDamagedSpeed = Dirk.maxSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
-    const maxDamagedCruiseSpeed = Dirk.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
+    const maxDamagedSpeed = shipTemplate.maxSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
+    const maxDamagedCruiseSpeed = shipTemplate.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
     if (maxDamagedCruiseSpeed < setSpeed) {
       setSpeed = maxDamagedCruiseSpeed
       world.update(entity, "setSpeed", setSpeed)
@@ -30,9 +32,9 @@ export function moveCommandSystem(dt: number) {
       //// change direction of the ship...
       if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
 
-        let pitchSpeed = Dirk.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 10% capability even if "destroyed"
-        let yawSpeed   = Dirk.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))   // Degrees per second, min 10% capability even if "destroyed"
-        let rollSpeed  = Dirk.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))  // Degrees per second, min 10% capability even if "destroyed"
+        let pitchSpeed = shipTemplate.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 10% capability even if "destroyed"
+        let yawSpeed   = shipTemplate.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))   // Degrees per second, min 10% capability even if "destroyed"
+        let rollSpeed  = shipTemplate.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))  // Degrees per second, min 10% capability even if "destroyed"
         // Positive for down, negative for up
         const deltaPitch = (((pitchSpeed * (movementCommand.pitch ?? 0))) / 1000) * dt;
         // Positive for right, negative for left
@@ -48,9 +50,9 @@ export function moveCommandSystem(dt: number) {
 
       //// change speed of the ship
       // TODO: this should take into consideration damage
-      const cruiseAcceleration = (Dirk.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
-      const afterburnerAcceleration = (Dirk.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
-      const breakAcceleration = (Dirk.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
+      const cruiseAcceleration = (shipTemplate.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
+      const afterburnerAcceleration = (shipTemplate.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
+      const breakAcceleration = (shipTemplate.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       if (movementCommand.afterburner) {
 
         let maxAfterburner = maxDamagedSpeed - setSpeed
@@ -93,7 +95,7 @@ export function moveCommandSystem(dt: number) {
       //// breaking
       let nextBreakingPower = 0
       if (!movementCommand.afterburner && movementCommand.brake) {
-        nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, Dirk.breakingLimit)
+        nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, shipTemplate.breakingLimit)
         world.update(entity, "breakingPower", nextBreakingPower)
       } else if (breakingPower != undefined && breakingPower > 0) {
         nextBreakingPower = Math.max(breakingPower - breakAcceleration, 0)
@@ -134,7 +136,7 @@ export function moveCommandSystem(dt: number) {
         }
         if (newSpeed < setSpeed) {
           // TODO: this should take into consideration damage
-          newSpeed = Math.min(currentSpeed + cruiseAcceleration, Dirk.cruiseSpeed)
+          newSpeed = Math.min(currentSpeed + cruiseAcceleration, shipTemplate.cruiseSpeed)
         } else if (newSpeed > setSpeed) {
           newSpeed = Math.min(Math.max(currentSpeed - cruiseAcceleration, 0), setSpeed)
         }
