@@ -1,16 +1,16 @@
 import { Weapon } from "./weapon";
 
-export const dumbfire: Weapon = Object.seal({
+export const enemyDumbfire: Weapon = Object.seal({
   /** id */
-  class: "dumbfire",
+  class: "enemyDumbfire",
   /** type */
   type: "dumbfire",
   /** display name */
-  name: "Dumbfire",
+  name: "EnemyDumbfire",
   /** range before dissipating */
   range: 5000,
   /** damage done on contact */
-  damage: 500,
+  damage: 150,
   /** explosive force */
   force: 10000,
   /** delay in milliseconds */

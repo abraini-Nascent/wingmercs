@@ -3,6 +3,8 @@ import { Weapon } from "./weapon";
 export const heatseeking: Weapon = Object.seal({
   /** id */
   class: "heatseeking",
+  /** type */
+  type: "heatseeking",
   /** display name */
   name: "Heat Seeking",
   /** range before dissipating */

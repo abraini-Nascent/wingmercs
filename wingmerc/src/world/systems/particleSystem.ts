@@ -17,10 +17,16 @@ export function particleSystem() {
     var end = new Vector3(position.x, position.y, position.z)
     const physicsEngine = AppContainer.instance.scene.getPhysicsEngine()
     physicsEngine.raycastToRef(start, end, raycastResult);
-    if (raycastResult.hasHit) {
-      console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
-      registerHit(world.entity(raycastResult.body.entityId), entity, raycastResult)
-      console.log("[ParticleSystem] contact")
+    if (raycastResult.hasHit && entity.originatorId != ""+raycastResult.body.entityId) {
+      const hitEntity = world.entity(raycastResult.body.entityId)
+      if (entity.originatorId == hitEntity.originatorId) {
+        // we were shot out by the same thing!
+        console.log("[ParticleSystem] we were shot out by the same thing and hit each other!")
+        continue
+      }
+      // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
+      registerHit(hitEntity, entity, raycastResult)
+      // console.log("[ParticleSystem] contact")
       world.remove(entity)
       continue
     }
@@ -32,7 +38,7 @@ export function particleSystem() {
     particleRange.lastPosition = { x: position.x, y: position.y, z: position.z }
     if (particleRange.total >= particleRange.max) {
       // end of the line
-      console.log("[ParticleSystem] end of line")
+      // console.log("[ParticleSystem] end of line")
       world.remove(entity)
     }
   }
@@ -52,12 +58,12 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
     const hitEntityPosition = Vector3FromObj(hitEntity.position)
     const directionOfHit = hitEntityPosition.subtract(hit.hitPointWorld)
     directionOfHit.normalize()
-    console.log(`direction of hit ${directionOfHit}`)
+    // console.log(`direction of hit ${directionOfHit}`)
     // rotate the vector by ship rotation to get the vector in world space
     const hitEntityQ = QuaternionFromObj(hitEntity.rotationQuaternion)
     hitEntityQ.multiplyInPlace(TURN)
     const vectorToShip = directionOfHit.applyRotationQuaternionInPlace(hitEntityQ)
-    console.log(`rotated to ship ${vectorToShip}`)
+    // console.log(`rotated to ship ${vectorToShip}`)
     // flatten vector to ground plane
     const flatVector = new Vector3(vectorToShip.x, 0, vectorToShip.z).normalize()
     // find signed angle of flat vector
@@ -65,7 +71,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
     const incomingDegrees = ToDegree(incomingRadians)
     const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
     if (hitEntity.shields != undefined) {
-      console.log("hit from incoming angle", incomingDegrees)
+      // console.log("hit from incoming angle", incomingDegrees)
       if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
         hitEntity.shields.currentFore -= damage
         if (hitEntity.shields.currentFore < 0) {
@@ -74,7 +80,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         } else {
           damage = 0
         }
-        console.log("hit front shield", hitEntity.shields.currentFore, damage)
+        console.log("[ParticleSystem] hit front shield", hitEntity.shields.currentFore, damage)
         if (damage == 0) {
           ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         }
@@ -86,7 +92,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
         } else {
           damage = 0
         }
-        console.log("hit back shield", hitEntity.shields.currentAft, damage)
+        console.log("[ParticleSystem] hit back shield", hitEntity.shields.currentAft, damage)
         if (damage == 0) {
           ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         }
@@ -100,7 +106,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
             damage = Math.abs(hitEntity.armor.front)
             hitEntity.armor.front = 0
           }
-          console.log("hit front armor", hitEntity.armor.front)
+          console.log("[ParticleSystem] hit front armor", hitEntity.armor.front)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
@@ -108,7 +114,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
             damage = Math.abs(hitEntity.armor.right)
             hitEntity.armor.right = 0
           }
-          console.log("hit right armor", hitEntity.armor.right)
+          console.log("[ParticleSystem] hit right armor", hitEntity.armor.right)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
@@ -116,7 +122,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
             damage = Math.abs(hitEntity.armor.back)
             hitEntity.armor.back = 0
           }
-          console.log("hit back armor", hitEntity.armor.back)
+          console.log("[ParticleSystem] hit back armor", hitEntity.armor.back)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
@@ -124,7 +130,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
             damage = Math.abs(hitEntity.armor.left)
             hitEntity.armor.left = 0
           }
-          console.log("hit left armor", hitEntity.armor.left)
+          console.log("[ParticleSystem] hit left armor", hitEntity.armor.left)
         }
         ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         // start knocking down system health
@@ -155,6 +161,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
             randomDamage += rand(1, remaining)
           }
           hitEntity.health -= randomDamage
+          console.log("[ParticleSystem] hit health", randomDamage, hitEntity.health)
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           switch (damagedSystem) {
             case "guns": {
@@ -179,6 +186,8 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
               hitEntity.systems.state[damagedSystem] = Math.max(0, hitEntity.systems.state[damagedSystem] - randomDamage)
             break;
           }
+          console.log("[ParticleSystem] damaged system:", damagedSystem, randomDamage)
+          console.log("[ParticleSystem] remaining health:", hitEntity.health)
           // double up particle effects and play a different sound
           ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
           if (hitEntity.health <= 0 && hitEntity.deathRattle == undefined) {

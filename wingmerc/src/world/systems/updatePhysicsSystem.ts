@@ -17,6 +17,7 @@ queries.physics.onEntityAdded.subscribe(
     let i = 0
     return (entity) => {
       const { node, bodyType } = entity
+      console.log(`[PhysicsSystem] creating body for [${world.id(entity)}]"${entity.targetName}"`)
       // create the body
       let physicsType = PhysicsMotionType.DYNAMIC
       if (bodyType == "static") {
@@ -46,6 +47,7 @@ queries.physics.onEntityAdded.subscribe(
       } else {
         hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
       }
+      console.log(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
       body.shape = hullShape
       body.entityId = world.id(entity)
       body.setCollisionCallbackEnabled(true)

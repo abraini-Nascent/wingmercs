@@ -24,7 +24,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         // not enough energy to fire gun
         continue
       }
-      console.log(`firing gun ${gunIndex} !`)
+      // console.log(`firing gun ${gunIndex} !`)
       // reduce energy
       engine.currentCapacity -= gunClass.energy
       world.update(entity, "engine", engine)
@@ -48,8 +48,9 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
       // create particle
       world.add({
         meshName: "meteor", // use meteor for now
+        targetName: "",
         meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
-        originatorId: playerId,
+        originatorId: ""+world.id(entity),
         position: { ...startPosition },
         direction: {
           x: direction.x,
@@ -111,6 +112,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         // create missile
         world.add({
           meshName: "meteor", // use meteor for now
+          targetName: `${weaponClass.name} missile`,
           meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
           originatorId: ""+world.id(entity),
           position: { ...startPosition },
@@ -146,11 +148,11 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
           damage: 20,
           trail: true,
           trailOptions: {
-            color: {r: 10/255, g: 10/255, b: 10/255, a: 1},
+            color: {r: 200/255, g: 200/255, b: 200/255, a: 1},
             width: 0.2,
-            length: 2000,
+            length: 4000,
           },
-          camera: true,
+          // camera: true,
           isTargetable: "missile",
           // bodyType: "animated"
         });
@@ -158,7 +160,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
   }
   // locking
   if (fireCommand.lock) {
-    console.log("[WeaponSystems] attempting lock")
+    // console.log("[WeaponSystems] attempting lock")
     // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
     const entityId = world.id(entity)
     const { direction, position, targeting } = entity
@@ -183,7 +185,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         closestTarget = targetId
       }
     }
-    console.log("[WeaponSystems] locked target", closestTarget)
+    // console.log("[WeaponSystems] locked target", closestTarget)
     if (targeting.target != closestTarget) {
       // reset target time when target changes
       targeting.targetingTime = 0

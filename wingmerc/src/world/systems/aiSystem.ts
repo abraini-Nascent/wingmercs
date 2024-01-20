@@ -1,4 +1,4 @@
-import { MovementCommand } from '../world';
+import { FireCommand, MovementCommand } from '../world';
 import { Quaternion, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
@@ -45,9 +45,18 @@ export function aiSystem(dt: number) {
     // TODO: if we need to do large turns we should apply brakes while turning
     let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition)
     let cinamaticRoll = 0
-    // if (input.pitch < 0.1 && input.roll < 0.1 ) {
-    //   cinamaticRoll = 1
-    // }
+    if (input.pitch < 0.1 && input.roll < 0.1 && distanceToTarget < 1400) {
+      const command = {
+        gun: 1
+      } as FireCommand
+      if (entity.targeting.locked == false) {
+        command.lock = true
+      }
+      if (entity.targeting.missileLocked == true) {
+        command.weapon = 1
+      }
+      world.update(entity, "fireCommand", command)
+    }
     const brake = Math.abs(input.pitch) > 0.9 || Math.abs(input.yaw) > 0.9 ? 1 : 0
     const shipTemplateName = entity.planeTemplate
     const shipTemplate: { cruiseSpeed: number } = Ships[shipTemplateName] ?? Ships.EnemyLight

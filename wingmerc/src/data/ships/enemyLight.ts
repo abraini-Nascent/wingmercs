@@ -111,7 +111,7 @@ export const EnemyLight = Object.seal({
   //  position on model
   weapons: [
     {
-      type: "dumbfire",
+      type: "enemyDumbfire",
       count: 1
     }
   ],

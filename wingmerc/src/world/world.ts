@@ -72,6 +72,7 @@ export type TargetState = {
 }
 export type Entity = {
   ai?: { type: string, blackboard: {[key: string]: any} }
+  targetName: string
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
@@ -99,7 +100,7 @@ export type Entity = {
   trail?: true
   trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
   trailMesh?: TrailMesh
-  bodyType?: string
+  bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody
   node?: TransformNode
   health?: number
@@ -146,7 +147,7 @@ export type Entity = {
     type: string
     target: number
   }
-  camera?: boolean
+  camera?: "cockpit" | "follow"
 }
 
 export const world = new World<Entity>()

@@ -89,8 +89,9 @@ export class PlayerAgent {
     const playerEntity = world.add({
       owner: net.id,
       local: true,
+      targetName: "player",
       meshName: "craftSpeederA",
-      // hullName: Dirk.hullModel,
+      hullName: Dirk.hullModel,
       trail: true,
       planeTemplate: planeTemplate,
       position: {x: 0, y: 0, z: 0},
@@ -119,6 +120,7 @@ export class PlayerAgent {
         gunInterceptPosition: undefined
       },
       isTargetable: "player",
+      bodyType: "animated",
       playerId: net.id
     })
     this.playerEntity = playerEntity

@@ -24,23 +24,25 @@ export function missileSteeringSystem(dt: number) {
     const weaponClass = Weapons[missileRange.type] as Weapon
     if (missileRange.total > 200) { // minimum range before warhead is active
       for (const possibleTarget of queries.damageable) {
-        const possibleTargetPosition = Vector3FromObj(possibleTarget.position)
-        const distance = end.subtract(possibleTargetPosition).length()
+        if (""+world.id(possibleTarget) != entity.originatorId) {
+          const possibleTargetPosition = Vector3FromObj(possibleTarget.position)
+          const distance = end.subtract(possibleTargetPosition).length()
 
-        // TODO: This min distance should come from the weapon
-        // TODO: the missile should keep trying to get closed until it can't since the closer it explodes the more damage it does
-        if (distance < 150) {
-          // BOOM
-          registerHit(possibleTarget, entity, distance, weaponClass)
-          console.log("[MissileSystem] BOOM")
-          world.remove(entity)
-          continue missiles;
+          // TODO: This min distance should come from the weapon
+          // TODO: the missile should keep trying to get closed until it can't since the closer it explodes the more damage it does
+          if (distance < 150) {
+            // BOOM
+            registerHit(possibleTarget, entity, distance, weaponClass)
+            console.log("[MissileSystem] BOOM")
+            world.remove(entity)
+            continue missiles;
+          }
         }
       }
     }
     // steer the missile
     // TODO: I think this should be a generic "guided" property
-    if (weaponClass.class == "heatseeking") {
+    if (weaponClass.type == "heatseeking") {
       const target = world.entity(missileRange.target)
       if (target == undefined) {
         // maybe the target deaded?
@@ -98,12 +100,12 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
     const missileEntityPosition = Vector3FromObj(missileEntity.position)
     const directionOfHit = hitEntityPosition.subtract(missileEntityPosition)
     directionOfHit.normalize()
-    console.log(`direction of hit ${directionOfHit}`)
+    // console.log(`direction of hit ${directionOfHit}`)
     // rotate the vector by ship rotation to get the vector in world space
     const hitEntityQ = QuaternionFromObj(hitEntity.rotationQuaternion)
     hitEntityQ.multiplyInPlace(TURN)
     const vectorToShip = directionOfHit.applyRotationQuaternionInPlace(hitEntityQ)
-    console.log(`rotated to ship ${vectorToShip}`)
+    // console.log(`rotated to ship ${vectorToShip}`)
     // flatten vector to ground plane
     const flatVector = new Vector3(vectorToShip.x, 0, vectorToShip.z).normalize()
     // find signed angle of flat vector
@@ -111,7 +113,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
     const incomingDegrees = ToDegree(incomingRadians)
     const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
     if (hitEntity.shields != undefined) {
-      console.log("hit from incoming angle", incomingDegrees)
+      // console.log("hit from incoming angle", incomingDegrees)
       if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
         hitEntity.shields.currentFore -= damage
         if (hitEntity.shields.currentFore < 0) {
@@ -120,7 +122,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
         } else {
           damage = 0
         }
-        console.log("hit front shield", hitEntity.shields.currentFore, damage)
+        console.log("[MissileSystem] hit front shield", hitEntity.shields.currentFore, damage)
         if (damage == 0) {
           ConeParticleEmitter("assets/shield_spark.png", missileEntityPosition, AppContainer.instance.scene)
         }
@@ -132,7 +134,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
         } else {
           damage = 0
         }
-        console.log("hit back shield", hitEntity.shields.currentAft, damage)
+        console.log("[MissileSystem] hit back shield", hitEntity.shields.currentAft, damage)
         if (damage == 0) {
           ConeParticleEmitter("assets/shield_spark.png", missileEntityPosition, AppContainer.instance.scene)
         }
@@ -146,7 +148,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.front)
             hitEntity.armor.front = 0
           }
-          console.log("hit front armor", hitEntity.armor.front, damage)
+          console.log("[MissileSystem] hit front armor", hitEntity.armor.front, damage)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
@@ -154,7 +156,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.right)
             hitEntity.armor.right = 0
           }
-          console.log("hit right armor", hitEntity.armor.right, damage)
+          console.log("[MissileSystem] hit right armor", hitEntity.armor.right, damage)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
@@ -162,7 +164,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.back)
             hitEntity.armor.back = 0
           }
-          console.log("hit back armor", hitEntity.armor.back, damage)
+          console.log("[MissileSystem] hit back armor", hitEntity.armor.back, damage)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
@@ -170,7 +172,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             damage = Math.abs(hitEntity.armor.left)
             hitEntity.armor.left = 0
           }
-          console.log("hit left armor", hitEntity.armor.left, damage)
+          console.log("[MissileSystem] hit left armor", hitEntity.armor.left, damage)
         }
         ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)
         // start knocking down system health
@@ -201,6 +203,7 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
             randomDamage += rand(1, remaining)
           }
           hitEntity.health -= randomDamage
+          console.log("[MissileSystem] hit health", randomDamage)
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           switch (damagedSystem) {
             case "guns": {
@@ -225,8 +228,8 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
               hitEntity.systems.state[damagedSystem] = Math.max(0, hitEntity.systems.state[damagedSystem] - randomDamage)
             break;
           }
-          console.log("damaged system:", damagedSystem, randomDamage)
-          console.log("remaining health:", hitEntity.health)
+          console.log("[MissileSystem] damaged system:", damagedSystem, randomDamage)
+          console.log("[MissileSystem] remaining health:", hitEntity.health)
           // TODO: weapons and guns systems should be handled specially to pick a random weapon or gun to damage
           // double up particle effects and play a different sound
           ConeParticleEmitter("assets/hull_spark.png", missileEntityPosition, AppContainer.instance.scene)

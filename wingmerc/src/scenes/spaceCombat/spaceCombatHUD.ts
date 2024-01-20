@@ -18,6 +18,7 @@ export class CombatHud {
   armorRight: TextBlock
   armorLeft: TextBlock
   enemyTarget: EnemyTarget
+  missleLock: TextBlock
   lockType: TextBlock
   lockName: TextBlock
   lockDistance: TextBlock
@@ -27,6 +28,8 @@ export class CombatHud {
   radarTexture: DynamicTexture
   radarImage: DynamicTextureImage
   radarImageBackground: GUI.Image
+
+  flashTimer = 0
 
   constructor() {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
@@ -217,6 +220,17 @@ export class CombatHud {
     lockPanel.paddingRightInPixels = 24
     lockPanel.paddingBottomInPixels = 24
 
+    const missileLock = new GUI.TextBlock()
+    this.missleLock = missileLock
+    missileLock.fontFamily = "monospace"
+    missileLock.text = "[LOCK]"
+    missileLock.color = "grey"
+    missileLock.fontSize = 24
+    missileLock.height = "24px"
+    missileLock.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+    missileLock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+    powerPanel.addControl(missileLock)
+
     const lockType = new GUI.TextBlock()
     this.lockType = lockType
     lockType.fontFamily = "monospace"
@@ -261,6 +275,7 @@ export class CombatHud {
   }
 
   updateScreen(dt: number) {
+    this.flashTimer += dt
     const playerEntity = AppContainer.instance.player.playerEntity
     this.setSpeed.text = `SET[${playerEntity.setSpeed.toString().padStart(4)} mps]`
     this.speed.text = `ACT[${Math.round(playerEntity.currentSpeed).toString().padStart(4)} mps]`
@@ -307,7 +322,7 @@ export class CombatHud {
       }
     }
     const planeClass = Ships[targetEntity.planeTemplate]
-    this.lockName.text = `[ ${planeClass.name} ]`
+    this.lockName.text = `[ ${targetEntity.targetName} ]`
     const enemyPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
     const distance = Math.round(new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
       .subtract(enemyPosition).length())
@@ -362,6 +377,9 @@ export class CombatHud {
     // context.closePath();
     const playerLock = AppContainer.instance.player.playerEntity.targeting.locked
     const lockedId = AppContainer.instance.player.playerEntity.targeting.target
+    const playerId = world.id(AppContainer.instance.player.playerEntity)
+    let locked = false
+    let missileIncoming = false
     for (const target of queries.targets) {
       if (target.isTargetable == "player" || target.position == undefined) {
         continue
@@ -371,6 +389,26 @@ export class CombatHud {
       const radarPosition = mapToRadar(targetPosition, Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), QuaternionFromObj(rotationQuaternion))
       // const radarPosition = mapToFlatCircle(Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), targetPosition, 512)
       this.drawPointOnDynamicTexture(target.isTargetable, radarPosition, this.radarTexture, playerLock && world.id(target) ==lockedId, false)
+
+      // update lock warning
+      if (target.targeting?.locked && target.targeting?.target == playerId && target.targeting?.missileLocked) {
+        locked = true
+      }
+      if (target.isTargetable == "missile" && target.missileRange?.target == playerId) {
+        locked = true
+        missileIncoming = true
+      }
+    }
+    if (missileIncoming) {
+      if (Math.round(this.flashTimer / 250) % 2 == 0) {
+        this.missleLock.color = "red"
+      } else {
+        this.missleLock.color = "yellow"
+      }
+    } else if (locked) {
+      this.missleLock.color = "yellow"
+    } else {
+      this.missleLock.color = "grey"
     }
     this.radarTexture.update()
     this.radarImage.markAsDirty()

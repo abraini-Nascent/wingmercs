@@ -32,24 +32,24 @@ export function updateRenderSystem() {
     }
 
     // temp hack for now
-    if (targeting != undefined) {
-      if (targetingBox == undefined) {
-        targetingBox = MeshBuilder.CreateBox("targetingBox", {size: 10})
-        const mat = new StandardMaterial("targeting box mat")
-        mat.diffuseColor = new Color3(1, 0, 0)
-        mat.emissiveColor = new Color3(1, 0 ,0)
-        mat.specularColor = new Color3(0,0,0)
-        targetingBox.material = mat
-      }
-      if (targeting.gunInterceptPosition != undefined) {
-        targetingBox.position.x = targeting.gunInterceptPosition.x
-        targetingBox.position.y = targeting.gunInterceptPosition.y
-        targetingBox.position.z = targeting.gunInterceptPosition.z
-        targetingBox.isVisible = true
-      } else {
-        targetingBox.isVisible = false
-      }
-    } 
+  //   if (targeting != undefined) {
+  //     if (targetingBox == undefined) {
+  //       targetingBox = MeshBuilder.CreateBox("targetingBox", {size: 10})
+  //       const mat = new StandardMaterial("targeting box mat")
+  //       mat.diffuseColor = new Color3(1, 0, 0)
+  //       mat.emissiveColor = new Color3(1, 0 ,0)
+  //       mat.specularColor = new Color3(0,0,0)
+  //       targetingBox.material = mat
+  //     }
+  //     if (targeting.gunInterceptPosition != undefined) {
+  //       targetingBox.position.x = targeting.gunInterceptPosition.x
+  //       targetingBox.position.y = targeting.gunInterceptPosition.y
+  //       targetingBox.position.z = targeting.gunInterceptPosition.z
+  //       targetingBox.isVisible = true
+  //     } else {
+  //       targetingBox.isVisible = false
+  //     }
+  //   } 
   }
 }
 

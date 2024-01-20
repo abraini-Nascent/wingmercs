@@ -2,6 +2,26 @@ import { FireCommand, MovementCommand, world } from './../world/world';
 import { GamepadManager, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../app.container";
 
+
+class Debounce {
+  debounce: number
+  limit: number
+
+  constructor(limit: number = 333) {
+    this.limit = limit
+  }
+  tryNow(dt: number): boolean {
+    let now = this.debounce == 0
+    this.debounce += dt
+    if (this.debounce > this.limit) {
+      this.debounce = 0
+    }
+    return now
+  }
+  clear() {
+    this.debounce = 0
+  }
+}
 const DriftThreshold = 1000
 const SlowThreshold = 333
 export class InputAgent {
@@ -10,6 +30,7 @@ export class InputAgent {
   driftTime: number
   slowDebounce: number
   fastDebounce: number
+  cameraDebounce: Debounce = new Debounce()
   constructor() {
     const gamepadManager = new GamepadManager();
     this.gamepadManager = gamepadManager
@@ -54,6 +75,19 @@ export class InputAgent {
     }
     if (gamepad.buttonLB) {
       movementCommand.brake = 1
+    }
+    if (gamepad.dPadUp) {
+      if (this.cameraDebounce.tryNow(dt)) {
+        if (AppContainer.instance.player.playerEntity.camera == "follow") {
+          world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
+        } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
+          world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
+        } else {
+          world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
+        }
+      }
+    } else {
+      this.cameraDebounce.clear()
     }
 
     // pitch yaw roll

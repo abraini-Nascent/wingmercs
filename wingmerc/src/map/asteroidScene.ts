@@ -68,6 +68,7 @@ export class AsteroidScene {
       const size = RouletteSelectionStochastic(Sizes)
       world.add({
         meshName: "meteorDetailed",
+        targetName: `meteor ${i}`,
         health: Health[size],
         worth: Points[size],
         scale: {
@@ -232,16 +233,17 @@ export function createEnemyShip(x, y, z) {
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    // ai: { type: "basic", blackboard: {} },
+    ai: { type: "basic", blackboard: {} },
     meshName: EnemyLight.model,
     hullName: EnemyLight.hullModel,
+    targetName: EnemyLight.name,
     bodyType: "animated",
     trail: true,
     planeTemplate: "EnemyLight",
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},
-    setSpeed: EnemyLight.cruiseSpeed / 2,
-    currentSpeed: EnemyLight.cruiseSpeed / 2,
+    setSpeed: 0, //EnemyLight.cruiseSpeed / 2,
+    currentSpeed: 0, //EnemyLight.cruiseSpeed / 2,
     direction: {x: 0, y: 0, z: -1},
     acceleration: {x: 0, y: 0, z: 0},
     rotationalVelocity: {roll: 0, pitch: 0, yaw: 0},
@@ -255,14 +257,14 @@ export function createEnemyShip(x, y, z) {
     shields: shipShields,
     armor: shipArmor,
     systems: shipSystems,
-    // targeting: {
-    //   missileLocked: false,
-    //   targetingDirection: { x: 0, y: 0, z: -1 },
-    //   gunInterceptPosition: undefined,
-    //   target: -1,
-    //   locked: false,
-    //   targetingTime: 0,
-    // },
+    targeting: {
+      missileLocked: false,
+      targetingDirection: { x: 0, y: 0, z: -1 },
+      gunInterceptPosition: undefined,
+      target: -1,
+      locked: false,
+      targetingTime: 0,
+    },
     isTargetable: "enemy",
     // scale: { x: 2, y: 2, z: 2 }
   })

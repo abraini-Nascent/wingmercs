@@ -57,8 +57,8 @@ We will build out the same space flight and combat features as classic WC
   - [x] add projectile energy info to ship data
   - [x] create ship energy system
 - [x] basic ai
-  - [ ] ai shoots at target
-  - [ ] ai launches missiles
+  - [x] ai shoots at target
+  - [x] ai launches missiles
   - [ ] ai chooses target
 - [x] directional shield damage
   - [x] render shield

@@ -55,7 +55,7 @@ export function radarTargetingSystem(dt: number) {
       targeting.targetingTime = 0
     }
     if (!holdTarget) {
-      console.log("[RadarTargeting] target", closestTarget)
+      // console.log("[RadarTargeting] target", closestTarget)
       targeting.target = closestTarget
       world.update(entity, "targeting", targeting)
     }
