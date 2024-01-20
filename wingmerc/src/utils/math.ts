@@ -16,6 +16,10 @@ export function ToDegree(radians: number): number {
   return radians * 180 / Math.PI
 }
 
+export function ToRadians(degrees) {
+  return degrees * (Math.PI / 180)
+}
+
 // unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180
 export function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number {
   // Calculate the dot product of normalized vectors

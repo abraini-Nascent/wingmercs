@@ -33,7 +33,7 @@ export class RubberbandCameraController {
     // move the target up
     let u = Vector3.Up();
     u.rotateByQuaternionToRef(q, u)
-    u = u.multiplyByFloats(1.5, 1.5, 1.5)
+    u = u.multiplyByFloats(10, 10, 10)
     p.addInPlace(u)
 
     // move the target forward

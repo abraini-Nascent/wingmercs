@@ -3,6 +3,7 @@ import { queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
 import { explodeAsteroid } from "../../map/asteroidScene";
+import { ToRadians } from "../../utils/math";
 
 declare module '@babylonjs/core' {
   interface PhysicsBody {
@@ -42,8 +43,13 @@ queries.physics.onEntityAdded.subscribe(
       // const sphereShape = new PhysicsShapeSphere(Vector3.Zero(), 1, app.scene)
       let hullShape
       if (entity.hullName) {
-        hullShape = (ObjModels[entity.hullName] as TransformNode).getChildMeshes()[0] as Mesh
-        hullShape = new PhysicsShapeMesh(hullShape, app.scene)
+        let hullShapeMesh = (ObjModels[entity.hullName] as TransformNode).getChildMeshes()[0] as Mesh
+        // HACK: I don't know why but when I add the imported mesh as a physics mesh it's upside down.
+        hullShapeMesh = hullShapeMesh.clone()
+        hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
+        hullShapeMesh.bakeCurrentTransformIntoVertices()
+        let physicsHullShape = new PhysicsShapeMesh(hullShapeMesh, app.scene)
+        hullShape = physicsHullShape
       } else {
         hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
       }
@@ -51,6 +57,10 @@ queries.physics.onEntityAdded.subscribe(
       body.shape = hullShape
       body.entityId = world.id(entity)
       body.setCollisionCallbackEnabled(true)
+      setInterval(()=> {
+        body.transformNode.rotate(Vector3.Forward(true), ToRadians(1))
+      }, 300)
+      
       world.addComponent(entity, "body", body)
       node.position.set(nodePos.x, nodePos.y, nodePos.z)
     }
