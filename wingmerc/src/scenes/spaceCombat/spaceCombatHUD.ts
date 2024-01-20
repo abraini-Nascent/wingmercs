@@ -360,7 +360,8 @@ export class CombatHud {
     // context.lineWidth = 5;
     // context.stroke();
     // context.closePath();
-
+    const playerLock = AppContainer.instance.player.playerEntity.targeting.locked
+    const lockedId = AppContainer.instance.player.playerEntity.targeting.target
     for (const target of queries.targets) {
       if (target.isTargetable == "player" || target.position == undefined) {
         continue
@@ -369,7 +370,7 @@ export class CombatHud {
 
       const radarPosition = mapToRadar(targetPosition, Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), QuaternionFromObj(rotationQuaternion))
       // const radarPosition = mapToFlatCircle(Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), targetPosition, 512)
-      this.drawPointOnDynamicTexture(radarPosition, this.radarTexture, false)
+      this.drawPointOnDynamicTexture(target.isTargetable, radarPosition, this.radarTexture, playerLock && world.id(target) ==lockedId, false)
     }
     this.radarTexture.update()
     this.radarImage.markAsDirty()
@@ -456,7 +457,7 @@ export class CombatHud {
     const char = BlackCharacters[Math.floor(index)]
     return char
   }
-  drawPointOnDynamicTexture(point: {x: number, y: number}, dynamicTexture: DynamicTexture, update: boolean = false): void {
+  drawPointOnDynamicTexture(targetType: string, point: {x: number, y: number}, dynamicTexture: DynamicTexture, locked: boolean, update: boolean = false): void {
     // Calculate pixel coordinates on the DynamicTexture
     const textureWidth = dynamicTexture.getSize().width;
     const textureHeight = dynamicTexture.getSize().height;
@@ -467,8 +468,34 @@ export class CombatHud {
 
     // Draw a point on the DynamicTexture
     const context = dynamicTexture.getContext();
-    context.fillStyle = "red"; // You can set the color as needed
-    context.fillRect(pixelX, pixelY, 3, 3); // Adjust the size as needed
+    // TODO: this should come from the entity which should come from the radar unit type and capabilities
+    switch (targetType) {
+      case "enemy":
+        context.strokeStyle = "red";
+        context.fillStyle = "red";
+        break;
+      case "missile":
+        context.strokeStyle = "yellow";
+        context.fillStyle = "yellow";
+        break;
+      default:
+        context.strokeStyle = "red";
+        context.fillStyle = "red";
+        break;
+    }
+    if (locked) {
+      context.lineWidth = 1
+      context.beginPath()
+      context.moveTo(pixelX-2, pixelY)
+      context.lineTo(pixelX+2, pixelY)
+      context.stroke()
+      context.beginPath()
+      context.moveTo(pixelX, pixelY-2)
+      context.lineTo(pixelX, pixelY+2)
+      context.stroke()
+    } else {
+      context.fillRect(pixelX-1, pixelY-1, 3, 3); // Adjust the size as needed
+    }
 
     if (update) {
       // Update the DynamicTexture

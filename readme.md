@@ -82,8 +82,8 @@ We will build out the same space flight and combat features as classic WC
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud
   - [x] radar in hud
-    - [ ] show locked target in radar
-    - [ ] color code targets in radar
+    - [x] show locked target in radar
+    - [x] color code targets in radar
 - [x] gamepad controls
 - [x] respawn killed ships
 - [x] heal player every three dead ships
