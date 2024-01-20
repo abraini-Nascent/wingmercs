@@ -20,6 +20,7 @@ import { Entity, queries } from '../../world/world';
 import * as Ships from '../../data/ships';
 import { random } from '../../utils/random';
 import { CombatHud } from './spaceCombatHUD';
+import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
 
 const divFps = document.getElementById("fps");
 const radius = 5000;
@@ -108,6 +109,7 @@ export class SpaceCombatScene implements GameScene {
     moveCommandSystem(delta)
     rotationalVelocitySystem()
     moveSystem(delta)
+    radarTargetingSystem(delta)
     particleSystem()
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)

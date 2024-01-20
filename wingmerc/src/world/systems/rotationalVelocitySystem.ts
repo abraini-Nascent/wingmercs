@@ -1,13 +1,14 @@
 import { Quaternion, Vector3 } from "@babylonjs/core";
-import { queries } from "../world";
+import { queries, world } from "../world";
 
 
 /**
  * applies the entity's component details to the babylonjs transform node
  */
 export function rotationalVelocitySystem() {
-  for (const { direction, rotation, rotationQuaternion, rotationalVelocity } of queries.rotating) {
+  for (const entity of queries.rotating) {
 
+    const { direction, rotation, rotationQuaternion, rotationalVelocity, up } = entity
     // change the raw objects to babylonjs classes
     // TODO: store these as babylon vecs in the world, this is a lot of instantiation
     let rotationVec = new Vector3(rotation.x, rotation.y, rotation.z);
@@ -42,6 +43,15 @@ export function rotationalVelocitySystem() {
     direction.y = forward.y
     direction.x = forward.x
     direction.z = forward.z
+    const newUp = Vector3.Up()
+    newUp.applyRotationQuaternionInPlace(rotationQuaternionB)
+    if (up == undefined) {
+      world.addComponent(entity, "up", { x: newUp.x, y: newUp.y, z: newUp.z })
+    } else {
+      up.x = newUp.x
+      up.y = newUp.y
+      up.z = newUp.z
+    }
   }
 }
 

@@ -20,6 +20,9 @@ export function particleSystem() {
     if (raycastResult.hasHit) {
       console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
       registerHit(world.entity(raycastResult.body.entityId), entity, raycastResult)
+      console.log("[ParticleSystem] contact")
+      world.remove(entity)
+      continue
     }
     // check if particle is end of life
     const deltaV = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)

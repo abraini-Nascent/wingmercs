@@ -232,7 +232,7 @@ export function createEnemyShip(x, y, z) {
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    ai: { type: "basic", blackboard: {} },
+    // ai: { type: "basic", blackboard: {} },
     meshName: EnemyLight.model,
     hullName: EnemyLight.hullModel,
     bodyType: "animated",
@@ -255,14 +255,15 @@ export function createEnemyShip(x, y, z) {
     shields: shipShields,
     armor: shipArmor,
     systems: shipSystems,
-    targeting: {
-      missileLocked: false,
-      targetingDirection: { x: 0, y: 0, z: -1 },
-      gunInterceptPosition: undefined,
-      targetLocked: -1,
-      targetingTime: 0,
-    },
-    isTargetable: true,
+    // targeting: {
+    //   missileLocked: false,
+    //   targetingDirection: { x: 0, y: 0, z: -1 },
+    //   gunInterceptPosition: undefined,
+    //   target: -1,
+    //   locked: false,
+    //   targetingTime: 0,
+    // },
+    isTargetable: "enemy",
     // scale: { x: 2, y: 2, z: 2 }
   })
   return enemyEntity

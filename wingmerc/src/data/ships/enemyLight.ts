@@ -1,5 +1,6 @@
 export const EnemyLight = Object.seal({
-  name: "light_fighter",
+  name: "Fire Ant",
+  class: "EnemyLight",
   model: "craftSpeederA",
   hullModel: "craftSpeederAHull",
   shields: {

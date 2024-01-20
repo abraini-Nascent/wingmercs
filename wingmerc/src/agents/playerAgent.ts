@@ -12,7 +12,7 @@ export class PlayerAgent {
   node: TransformNode
   onNode: () => void
 
-  constructor(engine: Engine, planeTemplate: string = "dirk") {
+  constructor(engine: Engine, planeTemplate: string = "Dirk") {
 
     const guns = Dirk.guns.reduce((guns, gun, index) => {
       const gunClass = Guns[gun.type] as Gun
@@ -113,11 +113,12 @@ export class PlayerAgent {
       targeting: {
         missileLocked: false,
         targetingDirection: { x: 0, y: 0, z: -1 },
-        targetLocked: -1,
+        target: -1,
+        locked: false,
         targetingTime: 0,
         gunInterceptPosition: undefined
       },
-      isTargetable: true,
+      isTargetable: "player",
       playerId: net.id
     })
     this.playerEntity = playerEntity
@@ -178,9 +179,9 @@ export class PlayerAgent {
     }
 
     /// AFTERBURNER - ACCELERATE
-    // "SPACE" [32]
+    // "TAB" [9]
     let afterburner = 0
-    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(32)) {
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(9)) {
       afterburner = 1
       movementCommand.afterburner = 1
     }
@@ -207,17 +208,30 @@ export class PlayerAgent {
 
     world.update(this.playerEntity, "movementCommand", movementCommand)
     /// FIRE PROJECTILES
-    // "ENTER" 13
     // "CONTROL" 17
+    // "SPACE" [32]
     let fire = 0
-    if ( this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(13)) {
+    let weapon = 0
+    let lock = false
+    let target = 0
+    if ( this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(32)) {
       fire  = 1
     }
     if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(17)) {
       fire = 1
     }
-    if (fire) {
-      const fireCommand: FireCommand = { gun: 1, weapon: 0 }
+    /// FIRE WEAPONS
+    // "ENTER" 13
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(13)) {
+      weapon = 1
+    }
+    /// LOCK TARGET
+    // "L" [76]
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(76)) {
+      lock = true
+    }
+    if (fire || weapon || lock || target) {
+      const fireCommand: FireCommand = { gun: fire, weapon, lock }
       world.addComponent(this.playerEntity, "fireCommand", fireCommand) 
     }
 

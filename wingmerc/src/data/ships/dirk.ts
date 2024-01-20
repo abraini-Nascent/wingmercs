@@ -1,5 +1,6 @@
 export const Dirk = Object.seal({
-  name: "dirk",
+  name: "Dirk",
+  class: "Dirk",
   model: "craftSpeederA",
   hullModel: "craftSpeederAHull",
   shields: {

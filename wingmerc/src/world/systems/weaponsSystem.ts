@@ -138,7 +138,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
           acceleration: { x: 0, y: 0, z: 0 },
           missileRange: {
             type: weaponClass.class,
-            target: targeting.targetLocked,
+            target: targeting.target,
             max: weaponClass.range,
             total: 0,
             lastPosition: { ...startPosition }
@@ -151,6 +151,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
             length: 2000,
           },
           camera: true,
+          isTargetable: "missile",
           // bodyType: "animated"
         });
     }
@@ -183,11 +184,12 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
       }
     }
     console.log("[WeaponSystems] locked target", closestTarget)
-    if (targeting.targetLocked != closestTarget) {
+    if (targeting.target != closestTarget) {
       // reset target time when target changes
       targeting.targetingTime = 0
     }
-    targeting.targetLocked = closestTarget
+    targeting.target = closestTarget
+    targeting.locked = true
     world.update(entity, "targeting", targeting)
   }
   // remove the command

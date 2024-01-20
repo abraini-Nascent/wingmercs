@@ -39,6 +39,8 @@ We will build out the same space flight and combat features as classic WC
 - "drift" using afterburner slide. Afterburner acceleration and velocity over the speed limit of the plane does not match the direction of the plane
 - "drift" by cutting off the lock between direction of the plane and "cruise" speed
 
+## Bugs:
+
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -71,12 +73,17 @@ We will build out the same space flight and combat features as classic WC
   - [x] system damage affects targeting and radar
 - [x] missile details
 - [x] missile tracking
+- [x] targeting system
+  - [x] lock onto target
+  - [x] auto target enemy in front of player
 - [x] space debris particle system for movement detection
 - [] ai vs ai dogfighting demo mode
   - https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud
-  - [ ] radar in hud
+  - [x] radar in hud
+    - [ ] show locked target in radar
+    - [ ] color code targets in radar
 - [x] gamepad controls
 - [x] respawn killed ships
 - [x] heal player every three dead ships

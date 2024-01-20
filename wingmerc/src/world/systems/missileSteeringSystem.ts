@@ -4,7 +4,7 @@ import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vecto
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { RouletteSelectionStochastic, rand, random, randomItem } from "../../utils/random"
-import { DegreeToRadian, calculateSteering, firstOrderIntercept, lookDirectionToQuaternion, rotateByAngle } from "../../utils/math";
+import { DegreeToRadian, QuaternionFromObj, ToDegree, Vector3FromObj, calculateSteering, firstOrderIntercept, lookDirectionToQuaternion, rotateByAngle } from "../../utils/math";
 
 
 export function missileSteeringSystem(dt: number) {
@@ -238,18 +238,6 @@ function registerHit(hitEntity: Entity, missileEntity: Entity, distance: number,
       }
     }
   }
-}
-
-function Vector3FromObj(obj: {x: number, y: number, z: number}): Vector3 {
-  return new Vector3(obj.x, obj.y, obj.z)
-}
-
-function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
-  return new Quaternion(obj.x, obj.y, obj.z, obj.w);
-}
-
-function ToDegree(radians: number): number {
-  return radians * 180 / Math.PI
 }
 
 function ConeParticleEmitter(texture: string, point: Vector3, scene: Scene) {

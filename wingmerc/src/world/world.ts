@@ -66,7 +66,8 @@ export type TargetState = {
   gunInterceptPosition: { x: number, y: number, z: number }
   targetingDirection: { x: number, y: number, z: number }
   targetingTime: number
-  targetLocked: number
+  target: number
+  locked: boolean
   missileLocked: boolean
 }
 export type Entity = {
@@ -81,6 +82,7 @@ export type Entity = {
   currentSpeed?: number
   acceleration?: { x: number; y: number; z: number }
   direction?: { x: number; y: number; z: number }
+  up?: { x: number; y: number; z: number }
   rotationalVelocity?: {roll: number, pitch: number, yaw: number }
   rotationQuaternion?: {x: number; y: number; z: number; w: number}
   rotation?: {x: number; y: number; z: number}
@@ -113,7 +115,7 @@ export type Entity = {
   relinquish?: boolean // give the state of the entity to the server
   damage?: number
   targeting?: TargetState
-  isTargetable?: boolean
+  isTargetable?: "player" | "enemy" | "missile"
   guns?: {
     [gunId: number]: {
       class: string,

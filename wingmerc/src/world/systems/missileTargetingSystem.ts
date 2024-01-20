@@ -1,7 +1,7 @@
 import * as Guns from './../../data/guns';
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
-import { firstOrderIntercept } from "../../utils/math"
+import { AngleBetweenVectors, firstOrderIntercept } from "../../utils/math"
 import { Gun } from '../../data/guns/gun';
 
 
@@ -10,7 +10,7 @@ export function missileTargetingSystem(dt: number) {
   for (const entity of queries.targeting) {
     const { targeting, direction, position, rotationQuaternion } = entity
 
-    if (targeting.targetLocked == -1) {
+    if (targeting.target == -1) {
       // move to the front of the plane
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
@@ -18,9 +18,10 @@ export function missileTargetingSystem(dt: number) {
       world.update(entity, "targeting", targeting)
       continue
     }
-    const targetEntity = world.entity(targeting.targetLocked)
+    const targetEntity = world.entity(targeting.target)
     if (targetEntity == undefined) {
-      targeting.targetLocked = -1
+      targeting.target = -1
+      targeting.locked = false
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
       targeting.gunInterceptPosition = undefined
@@ -89,22 +90,4 @@ function ToDegree(radians: number): number {
 
 function ToRadians(degrees: number): number {
   return degrees * (Math.PI / 180)
-}
-
-// unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180
-function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number {
-  // Calculate the dot product of normalized vectors
-  const dotProduct = Vector3.Dot(vector1.normalize(), vector2.normalize());
-
-  // Ensure dot product is within valid range [-1, 1]
-  const clampedDotProduct = clamp(dotProduct, -1, 1);
-
-  // Calculate the angle in radians using the arc cosine
-  const angleRadians = Math.acos(clampedDotProduct);
-
-  return angleRadians;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }

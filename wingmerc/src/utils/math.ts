@@ -4,6 +4,32 @@ export function DegreeToRadian(degrees: number): number {
   return degrees * (Math.PI/180)
 }
 
+export function Vector3FromObj(obj: {x: number, y: number, z: number}): Vector3 {
+  return new Vector3(obj.x, obj.y, obj.z)
+}
+
+export function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
+  return new Quaternion(obj.x, obj.y, obj.z, obj.w);
+}
+
+export function ToDegree(radians: number): number {
+  return radians * 180 / Math.PI
+}
+
+// unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180
+export function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number {
+  // Calculate the dot product of normalized vectors
+  const dotProduct = Vector3.Dot(vector1.normalize(), vector2.normalize());
+
+  // Ensure dot product is within valid range [-1, 1]
+  const clampedDotProduct = clamp(dotProduct, -1, 1);
+
+  // Calculate the angle in radians using the arc cosine
+  const angleRadians = Math.acos(clampedDotProduct);
+
+  return angleRadians;
+}
+
 /** Function to calculate lead for intercepting a moving target */
 export function firstOrderIntercept(
   shooterPosition: Vector3,
