@@ -109,6 +109,9 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         let burn = weaponClass.speed
         forward.multiplyInPlace(new Vector3(burn, burn, burn))
         forward.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
+        if (entity.nerdStats) {
+          entity.nerdStats.missilesLaunched += 1
+        }
         // create missile
         world.add({
           meshName: "meteor", // use meteor for now

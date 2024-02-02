@@ -116,7 +116,7 @@ export const Dirk = Object.seal({
       count: 2
     },
     {
-      type: "heatseeking",
+      type: "dumbfire",
       count: 2
     }
   ],

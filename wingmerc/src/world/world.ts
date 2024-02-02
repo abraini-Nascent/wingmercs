@@ -62,6 +62,11 @@ export type ShipSystems = {
     weapons: number,
   }
 }
+export type Display = "damage" | "target" | "armor" | "weapons" | "guns"
+export type VDUState = {
+  left: Display
+  right: Display
+}
 export type TargetState = {
   gunInterceptPosition: { x: number, y: number, z: number }
   targetingDirection: { x: number, y: number, z: number }
@@ -69,6 +74,26 @@ export type TargetState = {
   target: number
   locked: boolean
   missileLocked: boolean
+}
+export type NerdStats = {
+  missilesDodged: number
+  missilesEaten: number
+  missilesLaunched: number
+  missilesHit: number
+  roundsMissed: number
+  roundsHit: number
+  shieldDamageTaken: number
+  armorDamageTaken: number
+  shieldDamageGiven: number
+  armorDamageGiven: number
+  afterburnerFuelSpent: number
+  driftTime: number
+  totalKills: number
+}
+export type Score = {
+  total: number
+  timeLeft: number
+  livesLeft: number
 }
 export type Entity = {
   ai?: { type: string, blackboard: {[key: string]: any} }
@@ -95,8 +120,9 @@ export type Entity = {
   mesh?: Mesh
   meshColor?: { r: number, g: number, b: number, a: number }
   meshInstance?: InstancedMesh
-  movementCommand?: MovementCommand,
-  fireCommand?: FireCommand,
+  movementCommand?: MovementCommand
+  nerdStats?: NerdStats
+  fireCommand?: FireCommand
   trail?: true
   trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
   trailMesh?: TrailMesh
@@ -110,6 +136,7 @@ export type Entity = {
   playerId?: string
   originatorId?: string
   planeTemplate?: string
+  visible?: boolean
   // net code components
   local?: boolean // local to client
   owner?: string // who owns the state of this entity
@@ -133,7 +160,9 @@ export type Entity = {
   engine?: ShipEngine
   shields?: ShipShields
   systems?: ShipSystems
+  score?: Score
   armor?: ShipArmor
+  vduState: VDUState
   deathRattle?: boolean
   particleRange?: { 
     max: number,

@@ -1,27 +1,8 @@
 import { FireCommand, MovementCommand, world } from './../world/world';
 import { GamepadManager, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../app.container";
+import { Debounce } from '../utils/debounce';
 
-
-class Debounce {
-  debounce: number
-  limit: number
-
-  constructor(limit: number = 333) {
-    this.limit = limit
-  }
-  tryNow(dt: number): boolean {
-    let now = this.debounce == 0
-    this.debounce += dt
-    if (this.debounce > this.limit) {
-      this.debounce = 0
-    }
-    return now
-  }
-  clear() {
-    this.debounce = 0
-  }
-}
 const DriftThreshold = 1000
 const SlowThreshold = 333
 export class InputAgent {

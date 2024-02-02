@@ -12,7 +12,7 @@ Our first goal is to build the systems for the core gameplay loop.  Dogfights in
 ### Goal
 Rebuild the WC1 arcade/simulator gameplay loop.  
 - Fight waves of enemies in an empty field.
-- Fight against wave-groups of the same fighter, from waves of 1 to 4 fighters of the same type.
+- Fight against wave-groups of the same fighter, from waves of 1 to 3 fighters of the same type.
 - Reset your plane's damage after clearing a wave group
 - Move on to a harder enemy type after clearing a wave group
 
@@ -31,6 +31,7 @@ We will build out the same space flight and combat features as classic WC
   - Radar: displaying enemy type, damage, and distance
   - Targeting: if the player can lock onto a target, increase time to get missile lock
   - Guns & Weapons: removes capability to use them
+  - Fuel: afterburner fuel 
 #### Flight Model
 - independent pitch, roll, and yaw rates
 - independent acceleration, velocity, and direction
@@ -40,7 +41,8 @@ We will build out the same space flight and combat features as classic WC
 - "drift" by cutting off the lock between direction of the plane and "cruise" speed
 
 ## Bugs:
-
+- [ ] afterburner seems to go on forever
+- [ ] static size VDUs, the are all different sizes and are not consistent so don't look good
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -76,24 +78,57 @@ We will build out the same space flight and combat features as classic WC
 - [x] targeting system
   - [x] lock onto target
   - [x] auto target enemy in front of player
+  - [x] display player time to lock in hud
 - [x] space debris particle system for movement detection
-- [] ai vs ai dogfighting demo mode
+- [ ] ai vs ai dogfighting demo mode
   - https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud
   - [x] radar in hud
     - [x] show locked target in radar
     - [x] color code targets in radar
+    - [ ] damage indicator in radar (light up quadrant hit)
 - [x] gamepad controls
 - [x] respawn killed ships
 - [x] heal player every three dead ships
-- [] massive juicing
-- [] code cleanup and polish
+- [ ] rebuild main menu
+- [x] game over screen
+  - [x] restart button
+  - [ ] make sure memory footprint is clear on restarts
+- [ ] scoring
+  - [x] points for kill
+  - [x] points for time alive
+  - [x] time awarded for kill
+  - [x] time awarded for round
+  - [x] time counts down till game over
+  - [ ] hi-score leaderboard
+  - [x] stats for nerds
+- [ ] more enemy types
+  - [ ] medium 1
+  - [ ] medium 2
+  - [ ] heavy 1
+- [ ] increase enemy type level every round
+- [ ] HUD Improvements
+  - [x] tint hud elements
+  - [x] dynamic hud location
+  - [x] weapon selection hud
+  - [ ] gun selection hud
+  - [x] damaged systems hud
+- [ ] massive juicing
+  - [ ] sounds
+  - [ ] music
+  - [ ] main menu runs demo ai vs ai scene
+  - [ ] damaged systems animations
+  - [ ] replace sprite particles with 3d shapes
+  - [ ] fix trails and afterburner effects
+  - [ ] replace laser particle models and missile models
+  - [ ] 3d cockpit frame model
+- [ ] code cleanup and polish
+
 ### second demo
 - [] joystick controls
 - [] vr controls
-- [] configurable hud
-- [] ai horde wave missions with points
+- [] configurable input
 ### third demo
 - [] fullish weapons list
 - [] fullish guns list

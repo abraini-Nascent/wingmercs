@@ -9,7 +9,7 @@ let targetingBox: Mesh
  * applies the entity's component details to the babylonjs transform node
  */
 export function updateRenderSystem() {
-  for (const { position, node, rotationQuaternion, rotation, scale, targeting } of queries.updateRender) {
+  for (const { position, node, rotationQuaternion, rotation, scale, targeting, visible } of queries.updateRender) {
 
     let transform = node as TransformNode
     transform.position.x = position.x
@@ -29,6 +29,11 @@ export function updateRenderSystem() {
     }
     if (scale != undefined) {
       transform.scaling.set(scale.x, scale.y, scale.z)
+    }
+    if (visible != undefined) {
+      for (const mesh of transform.getChildMeshes()) {
+        mesh.isVisible = visible
+      }
     }
 
     // temp hack for now
@@ -60,6 +65,7 @@ queries.meshed.onEntityAdded.subscribe(
   (() => {
     let i = 0
     return (entity) => {
+      const visible = entity.visible ?? true
       const meshNode = ObjModels[entity.meshName] as TransformNode
       // create the mesh
       const newNode = new TransformNode(`${entity.meshName}-node-${i}`)
@@ -80,7 +86,7 @@ queries.meshed.onEntityAdded.subscribe(
           instanceMesh.material = mat
         }
         //.createInstance(`asteroid-mesh-${i}-${mi}`)
-        instanceMesh.isVisible = true
+        instanceMesh.isVisible = visible
         // instanceMesh.setParent(newNode)
       }
       if (entity.hullName) {
@@ -96,7 +102,7 @@ queries.meshed.onEntityAdded.subscribe(
           mat.specularColor = Color3.Black()
           mat.alpha = 0.25
           instanceMesh.material = mat
-          instanceMesh.isVisible = true
+          instanceMesh.isVisible = visible
         }
       }
       world.addComponent(entity, "node", newNode)

@@ -32,6 +32,13 @@ export function missileSteeringSystem(dt: number) {
           // TODO: the missile should keep trying to get closed until it can't since the closer it explodes the more damage it does
           if (distance < 150) {
             // BOOM
+            if (possibleTarget.nerdStats) {
+              possibleTarget.nerdStats.missilesEaten += 1
+            }
+            const shooter = world.entity(parseInt(entity.originatorId))
+            if (shooter?.nerdStats) {
+              shooter.nerdStats.missilesHit += 1
+            }
             registerHit(possibleTarget, entity, distance, weaponClass)
             console.log("[MissileSystem] BOOM")
             world.remove(entity)
@@ -77,6 +84,10 @@ export function missileSteeringSystem(dt: number) {
     missileRange.total += delta
     missileRange.lastPosition = { x: position.x, y: position.y, z: position.z }
     if (missileRange.total >= missileRange.max) {
+      const dodger = world.entity(entity.targeting?.target)
+      if (dodger?.nerdStats) {
+        dodger.nerdStats.missilesDodged += 1
+      }
       // end of the line
       console.log("[MissileSystem] end of line")
       ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)

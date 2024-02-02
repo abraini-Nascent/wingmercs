@@ -26,6 +26,10 @@ export function particleSystem() {
       }
       // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
       registerHit(hitEntity, entity, raycastResult)
+      const shooter = world.entity(parseInt(entity.originatorId))
+      if (shooter.nerdStats) {
+        shooter.nerdStats.roundsHit += 1
+      }
       // console.log("[ParticleSystem] contact")
       world.remove(entity)
       continue
@@ -39,6 +43,10 @@ export function particleSystem() {
     if (particleRange.total >= particleRange.max) {
       // end of the line
       // console.log("[ParticleSystem] end of line")
+      const shooter = world.entity(parseInt(entity.originatorId))
+      if (shooter.nerdStats) {
+        shooter.nerdStats.roundsMissed += 1
+      }
       world.remove(entity)
     }
   }
@@ -51,6 +59,11 @@ export function particleSystem() {
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
 function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRaycastResult) {
+  const shooterStats = world.entity(parseInt(particleEntity.originatorId)).nerdStats
+  const victimStats = hitEntity.nerdStats
+  
+  AppContainer.instance.pipeline.process("registerHit", { shooter: parseInt(particleEntity.originatorId), victim: world.id(hitEntity) })
+
   let damage = particleEntity.damage ?? 1
   if (hitEntity.position == undefined) { return }
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
@@ -71,6 +84,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
     const incomingDegrees = ToDegree(incomingRadians)
     const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
     if (hitEntity.shields != undefined) {
+      let oldShieldDamage = damage
       // console.log("hit from incoming angle", incomingDegrees)
       if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
         hitEntity.shields.currentFore -= damage
@@ -85,6 +99,7 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
           ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         }
       } else if (quadrant == "aft" && hitEntity.shields.currentAft >= 0) {
+        let oldDamage = damage
         hitEntity.shields.currentAft -= damage
         if (hitEntity.shields.currentAft < 0) {
           damage = Math.abs(hitEntity.shields.currentAft)
@@ -97,7 +112,10 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
           ConeParticleEmitter("assets/shield_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
         }
       }
+      if (shooterStats) { shooterStats.shieldDamageGiven += oldShieldDamage - damage }
+      if (victimStats) { victimStats.shieldDamageTaken += oldShieldDamage - damage }
       if (damage > 0 && hitEntity.armor != undefined) {
+        let oldArmorDamage = damage
         // at least it's explicit...
         if (incomingDegrees > -45 && incomingDegrees < 45) {
           // front
@@ -133,6 +151,10 @@ function registerHit(hitEntity: Entity, particleEntity: Entity, hit: PhysicsRayc
           console.log("[ParticleSystem] hit left armor", hitEntity.armor.left)
         }
         ConeParticleEmitter("assets/hull_spark.png", hit.hitPointWorld, AppContainer.instance.scene)
+        let armorDamageDelt = oldArmorDamage - damage
+        if (shooterStats) { shooterStats.armorDamageGiven += armorDamageDelt }
+        if (victimStats) { victimStats.armorDamageTaken += armorDamageDelt }
+        
         // start knocking down system health
         if (damage > 0 && hitEntity.health != undefined) {
           /*

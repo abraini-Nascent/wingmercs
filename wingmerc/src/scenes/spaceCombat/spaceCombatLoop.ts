@@ -16,14 +16,15 @@ import { shieldRechargeSystem } from "../../world/systems/shieldRechargeSystem";
 import { updateRenderSystem } from "../../world/systems/updateRenderSystem";
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
 import { AsteroidScene, createEnemyShip } from '../../map/asteroidScene';
-import { Entity, queries } from '../../world/world';
+import { Entity, NerdStats, Score, queries } from '../../world/world';
 import * as Ships from '../../data/ships';
 import { random } from '../../utils/random';
 import { CombatHud } from './spaceCombatHUD';
 import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
+import { StatsScene } from '../statsScene/statsLoop';
 
 const divFps = document.getElementById("fps");
-const radius = 5000;
+const pointsPerSecond = 10;
 export class SpaceCombatScene implements GameScene {
 
   spaceDebris: SpaceDebrisAgent
@@ -33,26 +34,46 @@ export class SpaceCombatScene implements GameScene {
   waveKillCount: number = 0
   lastSpawnCount: number = 0
   hud: CombatHud
+  gameover: boolean
+  readyTimer = 0
+  gameoverTimer = 0
 
   constructor() {
+    console.log("[SpaceCombatLoop] created")
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisAgent(appContainer.scene)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
     this.asteroidScene = new AsteroidScene(10, ArenaRadius)
     queries.deathComes.onEntityAdded.subscribe(this.onDeath)
     this.hud = new CombatHud()
-    this.spawnShips()
+    this.readyTimer = 3000
+    const playerEntity = appContainer.player.playerEntity;
+    playerEntity.score = { livesLeft: 1, timeLeft: 3 * 60, total: 1000 }
+  }
+
+  /** call to clean up */
+  dispose() {
+    queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
+    queries.deathComes.onEntityAdded.clear()
+    this.hud.dispose()
+    // todo space debri and asteroid scene
   }
 
   deinit() {
-    queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
+    console.log("[SpaceCombatLoop] deinit")
   }
 
   onDeath = (entity: Entity) => {
     if (entity.playerId != undefined) {
       // TODO: the player died
+      this.gameover = true
+      this.hud.gameover = true
+      this.gameoverTimer = 3000
       return
     }
+    const playerScore = AppContainer.instance.player.playerEntity.score
+    playerScore.total += 1000 * this.waveCount
+    playerScore.timeLeft += 60
     this.totalKillCount += 1
     this.waveKillCount += 1
     const endOfBlock = this.waveKillCount == 3
@@ -63,6 +84,8 @@ export class SpaceCombatScene implements GameScene {
       this.spawnShips()
     }
     if (endOfBlock) {
+      playerScore.timeLeft += 120
+      playerScore.total += 10000 * this.waveCount // end of wave bonus
       const playerEntity = AppContainer.instance.player.playerEntity
       const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
       playerEntity.health = shipTemplate.health
@@ -78,6 +101,7 @@ export class SpaceCombatScene implements GameScene {
   }
 
   spawnShips() {
+    const radius = 10000
     let newShipAmount = this.lastSpawnCount + 1
     if (newShipAmount > 3) {
       newShipAmount = 1
@@ -100,7 +124,39 @@ export class SpaceCombatScene implements GameScene {
 
   runLoop = (delta: number) => {
     const appContainer = AppContainer.instance
+    const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
+    if (this.gameover) {
+      this.gameoverTimer -= delta
+      this.hud.updateScreen(delta)
+      if (this.gameoverTimer < 0) {
+        queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
+        this.onDeath = undefined
+        console.log("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)
+        // for some reason unsubscribe isn't letting go
+        queries.deathComes.onEntityAdded.clear()
+        console.log("subscribers size after clear", queries.deathComes.onEntityAdded.subscribers.size)
+        appContainer.gameScene = new StatsScene()
+        this.dispose()
+      }
+      scene.render()
+      divFps.innerHTML = engine.getFps().toFixed() + " fps";
+      return
+    }
+    if (this.readyTimer > 0) {
+      this.readyTimer = Math.max(0, this.readyTimer - delta)
+
+      if (this.readyTimer > 0) {
+        this.hud.getReady = true
+        this.hud.updateScreen(delta)
+        scene.render()
+        divFps.innerHTML = engine.getFps().toFixed() + " fps";
+        return
+      } else {
+        this.spawnShips()
+        this.hud.getReady = false
+      }
+    }
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
     engineRechargeSystem(delta)
@@ -124,49 +180,16 @@ export class SpaceCombatScene implements GameScene {
       this.spaceDebris.update(delta)
     }
     cameraSystem(appContainer.player, appContainer.camera)
+    this.updateScore(delta)
     this.hud.updateScreen(delta)
   
-    // show debug axis
-    // if (this.player?.playerEntity?.node) {
-    // if (window.velocity == undefined) {
-    //   let ball = MeshBuilder.CreateBox("velocity", {
-    //     size: 1.0
-    //   })
-    //   window.velocity = ball
-    // }
-    //   if (window.driftVelocity == undefined) {
-    //     let ball = MeshBuilder.CreateBox("driftVelocity", {
-    //       size: 5.0
-    //     })
-    //     window.driftVelocity = ball
-    //   }
-    //   if (this.player.playerEntity.velocity) {
-    //     let ball = window.velocity as Mesh
-    //     ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.velocity.x) 
-    //     ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.velocity.y) 
-    //     ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.velocity.z)
-    //     if (this.player.playerEntity.breakingVelocity) {
-    //       ball.position.x += this.player.playerEntity.breakingVelocity.x
-    //       ball.position.y += this.player.playerEntity.breakingVelocity.y
-    //       ball.position.z += this.player.playerEntity.breakingVelocity.z
-    //     }
-    //   }
-    //   let ball = window.driftVelocity as Mesh
-    //   if (this.player.playerEntity.driftVelocity) {
-    //     ball.isVisible = true
-    //     ball.position.x = this.player.playerEntity.position.x + (this.player.playerEntity.driftVelocity.x)
-    //     ball.position.y = this.player.playerEntity.position.y + (this.player.playerEntity.driftVelocity.y)
-    //     ball.position.z = this.player.playerEntity.position.z + (this.player.playerEntity.driftVelocity.z)
-        
-    //   } else {
-    //     ball.isVisible = false
-    //   }
-    // }
-  
     scene.render()
-    // divFps.innerHTML = engine.getFps().toFixed() + " fps";
-    if (appContainer.player?.playerEntity?.currentSpeed) {
-      divFps.innerHTML = `${appContainer.player?.playerEntity?.currentSpeed.toFixed(0) ?? 0} mps`;
-    }
+    divFps.innerHTML = engine.getFps().toFixed() + " fps";
   };
+
+  updateScore(dt: number) {
+    const score = AppContainer.instance.player.playerEntity.score
+    score.timeLeft -= dt / 1000
+    score.total += (dt/1000) * pointsPerSecond
+  }
 }

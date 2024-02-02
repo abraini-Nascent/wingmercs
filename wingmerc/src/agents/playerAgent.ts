@@ -1,15 +1,22 @@
+import { Display, VDUState } from './../world/world';
 import { DeviceSourceManager, DeviceType, Engine, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
-import { Entity, FireCommand, MovementCommand, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
+import { Entity, FireCommand, MovementCommand, NerdStats, Score, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
 import { Inspector } from "@babylonjs/inspector";
 import { AppContainer } from "../app.container";
 import { Gun } from "../data/guns/gun";
+import { Debounce, DebounceTimed } from '../utils/debounce';
+
+const LeftDisplays: Display[] = ["armor", "damage", "guns", "weapons"]
+const RightDisplays: Display[] = ["target"]
+
 export class PlayerAgent {
   playerEntity: Entity
   dsm: DeviceSourceManager
   node: TransformNode
+  vduDebounce = new DebounceTimed()
   onNode: () => void
 
   constructor(engine: Engine, planeTemplate: string = "Dirk") {
@@ -49,6 +56,21 @@ export class PlayerAgent {
       front: Dirk.armor.front,
       left: Dirk.armor.left,
       right: Dirk.armor.right,
+    }
+    const stats: NerdStats = {
+      afterburnerFuelSpent: 0, 
+      armorDamageGiven: 0, 
+      armorDamageTaken: 0,
+      missilesDodged: 0,
+      missilesEaten: 0,
+      missilesLaunched: 0,
+      missilesHit: 0,
+      roundsMissed: 0,
+      roundsHit: 0,
+      shieldDamageTaken: 0,
+      shieldDamageGiven: 0,
+      driftTime: 0,
+      totalKills: 0
     }
     const shipSystems: ShipSystems = {
       quadrant: {
@@ -91,6 +113,7 @@ export class PlayerAgent {
       local: true,
       targetName: "player",
       meshName: "craftSpeederA",
+      visible: false,
       hullName: Dirk.hullModel,
       trail: true,
       planeTemplate: planeTemplate,
@@ -105,11 +128,13 @@ export class PlayerAgent {
       rotation: {x: 0, y: 0, z: -1},
       health: 100,
       totalScore: 0,
+      score: { livesLeft: 0, timeLeft: 0, total: 0 } as Score,
       guns,
       weapons,
       engine: shipEngine,
       shields: shipShields,
       armor: shipArmor,
+      nerdStats: stats,
       systems: shipSystems,
       targeting: {
         missileLocked: false,
@@ -119,6 +144,10 @@ export class PlayerAgent {
         targetingTime: 0,
         gunInterceptPosition: undefined
       },
+      vduState: {
+        left: "armor",
+        right: "target"
+      } ,
       isTargetable: "player",
       bodyType: "animated",
       playerId: net.id
@@ -177,6 +206,23 @@ export class PlayerAgent {
       } else {
         left = 1
         movementCommand.yaw = -1
+      }
+    }
+    // "OPEN_BRACKET", // [219]
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(219)) {
+      if (this.vduDebounce.tryNow()) {
+        let displayIdx = LeftDisplays.findIndex(d => {return d == this.playerEntity.vduState.left }) + 1
+        if (displayIdx >= LeftDisplays.length) { displayIdx = 0 }
+        this.playerEntity.vduState.left = LeftDisplays[displayIdx]
+      }
+    }
+
+    // "CLOSE_BRACKET", // [221]
+    if (this.dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(221)) {
+      if (this.vduDebounce.tryNow()) {
+        let displayIdx = RightDisplays.findIndex(d => { return d == this.playerEntity.vduState.right }) + 1
+        if (displayIdx >= RightDisplays.length) { displayIdx = 0 }
+        this.playerEntity.vduState.right = RightDisplays[displayIdx]
       }
     }
 

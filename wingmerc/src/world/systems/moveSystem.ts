@@ -76,6 +76,9 @@ export function moveCommandSystem(dt: number) {
           // move along the difference of the two velocity vectors by the accelleration 
         }
         console.log("afterburner direction distance", difference.length())
+        if (entity.nerdStats) {
+          entity.nerdStats.afterburnerFuelSpent += dt / 1000
+        }
         world.update(entity, "afterburnerVelocity", newafterburnerVelocity)
       } else {
         // apply drag to drift velocity
@@ -146,6 +149,9 @@ export function moveCommandSystem(dt: number) {
         const movement = forward.multiplyByFloats(newSpeed, newSpeed, newSpeed)
         movement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
         let newVelocity = movement
+        if (entity.nerdStats) {
+          entity.nerdStats.driftTime += dt / 1000
+        }
         world.update(entity, "velocity", newVelocity)
       }
     }

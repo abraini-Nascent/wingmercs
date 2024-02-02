@@ -16,6 +16,14 @@ export function ToDegree(radians: number): number {
   return radians * 180 / Math.PI
 }
 
+export function ToDegree360(radians: number): number {
+  const half = radians * 180 / Math.PI
+  if (half < 0) {
+    return (180 - Math.abs(half)) + 180
+  }
+  return half
+}
+
 export function ToRadians(degrees) {
   return degrees * (Math.PI / 180)
 }
