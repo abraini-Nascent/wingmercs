@@ -25,6 +25,8 @@ export function cameraSystem(player: PlayerAgent, camera: FreeCamera) {
   } else if (cameraOverride != undefined && cameraOverride.camera == "follow") {
     cameraFollowSystem(cameraOverride, camera)
     return
+  } else if (cameraOverride != undefined && cameraOverride.camera == "debug") {
+    return
   }
   if (camera.rotationQuaternion == undefined) {
     camera.rotationQuaternion = new Quaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w)

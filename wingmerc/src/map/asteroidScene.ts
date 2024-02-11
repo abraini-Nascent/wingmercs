@@ -1,4 +1,4 @@
-import { PhysicsBody, Quaternion, TransformNode, Vector3 } from "@babylonjs/core";
+import { Color3, Color4, ColorGradient, FactorGradient, MeshBuilder, PhysicsBody, Quaternion, Scalar, StandardMaterial, TmpVectors, TransformNode, Vector3 } from "@babylonjs/core";
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
 import { Entity, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { ObjModels } from "../assetLoader/objModels";
@@ -6,6 +6,8 @@ import { EnemyLight } from "../data/ships";
 import { net } from "../net";
 import { Gun } from "../data/guns/gun";
 import * as Guns from "../data/guns";
+import { MercParticleSystem, Vector3Gradient } from "../utils/particles/mercParticleSystem";
+import { AppContainer } from "../app.container";
 
 function generateRandomPointInSphere(radius: number, random: () => number): Vector3 {
   const phi = random() * Math.PI * 2;
@@ -24,72 +26,73 @@ const Health = [1, 1, 1]
 const Points = [100, 50, 10]
 
 export class AsteroidScene {
-  constructor(count: number, radius: number) {
-    /*
-    r = R * sqrt(random())
-    theta = random() * 2 * PI
-    (Assuming random() gives a value between 0 and 1 uniformly)
 
-    If you want to convert this to Cartesian coordinates, you can do
+  // constructor(count: number, radius: number) {
+  //   /*
+  //   r = R * sqrt(random())
+  //   theta = random() * 2 * PI
+  //   (Assuming random() gives a value between 0 and 1 uniformly)
 
-    x = centerX + r * cos(theta)
-    y = centerY + r * sin(theta)
-    */
+  //   If you want to convert this to Cartesian coordinates, you can do
 
-    for (let i = 0; i < count; i += 1) {
-      // const r = radius * Math.sqrt(random())
-      // const theta = random() * 2 * Math.PI
-      // const phi = random() * Math.PI;
-      // const x = r * Math.cos(theta)
-      // const z = r * Math.sin(theta)
-      // const y = r * Math.cos(phi)
+  //   x = centerX + r * cos(theta)
+  //   y = centerY + r * sin(theta)
+  //   */
+
+  //   for (let i = 0; i < count; i += 1) {
+  //     // const r = radius * Math.sqrt(random())
+  //     // const theta = random() * 2 * Math.PI
+  //     // const phi = random() * Math.PI;
+  //     // const x = r * Math.cos(theta)
+  //     // const z = r * Math.sin(theta)
+  //     // const y = r * Math.cos(phi)
       
-      const phi = random() * Math.PI * 2;
-      const costheta = 2 * random() - 1;
-      const theta = Math.acos(costheta);
-      const x = radius * Math.sin(theta) * Math.cos(phi);
-      const y = radius * Math.sin(theta) * Math.sin(phi);
-      const z = radius * Math.cos(theta);
-      const speed = rand(20, 100)
-      const velocity = {
-        x: random() * speed,
-        y: random() * speed,
-        z: random() * speed
-      }
-      const direction = Vector3.Zero()
-      const rotation = Vector3.Zero() //new Vector3(random(), random(), random()).normalize()
-      const pitch = random() * (random() > 0.5 ? -1 : 1)
-      const yaw = random() * (random() > 0.5 ? -1 : 1)
-      const roll = random() * (random() > 0.5 ? -1 : 1)
-      const rotationQuaternion = Quaternion.Identity()
-      const rotationalVelocity = {
-        pitch, yaw, roll
-      }
-      const size = RouletteSelectionStochastic(Sizes)
-      world.add({
-        meshName: "meteorDetailed",
-        targetName: `meteor ${i}`,
-        health: Health[size],
-        worth: Points[size],
-        scale: {
-          x: Scales[size],
-          y: Scales[size],
-          z: Scales[size],
-        },
-        asteroidSize: Size[size],
-        position: {
-          x, y, z
-        },
-        velocity,
-        direction,
-        acceleration: {x:0, y:0, z:0},
-        rotation,
-        rotationQuaternion,
-        rotationalVelocity,
-        bodyType: "animated"
-      })
-    }
-  }
+  //     const phi = random() * Math.PI * 2;
+  //     const costheta = 2 * random() - 1;
+  //     const theta = Math.acos(costheta);
+  //     const x = radius * Math.sin(theta) * Math.cos(phi);
+  //     const y = radius * Math.sin(theta) * Math.sin(phi);
+  //     const z = radius * Math.cos(theta);
+  //     const speed = rand(20, 100)
+  //     const velocity = {
+  //       x: random() * speed,
+  //       y: random() * speed,
+  //       z: random() * speed
+  //     }
+  //     const direction = Vector3.Zero()
+  //     const rotation = Vector3.Zero() //new Vector3(random(), random(), random()).normalize()
+  //     const pitch = random() * (random() > 0.5 ? -1 : 1)
+  //     const yaw = random() * (random() > 0.5 ? -1 : 1)
+  //     const roll = random() * (random() > 0.5 ? -1 : 1)
+  //     const rotationQuaternion = Quaternion.Identity()
+  //     const rotationalVelocity = {
+  //       pitch, yaw, roll
+  //     }
+  //     const size = RouletteSelectionStochastic(Sizes)
+  //     world.add({
+  //       meshName: "meteorDetailed",
+  //       targetName: `meteor ${i}`,
+  //       health: Health[size],
+  //       worth: Points[size],
+  //       scale: {
+  //         x: Scales[size],
+  //         y: Scales[size],
+  //         z: Scales[size],
+  //       },
+  //       asteroidSize: Size[size],
+  //       position: {
+  //         x, y, z
+  //       },
+  //       velocity,
+  //       direction,
+  //       acceleration: {x:0, y:0, z:0},
+  //       rotation,
+  //       rotationQuaternion,
+  //       rotationalVelocity,
+  //       bodyType: "animated"
+  //     })
+  //   }
+  // }
 }
 
 export function explodeAsteroid(asteroid: Partial<Entity>) {
@@ -233,12 +236,14 @@ export function createEnemyShip(x, y, z) {
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    ai: { type: "basic", blackboard: {} },
-    meshName: EnemyLight.model,
-    hullName: EnemyLight.hullModel,
+    ai: { type: "basicCombat", blackboard: {} },
+    meshName: EnemyLight.modelDetails.base,
+    shieldMeshName: EnemyLight.modelDetails.shield,
+    physicsMeshName: EnemyLight.modelDetails.physics,
     targetName: EnemyLight.name,
     bodyType: "animated",
     trail: true,
+    trailOptions: EnemyLight.modelDetails.trails.map((trail) => { return { start: {...trail.start }}}),
     planeTemplate: "EnemyLight",
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},

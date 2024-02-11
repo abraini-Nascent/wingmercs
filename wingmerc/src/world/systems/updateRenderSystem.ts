@@ -1,7 +1,8 @@
-import { Color3, Material, Mesh, MeshBuilder, Quaternion, StandardMaterial, TrailMesh, TransformNode } from "@babylonjs/core"
+import { Color3, Material, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpColors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
+import { ToRadians } from "../../utils/math"
 
 
 let targetingBox: Mesh
@@ -71,6 +72,7 @@ queries.meshed.onEntityAdded.subscribe(
       const newNode = new TransformNode(`${entity.meshName}-node-${i}`)
       const children = meshNode.getChildMeshes()
       let mat: StandardMaterial = undefined
+      let engineMesh: Mesh = undefined
       if (entity.meshColor != undefined) {
         // TODO: we could cache and reuse mats of the same color
         mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
@@ -85,27 +87,35 @@ queries.meshed.onEntityAdded.subscribe(
         if (mat != undefined) {
           instanceMesh.material = mat
         }
+        if (instanceMesh.material?.name == "engine") {
+          // found the engine mesh
+          engineMesh = instanceMesh
+        }
         //.createInstance(`asteroid-mesh-${i}-${mi}`)
         instanceMesh.isVisible = visible
         // instanceMesh.setParent(newNode)
       }
-      if (entity.hullName) {
-        const hullMesh =  ObjModels[entity.hullName] as TransformNode
+      if (entity.shieldMeshName) {
+        const hullMesh =  ObjModels[entity.shieldMeshName] as TransformNode
         const hullChildren = hullMesh.getChildMeshes()
         for (let mi = 0; mi < hullChildren.length; mi += 1) {
           const mesh = hullChildren[mi]
           // TODO: we could actually make instances instead of cloning
-          const instanceMesh = (mesh as Mesh).clone(`${entity.hullName}-hull-${i}-${mi}`, newNode)
-          const mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
+          const instanceMesh = (mesh as Mesh).clone(`${entity.shieldMeshName}-hull-${i}-${mi}`, newNode)
+          // instanceMesh.rotate(Vector3.Forward(true), ToRadians(180))
+          // instanceMesh.bakeCurrentTransformIntoVertices()
+          const mat = new StandardMaterial(`${entity.shieldMeshName}-mat-${i}`)
           mat.emissiveColor = new Color3(0, 0, 0.5)
           mat.diffuseColor = new Color3(0, 0, 0.5)
           mat.specularColor = Color3.Black()
           mat.alpha = 0.25
+          mat.wireframe = true
           instanceMesh.material = mat
           instanceMesh.isVisible = visible
         }
       }
       world.addComponent(entity, "node", newNode)
+      world.addComponent(entity, "engineMesh", engineMesh)
     }
   })()
 )
@@ -117,16 +127,27 @@ queries.trailers.onEntityAdded.subscribe(
       setTimeout(() => {
         const node = entity.node
         const scene = AppContainer.instance.scene
-        const width = entity.trailOptions?.width ?? 0.2
-        const length = entity.trailOptions?.length ?? 100
-        const color = entity.trailOptions?.color ? new Color3(entity.trailOptions?.color.r, entity.trailOptions?.color.g, entity.trailOptions?.color.b) : Color3.Blue()
-        const newTrail = new TrailMesh(`trail-${i}`, node, scene, width, length, true)
-        const sourceMat = new StandardMaterial(`trailMat-${1}`, scene)
-        sourceMat.emissiveColor = color
-        sourceMat.diffuseColor = color
-        sourceMat.specularColor = Color3.Black()
-        newTrail.material = sourceMat
-        world.addComponent(entity, "trailMesh", newTrail)
+        let trails: TrailMesh[] = []
+        for (const trailOption of entity.trailOptions) {
+          const trailNode = new TransformNode(`trail-${i}-transform`)
+          if (trailOption.start) {
+            trailNode.position.x = trailOption.start.x
+            trailNode.position.y = trailOption.start.y
+            trailNode.position.z = trailOption.start.z
+          }
+          trailNode.parent = node
+          const width = trailOption?.width ?? 0.2
+          const length = trailOption?.length ?? 100
+          const color = trailOption?.color ? new Color3(trailOption?.color.r, trailOption?.color.g, trailOption?.color.b) : Color3.Blue()
+          const newTrail = new TrailMesh(`trail-${i}`, trailNode, scene, width, length, true)
+          const sourceMat = new StandardMaterial(`trailMat-${1}`, scene)
+          sourceMat.emissiveColor = color
+          sourceMat.diffuseColor = color
+          sourceMat.specularColor = Color3.Black()
+          newTrail.material = sourceMat
+          trails.push(newTrail)
+        }
+        world.addComponent(entity, "trailMeshs", trails)
       }, 1)
     }
   })()
@@ -136,9 +157,15 @@ queries.trailers.onEntityRemoved.subscribe(
     let i = 0
     return (entity) => {
       if (world.has(entity)) {
-        if (entity.trail == undefined && entity.trailMesh) {
-          entity.trailMesh.dispose()
-          world.removeComponent(entity, "trailMesh")
+        if (entity.trail == undefined && entity.trailMeshs != undefined && entity.trailMeshs.length > 0) {
+          for (const trailMesh of entity.trailMeshs) {
+            if (trailMesh.parent) {
+              trailMesh.parent.dispose()
+            } else {
+              trailMesh.dispose()
+            }
+          }
+          world.removeComponent(entity, "trailMeshs")
         }
       }
     }
@@ -159,10 +186,104 @@ queries.meshed.onEntityRemoved.subscribe(
         // it might be a good idea to add these to a queue and dispose a set limit per frame
         mesh.dispose()
       }
-      if (entity.trailMesh) {
-        entity.trailMesh.dispose()
+      if (entity.trailMeshs) {
+        entity.trailMeshs.forEach((mesh) => { mesh.dispose() })
       }
       oldNode.dispose()
     }
   })()
+)
+
+queries.afterburnerTrails.onEntityAdded.subscribe(
+  (entity) => {
+    const {trailMeshs, trailOptions} = entity
+    let entityHidden = entity as any
+    if (entityHidden.afterburnerAnimation) {
+      if (entityHidden.afterburnerAnimation.remove) {
+        entityHidden.afterburnerAnimation.remove()
+        entityHidden.afterburnerAnimation = undefined
+      }
+    }
+    let duration = 0
+    let observer = AppContainer.instance.scene.onAfterRenderObservable.add((scene) => {
+      const dt = scene.getEngine().getDeltaTime()
+      duration += dt
+      const scale = duration / 1000
+      for (let i = 0; i < trailMeshs.length; i += 1) {
+        const trailMesh = trailMeshs[i]
+        const trailOption = trailOptions[i]
+        let mat = trailMesh.material as StandardMaterial
+        
+        let target = TmpColors.Color3[0]
+        target.set(235/255, 113/255, 52/255)
+        let start = TmpColors.Color3[2]
+        start.set(trailOption?.color?.r ?? 1, trailOption?.color?.g ?? 1, trailOption?.color?.b ?? 1)
+        let result = TmpColors.Color3[1]
+        // 100% in one second
+        Color3.LerpToRef(start, target, scale, result)
+
+        mat.emissiveColor.copyFrom(result)
+        trailMesh.diameter = Scalar.Lerp(0.2, 1, scale)
+        if (entity.engineMesh != undefined) {
+          const engineMat = entity.engineMesh.material as StandardMaterial
+          if (mat.emissiveColor) {
+            engineMat.emissiveColor.copyFrom(result)
+          } else {
+            engineMat.emissiveColor = target.clone()
+          }
+          // engineMat.diffuseColor.copyFrom(result)
+        }
+      }
+      if (duration >= 1000) {
+        observer.remove()
+        entityHidden.afterburnerAnimation = undefined
+      }
+    })
+    entityHidden.afterburnerAnimation = observer
+  }
+)
+
+queries.afterburnerTrails.onEntityRemoved.subscribe(
+  (entity) => {
+    const {trailMeshs, trailOptions} = entity
+    let entityHidden = entity as any
+    if (entityHidden.afterburnerAnimation) {
+      if (entityHidden.afterburnerAnimation.remove) {
+        entityHidden.afterburnerAnimation.remove()
+        entityHidden.afterburnerAnimation = undefined
+      }
+    }
+    let duration = 0
+    let observer = AppContainer.instance.scene.onAfterRenderObservable.add((scene) => {
+      let dt = scene.getEngine().getDeltaTime()
+      duration += dt
+      for (let i = 0; i < trailMeshs.length; i += 1) {
+        const trailMesh = trailMeshs[i]
+        const trailOption = trailOptions[i]
+        let mat = trailMesh.material as StandardMaterial
+        let target = TmpColors.Color3[0]
+        let result = TmpColors.Color3[0]
+        target.set(trailOption?.color?.r ?? 1, trailOption?.color?.g ?? 1, trailOption?.color?.b ?? 1)
+        const scale = duration / 1000
+        // 100% in one second
+        Color3.LerpToRef(mat.emissiveColor, target, scale, result)
+        mat.emissiveColor.copyFrom(result)
+        trailMesh.diameter = Scalar.Lerp(1, 0.2, scale)
+        if (entity.engineMesh != undefined) {
+          const engineMat = entity.engineMesh.material as StandardMaterial
+          if (mat.emissiveColor) {
+            engineMat.emissiveColor.copyFrom(result)
+          } else {
+            engineMat.emissiveColor = result.clone()
+          }
+          // engineMat.diffuseColor.copyFrom(result)
+        }
+      }
+      if (duration >= 1000) {
+        observer.remove()
+        entityHidden.afterburnerAnimation = undefined
+      }
+    })
+    entityHidden.afterburnerAnimation = observer
+  }
 )

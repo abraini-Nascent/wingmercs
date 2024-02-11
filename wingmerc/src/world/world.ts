@@ -26,6 +26,7 @@ export type ShipArmor = {
   left: number,
   right: number,
 }
+export type AIType = "basicCombat" | "demoLoop"
 export type ShipSystems = {
   quadrant: {
     fore: {
@@ -96,11 +97,13 @@ export type Score = {
   livesLeft: number
 }
 export type Entity = {
-  ai?: { type: string, blackboard: {[key: string]: any} }
-  targetName: string
+  ai?: { type: AIType, blackboard: {[key: string]: any} }
+  targetName?: string
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
+  afterburnerActive?: boolean
+  brakingActive?: boolean
   driftVelocity?: { x: number; y: number; z: number }
   breakingPower?: number
   breakingVelocity?: { x: number; y: number; z: number }
@@ -114,8 +117,11 @@ export type Entity = {
   rotation?: {x: number; y: number; z: number}
   scale?: {x: number; y: number; z: number}
   asteroidSize?: number
-  hullName?: string
-  hullMesh?: Mesh
+  engineMesh?: Mesh
+  shieldMeshName?: string
+  shieldMesh?: Mesh
+  physicsMeshName?: string
+  physicsMesh?: Mesh
   meshName?: string
   mesh?: Mesh
   meshColor?: { r: number, g: number, b: number, a: number }
@@ -124,8 +130,8 @@ export type Entity = {
   nerdStats?: NerdStats
   fireCommand?: FireCommand
   trail?: true
-  trailOptions?: { width: number, length: number, color: { r: number, g: number, b: number, a: number } }
-  trailMesh?: TrailMesh
+  trailOptions?: { width?: number, length?: number, color?: { r: number, g: number, b: number, a: number }, start?: {x: number; y: number; z: number;} }[]
+  trailMeshs?: TrailMesh[]
   bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody
   node?: TransformNode
@@ -162,7 +168,7 @@ export type Entity = {
   systems?: ShipSystems
   score?: Score
   armor?: ShipArmor
-  vduState: VDUState
+  vduState?: VDUState
   deathRattle?: boolean
   particleRange?: { 
     max: number,
@@ -176,7 +182,7 @@ export type Entity = {
     type: string
     target: number
   }
-  camera?: "cockpit" | "follow"
+  camera?: "cockpit" | "follow" | "debug"
 }
 
 export const world = new World<Entity>()
@@ -188,11 +194,12 @@ export const queries = {
   moveCommanded: world.with("movementCommand"),
   rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
   meshed: world.with("meshName"),
-  physics: world.with("bodyType"),
+  physics: world.with("node", "bodyType"),
   colliders: world.with("body"),
   guns: world.with("guns"),
   weapons: world.with("weapons"),
   engines: world.with("engine"),
+  afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   shields: world.with("shields"),
   particle: world.with("particleRange"),
   missiles: world.with("missileRange"),

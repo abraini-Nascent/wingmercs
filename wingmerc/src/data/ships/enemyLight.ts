@@ -1,8 +1,30 @@
-export const EnemyLight = Object.seal({
+import { ShipDetails } from "./shipDetails";
+
+export const EnemyLight: ShipDetails = Object.seal({
   name: "Fire Ant",
   class: "EnemyLight",
-  model: "craftSpeederA",
-  hullModel: "craftSpeederAHull",
+  modelDetails: {
+    base: "craftSpeederA",
+    physics: "craftSpeederAHull",
+    shield: "craftSpeederAHull",
+    trails: [
+      {
+        start: {
+          x: 3.7,
+          y: 0,
+          z: 10
+        },
+        color: { r: 0, g: 0, b: 1 }
+      },{
+        start: {
+          x: -3.7,
+          y: 0,
+          z: 10
+        },
+        color: { r: 0, g: 0, b: 1 }
+      },
+    ]
+  },
   shields: {
     fore: 50,
     aft: 50,
@@ -68,6 +90,7 @@ export const EnemyLight = Object.seal({
       ]
     },
     base: {
+      afterburners: 25,
       thrusters: 25,
       engines: 25,
       power: 25,

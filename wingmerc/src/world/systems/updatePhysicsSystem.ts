@@ -1,4 +1,4 @@
-import { HavokPlugin, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShape, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
+import { HavokPlugin, InstancedMesh, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShape, PhysicsShapeContainer, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
@@ -42,14 +42,22 @@ queries.physics.onEntityAdded.subscribe(
       // meshes.forEach((mesh) => mesh.dispose())
       // const sphereShape = new PhysicsShapeSphere(Vector3.Zero(), 1, app.scene)
       let hullShape
-      if (entity.hullName) {
-        let hullShapeMesh = (ObjModels[entity.hullName] as TransformNode).getChildMeshes()[0] as Mesh
+      if (entity.physicsMeshName) {
+        let hullShapeMesh = (ObjModels[entity.physicsMeshName] as TransformNode).getChildMeshes()[1] as Mesh
         // HACK: I don't know why but when I add the imported mesh as a physics mesh it's upside down.
-        hullShapeMesh = hullShapeMesh.clone()
-        hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
-        hullShapeMesh.bakeCurrentTransformIntoVertices()
+        hullShapeMesh = new Mesh("entity hull", AppContainer.instance.scene, undefined, hullShapeMesh, false, false)
         let physicsHullShape = new PhysicsShapeMesh(hullShapeMesh, app.scene)
-        hullShape = physicsHullShape
+        let hullShapeContainer = new PhysicsShapeContainer(AppContainer.instance.scene)
+        hullShapeContainer.addChild(physicsHullShape, undefined, Quaternion.RotationAxis(Vector3.Forward(true), ToRadians(180)))
+        hullShape = hullShapeContainer
+        // hullShapeMesh = hullShapeMesh.createInstance("entity hull")
+        // hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
+        // hullShapeMesh.bakeCurrentTransformIntoVertices()
+        // let physicsHullShape = new PhysicsShapeMesh(hullShapeMesh as unknown as Mesh, app.scene)
+        // hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
+        // hullShapeMesh.bakeCurrentTransformIntoVertices()
+        hullShapeMesh.dispose()
+        // hullShape = physicsHullShape
       } else {
         hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
       }

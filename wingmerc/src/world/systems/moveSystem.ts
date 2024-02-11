@@ -75,10 +75,11 @@ export function moveCommandSystem(dt: number) {
           newafterburnerVelocity = afterburner.add(difference)
           // move along the difference of the two velocity vectors by the accelleration 
         }
-        console.log("afterburner direction distance", difference.length())
+        // console.log("afterburner direction distance", difference.length())
         if (entity.nerdStats) {
           entity.nerdStats.afterburnerFuelSpent += dt / 1000
         }
+        world.addComponent(entity, "afterburnerActive", true)
         world.update(entity, "afterburnerVelocity", newafterburnerVelocity)
       } else {
         // apply drag to drift velocity
@@ -94,6 +95,7 @@ export function moveCommandSystem(dt: number) {
             world.update(entity, "afterburnerVelocity", drag)
           }
         }
+        world.removeComponent(entity, "afterburnerActive")
       }
       //// breaking
       let nextBreakingPower = 0

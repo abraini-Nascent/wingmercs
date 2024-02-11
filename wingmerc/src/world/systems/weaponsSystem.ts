@@ -70,11 +70,12 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         },
         damage: gunClass.damage,
         trail: true,
-        trailOptions: {
+        trailOptions: [{
           color: {r: 100/255, g: 10/255, b: 10/255, a: 1},
           width: 0.2,
           length: 2,
-        },
+          start: {x: 0, y: 0, z: -10}
+        }],
         // bodyType: "animated"
       });
     }

@@ -1,8 +1,30 @@
-export const Dirk = Object.seal({
+import { ShipDetails } from "./shipDetails";
+
+export const Dirk: ShipDetails = Object.seal({
   name: "Dirk",
   class: "Dirk",
-  model: "craftSpeederA",
-  hullModel: "craftSpeederAHull",
+  modelDetails: {
+    base: "craftSpeederA",
+    physics: "craftSpeederAHull",
+    shield: "craftSpeederAHull",
+    trails: [
+      {
+        start: {
+          x: 5,
+          y: 0,
+          z: -5
+        },
+        color: { r: 1, g: 0, b: 0 }
+      }, {
+        start: {
+          x: -5,
+          y: 0,
+          z: -5
+        },
+        color: { r: 1, g: 0, b: 0 }
+      },
+    ]
+  },
   shields: {
     fore: 60,
     aft: 60,
