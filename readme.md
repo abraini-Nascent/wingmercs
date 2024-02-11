@@ -87,7 +87,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] radar in hud
     - [x] show locked target in radar
     - [x] color code targets in radar
-    - [ ] damage indicator in radar (light up quadrant hit)
+    - [x] damage indicator in radar (light up quadrant hit)
 - [x] gamepad controls
 - [x] respawn killed ships
 - [x] heal player every three dead ships

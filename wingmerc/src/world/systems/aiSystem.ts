@@ -1,5 +1,4 @@
-import { Entity } from './../world';
-import { FireCommand, MovementCommand } from '../world';
+import { Entity, FireCommand, MovementCommand } from '../world';
 import { Mesh, MeshBuilder, Quaternion, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
@@ -59,6 +58,10 @@ function demoLoopAI(entity: Entity, dt: number) {
     drift: 0,
   } as MovementCommand
 
+  let fireCommand = {
+    gun: 0,
+    weapon: 0
+  } as FireCommand
   // afterburner demo
   timer(blackboard, "afterburner", dt, 15000, 5000, () => {
     movementCommand.afterburner = 1
@@ -72,6 +75,10 @@ function demoLoopAI(entity: Entity, dt: number) {
   // brake demo
   timer(blackboard, "brake", dt, 2000, 333, () => {
     // movementCommand.brake = 1
+  })
+
+  timer(blackboard, "fireGuns", dt, 1000, 1000, () => {
+    fireCommand.gun = 1
   })
 
   if (blackboard.target == undefined) {
@@ -104,6 +111,7 @@ function demoLoopAI(entity: Entity, dt: number) {
   }
   world.update(entity, "setSpeed", 250)
   world.update(entity, "movementCommand", movementCommand)
+  world.update(entity, "fireCommand", fireCommand)
 }
 
 function moveTargetBox(blackboard: any, position: Vector3) {
