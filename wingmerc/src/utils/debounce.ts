@@ -18,6 +18,22 @@ export class Debounce {
   }
 }
 
+export class DebounceTimedMulti {
+  debouncers = new Map<number, DebounceTimed>()
+
+  constructor() {}
+
+  tryNow(key: number, limit: number = 333) {
+    let debouncer = this.debouncers.get(key)
+    if (debouncer) {
+      return debouncer.tryNow()
+    }
+    debouncer = new DebounceTimed(limit)
+    this.debouncers.set(key, debouncer)
+    return debouncer.tryNow()
+  }
+}
+
 export class DebounceTimed {
   debounce: number
   limit: number

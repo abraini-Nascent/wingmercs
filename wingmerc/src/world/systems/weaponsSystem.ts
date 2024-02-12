@@ -47,7 +47,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
       }
       // create particle
       world.add({
-        meshName: "meteor", // use meteor for now
+        // meshName: "meteor", // use meteor for now
         targetName: "",
         meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
         originatorId: ""+world.id(entity),
@@ -72,9 +72,8 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         trail: true,
         trailOptions: [{
           color: {r: 100/255, g: 10/255, b: 10/255, a: 1},
-          width: 0.2,
+          width: 1,
           length: 2,
-          start: {x: 0, y: 0, z: -10}
         }],
         // bodyType: "animated"
       });

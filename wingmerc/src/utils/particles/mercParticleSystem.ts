@@ -44,9 +44,11 @@ export class MercParticleSystem {
   gravity: Vector3
   direction: Vector3
   stopped: boolean = true
+  done: boolean = false
 
   initialPositionFunction: (particle: SolidParticle) => SolidParticle
   initialDirectionFunction: (particle: SolidParticle) => SolidParticle
+  onDone: () => void
 
   private sceneObserver: Observer<Scene>
 
@@ -85,6 +87,7 @@ export class MercParticleSystem {
   begin = () => {
     // reset
     this.stopped = false;
+    this.done = false;
     this.newParticlesRemaining = 0;
     this.duration = 0;
     this.emitAccumulator = 0;
@@ -375,6 +378,12 @@ export class MercParticleSystem {
       this.finishedCount += 1;
       if (this.emitCount > 0 && this.finishedCount == this.emitCount) {
         this.stopped = true;
+      }
+      if (this.emitted.size == 0 && this.stopped) {
+        if (this.onDone) {
+          this.onDone()
+        }
+        this.done = true;
       }
       return particle;
     }

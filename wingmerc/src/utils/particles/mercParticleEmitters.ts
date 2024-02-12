@@ -1,5 +1,6 @@
 import { Scalar, SolidParticle, TmpVectors, Vector3 } from "@babylonjs/core";
 import { random } from "../random";
+import { pointInSphere } from "../math";
 
 export interface MercParticlesEmitter {
   position: Vector3
@@ -33,8 +34,40 @@ export class MercParticleSphereEmitter implements MercParticlesEmitter {
   }
 }
 
+export class MercParticleConeEmitter implements MercParticlesEmitter {
+  position: Vector3;
+  direction: Vector3;
+  radius: number;
+  height: number;
+
+  constructor(position: Vector3 = new Vector3(), direction: Vector3, radius: number, height: number) {
+    this.position = position
+    this.direction = direction
+    this.radius = radius
+    this.height = height
+  }
+
+  initialPositionFunction = (particle: SolidParticle): SolidParticle => {    
+    // this isn't efficient, but it works for now
+    particle.position.copyFrom(this.position)
+    return particle
+  }
+  initialDirectionFunction = (particle: SolidParticle): SolidParticle => {
+    // this isn't the most effcient but hey it works.
+    const topPoint = this.position.addToRef(this.direction.multiplyToRef(TmpVectors.Vector3[3].setAll(this.height), TmpVectors.Vector3[2]), TmpVectors.Vector3[1])
+    const conePoint = pointInSphere(this.radius, topPoint, TmpVectors.Vector3[0])
+    const direction = (particle.props.direction as Vector3)
+    conePoint.subtractToRef(this.position, direction)
+    return particle
+  }
+}
+
 export class MercParticlePointEmitter implements MercParticlesEmitter {
-  position: Vector3 = new Vector3;
+  position: Vector3;
+
+  constructor(position: Vector3 = new Vector3()) {
+    this.position = position;
+  }
 
   initialPositionFunction = (particle: SolidParticle): SolidParticle => {
     particle.position.copyFrom(this.position)

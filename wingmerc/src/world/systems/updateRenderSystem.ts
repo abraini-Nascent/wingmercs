@@ -1,4 +1,4 @@
-import { Color3, Material, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpColors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
+import { Color3, IDisposable, Material, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpColors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
@@ -120,34 +120,63 @@ queries.meshed.onEntityAdded.subscribe(
   })()
 )
 
+const ColorMaterialCache = (() => {
+  const cache = new Map<number, StandardMaterial>()
+  return (color: Color3) => {
+    const hash = color.getHashCode()
+    let mat = cache.get(hash)
+    if (mat) { return mat }
+    mat = new StandardMaterial(`trailMat-${hash}`)
+    mat.emissiveColor = color.clone()
+    mat.diffuseColor = color.clone()
+    mat.specularColor = Color3.Black()
+    cache.set(hash, mat)
+    return mat
+  }
+})();
+
 queries.trailers.onEntityAdded.subscribe(
   (() => {
     let i = 0
     return (entity) => {
       setTimeout(() => {
-        const node = entity.node
+        let node = entity.node
+        let nodeCreated = false
+        let disposables: IDisposable[] = []
+        if (node == undefined) {
+          nodeCreated = true
+          node = new TransformNode(`trail-${i}-parent`)
+          const { position } = entity
+          node.position.x = position.x
+          node.position.y = position.y
+          node.position.z = position.z
+          disposables.push(node)
+        }
         const scene = AppContainer.instance.scene
         let trails: TrailMesh[] = []
         for (const trailOption of entity.trailOptions) {
-          const trailNode = new TransformNode(`trail-${i}-transform`)
+          let trailNode = node
           if (trailOption.start) {
+            trailNode = new TransformNode(`trail-${i}-transform`)
             trailNode.position.x = trailOption.start.x
             trailNode.position.y = trailOption.start.y
             trailNode.position.z = trailOption.start.z
+            trailNode.parent = node
+            if (!nodeCreated) {
+              disposables.push(trailNode)
+            }
           }
-          trailNode.parent = node
           const width = trailOption?.width ?? 0.2
           const length = trailOption?.length ?? 100
           const color = trailOption?.color ? new Color3(trailOption?.color.r, trailOption?.color.g, trailOption?.color.b) : Color3.Blue()
-          const newTrail = new TrailMesh(`trail-${i}`, trailNode, scene, width, length, true)
-          const sourceMat = new StandardMaterial(`trailMat-${1}`, scene)
-          sourceMat.emissiveColor = color
-          sourceMat.diffuseColor = color
-          sourceMat.specularColor = Color3.Black()
-          newTrail.material = sourceMat
+          const newTrail = new TrailMesh(`trail-${i}`, trailNode, scene, width, length, false)
+          disposables.push(newTrail)
+          setTimeout(() => { newTrail.start() }, 16)
+          newTrail.material = ColorMaterialCache(color)
           trails.push(newTrail)
         }
-        world.addComponent(entity, "trailMeshs", trails)
+        world.addComponent(entity, "trailMeshs", {trails, disposables})
+        world.addComponent(entity, "node", node)
       }, 1)
     }
   })()
@@ -157,13 +186,9 @@ queries.trailers.onEntityRemoved.subscribe(
     let i = 0
     return (entity) => {
       if (world.has(entity)) {
-        if (entity.trail == undefined && entity.trailMeshs != undefined && entity.trailMeshs.length > 0) {
-          for (const trailMesh of entity.trailMeshs) {
-            if (trailMesh.parent) {
-              trailMesh.parent.dispose()
-            } else {
-              trailMesh.dispose()
-            }
+        if (entity.trailMeshs != undefined && entity.trailMeshs.disposables.length > 0) {
+          for (const disposable of entity.trailMeshs.disposables) {
+              disposable.dispose()
           }
           world.removeComponent(entity, "trailMeshs")
         }
@@ -187,7 +212,7 @@ queries.meshed.onEntityRemoved.subscribe(
         mesh.dispose()
       }
       if (entity.trailMeshs) {
-        entity.trailMeshs.forEach((mesh) => { mesh.dispose() })
+        entity.trailMeshs.disposables.forEach((mesh) => { mesh.dispose() })
       }
       oldNode.dispose()
     }
@@ -209,8 +234,8 @@ queries.afterburnerTrails.onEntityAdded.subscribe(
       const dt = scene.getEngine().getDeltaTime()
       duration += dt
       const scale = duration / 1000
-      for (let i = 0; i < trailMeshs.length; i += 1) {
-        const trailMesh = trailMeshs[i]
+      for (let i = 0; i < trailMeshs.trails.length; i += 1) {
+        const trailMesh = trailMeshs.trails[i]
         const trailOption = trailOptions[i]
         let mat = trailMesh.material as StandardMaterial
         
@@ -257,16 +282,18 @@ queries.afterburnerTrails.onEntityRemoved.subscribe(
     let observer = AppContainer.instance.scene.onAfterRenderObservable.add((scene) => {
       let dt = scene.getEngine().getDeltaTime()
       duration += dt
-      for (let i = 0; i < trailMeshs.length; i += 1) {
-        const trailMesh = trailMeshs[i]
+      for (let i = 0; i < trailMeshs.trails.length; i += 1) {
+        const trailMesh = trailMeshs.trails[i]
         const trailOption = trailOptions[i]
         let mat = trailMesh.material as StandardMaterial
-        let target = TmpColors.Color3[0]
-        let result = TmpColors.Color3[0]
+        let start = TmpColors.Color3[0]
+        start.set(235/255, 113/255, 52/255)
+        let target = TmpColors.Color3[1]
         target.set(trailOption?.color?.r ?? 1, trailOption?.color?.g ?? 1, trailOption?.color?.b ?? 1)
         const scale = duration / 1000
         // 100% in one second
-        Color3.LerpToRef(mat.emissiveColor, target, scale, result)
+        let result = TmpColors.Color3[2]
+        Color3.LerpToRef(start, target, scale, result)
         mat.emissiveColor.copyFrom(result)
         trailMesh.diameter = Scalar.Lerp(1, 0.2, scale)
         if (entity.engineMesh != undefined) {

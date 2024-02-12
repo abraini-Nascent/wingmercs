@@ -1,4 +1,4 @@
-import { InstancedMesh, Mesh, Node, PhysicsBody, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core";
+import { IDisposable, InstancedMesh, Mesh, Node, PhysicsBody, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core";
 import { World } from "miniplex"
 import { encode, decode } from "@msgpack/msgpack";
 import { net } from "../net";
@@ -131,7 +131,10 @@ export type Entity = {
   fireCommand?: FireCommand
   trail?: true
   trailOptions?: { width?: number, length?: number, color?: { r: number, g: number, b: number, a: number }, start?: {x: number; y: number; z: number;} }[]
-  trailMeshs?: TrailMesh[]
+  trailMeshs?: {
+    trails: TrailMesh[],
+    disposables: IDisposable[]
+  }
   bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody
   node?: TransformNode
@@ -206,7 +209,7 @@ export const queries = {
   targeting: world.with("targeting"),
   local: world.with("local"),
   players: world.with("playerId"),
-  trailers: world.with("trail", "node"),
+  trailers: world.with("trail"),
   fireCommands: world.with("fireCommand"),
   targets: world.with("isTargetable"),
   ai: world.with("ai"),

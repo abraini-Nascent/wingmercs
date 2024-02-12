@@ -89,7 +89,7 @@ export function missileSteeringSystem(dt: number) {
         dodger.nerdStats.missilesDodged += 1
       }
       // end of the line
-      console.log("[MissileSystem] end of line")
+      // console.log("[MissileSystem] end of line")
       ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)
       world.remove(entity)
     }

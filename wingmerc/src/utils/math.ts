@@ -1,14 +1,28 @@
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core";
+import { random } from "./random";
 
 export function DegreeToRadian(degrees: number): number {
   return degrees * (Math.PI/180)
 }
 
-export function Vector3FromObj(obj: {x: number, y: number, z: number}): Vector3 {
+export function Vector3FromObj(obj: {x: number, y: number, z: number}, ref: Vector3 | undefined): Vector3 {
+  if (ref != undefined) {
+    ref.x = obj.x
+    ref.y = obj.y
+    ref.z = obj.z
+    return ref
+  }
   return new Vector3(obj.x, obj.y, obj.z)
 }
 
-export function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
+export function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}, ref: Quaternion | Quaternion): Quaternion {
+  if (ref) {
+    ref.x = obj.x
+    ref.y = obj.y
+    ref.z = obj.z
+    ref.w = obj.w
+    return ref
+  }
   return new Quaternion(obj.x, obj.y, obj.z, obj.w);
 }
 
@@ -97,6 +111,25 @@ export function calculateSteering(currentPosition: Vector3, currentRotation: Qua
 
   // TODO: clamp turning speeds to ship roll, pitch, yaw capabilities
   return { pitch, roll: 0, yaw }
+}
+
+export function pointInSphere(radius: number, offset?: Vector3, ref?: Vector3) {
+  const phi = random() * Math.PI * 2
+  const costheta = 2 * random() - 1
+  const theta = Math.acos(costheta)
+  let x = radius * Math.sin(theta) * Math.cos(phi)
+  let y = radius * Math.sin(theta) * Math.sin(phi)
+  let z = radius * Math.cos(theta)
+  if (offset) {
+    x += offset.x
+    y += offset.y
+    z += offset.z
+  }
+  if (ref) {
+    ref.set(x, y, z)
+    return ref
+  }
+  return new Vector3(x, y, z)
 }
 
 export function clamp(value: number, min: number, max: number): number {

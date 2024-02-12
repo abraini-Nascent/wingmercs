@@ -116,7 +116,7 @@ export const EnemyLight: ShipDetails = Object.seal({
     {
       type: "laser",
       position: {
-        x: -0.5,
+        x: -2.5,
         y: -0.5,
         z: -0.5
       },
@@ -124,7 +124,7 @@ export const EnemyLight: ShipDetails = Object.seal({
     {
       type: "laser",
       position: {
-        x: 0.5,
+        x: 2.5,
         y: -0.5,
         z: -0.5
       },
