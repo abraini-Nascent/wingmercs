@@ -49,8 +49,9 @@ We will build out the same space flight and combat features as classic WC
 - [x] afterburner seems to go on forever
 - [ ] static size VDUs, the are all different sizes and are not consistent so don't look good
 - [x] I think the AI can only turn up and right? or down and left? they seem to be stuck making only one direction turns
-- [ ] targeting hud stays active after target leaves screen
+- [x] targeting hud stays active after target leaves screen
 - [ ] player ship continues to emit particles after death screen and on score screen
+- [ ] enemies aren't shooting as much after steering fix
 - [ ] scene, player, and enemies don't reset on a new game after death
 ## TODO:
 ### initial publish of demo
@@ -151,15 +152,15 @@ We will build out the same space flight and combat features as classic WC
   - [ ] replace sprite particles with 3d shapes
     - [x] shields hit
     - [ ] shields collapsed
-    - [ ] shields pulse
+    - [x] shields pulse
     - [x] armor hit
     - [x] systems damaged
     - [ ] missile explosion
-    - [ ] death rattle smoke trail.
-    - [ ] death explosion.
+    - [x] death rattle smoke trail.
+    - [x] death explosion.
   - [x] fix trails and afterburner effects
   - [x] replace laser particle models
-  - [ ] replace missile models
+  - [x] replace missile models
   - [ ] 3d cockpit frame model
 - [ ] code cleanup and polish
 
