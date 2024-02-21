@@ -13,7 +13,7 @@ import { netSyncServerSystem } from "../../world/systems/netServerSystem";
 import { particleSystem } from "../../world/systems/particleSystem";
 import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
 import { shieldRechargeSystem } from "../../world/systems/shieldRechargeSystem";
-import { updateRenderSystem } from "../../world/systems/updateRenderSystem";
+import { damagedSystemsSprayParticlePool, updateRenderSystem } from "../../world/systems/updateRenderSystem";
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
 import { AsteroidScene, createEnemyShip } from '../../map/asteroidScene';
 import { Entity, NerdStats, Score, queries } from '../../world/world';
@@ -22,11 +22,16 @@ import { random } from '../../utils/random';
 import { CombatHud } from './spaceCombatHUD';
 import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
 import { StatsScene } from '../statsScene/statsLoop';
+import { damageSprayParticlePool, shieldPulserSystem } from '../../world/damage';
+import '../../world/systems/missileEngineSoundSystem';
+import { CombatControllerInput } from '../../world/systems/input/combatInput/combatControllerInput';
+import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
 
 const divFps = document.getElementById("fps");
 const pointsPerSecond = 10;
 export class SpaceCombatScene implements GameScene {
 
+  controllerInput: CombatControllerInput
   spaceDebris: SpaceDebrisAgent
   asteroidScene: AsteroidScene
   totalKillCount: number = 0
@@ -43,12 +48,15 @@ export class SpaceCombatScene implements GameScene {
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisAgent(appContainer.scene)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
-    this.asteroidScene = new AsteroidScene(10, ArenaRadius)
+    damageSprayParticlePool.prime(50)
+    damagedSystemsSprayParticlePool.prime(20)
+    this.asteroidScene = new AsteroidScene()
     queries.deathComes.onEntityAdded.subscribe(this.onDeath)
     this.hud = new CombatHud()
     this.readyTimer = 3000
     const playerEntity = appContainer.player.playerEntity;
     playerEntity.score = { livesLeft: 1, timeLeft: 3 * 60, total: 1000 }
+    this.controllerInput = new CombatControllerInput()
   }
 
   /** call to clean up */
@@ -160,7 +168,8 @@ export class SpaceCombatScene implements GameScene {
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
     engineRechargeSystem(delta)
-    gameInputSystem(delta)
+    combatKeyboardInput(delta)
+    this.controllerInput.checkInput(delta)
     aiSystem(delta)
     moveCommandSystem(delta)
     rotationalVelocitySystem()
@@ -175,6 +184,7 @@ export class SpaceCombatScene implements GameScene {
     } else {
       netSyncClientSystem(delta)
     }
+    shieldPulserSystem.update(delta)
     updateRenderSystem()
     if (this.spaceDebris) {
       this.spaceDebris.update(delta)

@@ -3,13 +3,12 @@ import { random } from "../random";
 import { pointInSphere } from "../math";
 
 export interface MercParticlesEmitter {
-  position: Vector3
   initialPositionFunction: (particle: SolidParticle) => SolidParticle
   initialDirectionFunction: (particle: SolidParticle) => SolidParticle
 }
 
 export class MercParticleSphereEmitter implements MercParticlesEmitter {
-  position: Vector3 = new Vector3;
+  position: Vector3 = new Vector3();
 
   initialPositionFunction = (particle: SolidParticle): SolidParticle => {
     const phi = random() * Math.PI * 2
@@ -79,5 +78,15 @@ export class MercParticlePointEmitter implements MercParticlesEmitter {
     direction.y = Scalar.RandomRange(-Math.PI, Math.PI)
     direction.z = Scalar.RandomRange(-Math.PI, Math.PI)
     return particle
+  }
+}
+
+export class MercParticleCustomEmitter implements MercParticlesEmitter {
+  initialPositionFunction: (particle: SolidParticle) => SolidParticle
+  initialDirectionFunction: (particle: SolidParticle) => SolidParticle
+
+  constructor(initialPositionFunction: ((particle: SolidParticle) => SolidParticle), initialDirectionFunction: (particle: SolidParticle) => SolidParticle) {
+    this.initialPositionFunction = initialPositionFunction
+    this.initialDirectionFunction = initialDirectionFunction
   }
 }

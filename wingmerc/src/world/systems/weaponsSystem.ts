@@ -1,9 +1,11 @@
+import { laser } from './../../data/guns/laser';
 import { Quaternion, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import * as Guns from "../../data/guns"
 import * as Weapons from "../../data/weapons"
 import { Gun } from "../../data/guns/gun";
 import { Weapon } from './../../data/weapons/weapon';
+import { SoundEffects } from "../../utils/sounds/soundEffects";
 
 console.log("[WeaponsSystem] online");
 queries.fireCommands.onEntityAdded.subscribe((entity) => {
@@ -77,6 +79,11 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         }],
         // bodyType: "animated"
       });
+      let laserSound = SoundEffects.Laser()
+      laserSound.spatialSound = true
+      laserSound.setPosition(new Vector3(startPosition.x, startPosition.y, startPosition.z))
+      laserSound.autoplay = true
+      laserSound.play()
     }
   }
   // entity wants to fire weapons
@@ -112,11 +119,11 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
         if (entity.nerdStats) {
           entity.nerdStats.missilesLaunched += 1
         }
+        SoundEffects.MissileLaunch(Vector3FromObject(startPosition))
+
         // create missile
         world.add({
-          meshName: "meteor", // use meteor for now
           targetName: `${weaponClass.name} missile`,
-          meshColor: {r: 100/255, g: 10/255, b: 10/255, a: 1},
           originatorId: ""+world.id(entity),
           position: { ...startPosition },
           direction: {
@@ -148,17 +155,25 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
             total: 0,
             lastPosition: { ...startPosition }
           },
+          missileEngine: true,
           damage: 20,
           trail: true,
-          trailOptions: {
-            color: {r: 200/255, g: 200/255, b: 200/255, a: 1},
+          trailOptions: [{
+            start: {x: 0, y: -5, z: 0},
+            color: {r: 200/255, g: 20/255, b: 20/255, a: 1},
             width: 0.2,
+            length: 20
+          },{
+            start: {x: 0, y: -5, z: 20},
+            color: {r: 200/255, g: 200/255, b: 200/255, a: 1},
+            width: 0.4,
             length: 4000,
-          },
+          }],
           // camera: true,
           isTargetable: "missile",
           // bodyType: "animated"
         });
+        world
     }
   }
   // locking

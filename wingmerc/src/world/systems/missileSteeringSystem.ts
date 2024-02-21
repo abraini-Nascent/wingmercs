@@ -4,7 +4,8 @@ import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vecto
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { RouletteSelectionStochastic, rand, random, randomItem } from "../../utils/random"
-import { DegreeToRadian, QuaternionFromObj, ToDegree, Vector3FromObj, calculateSteering, firstOrderIntercept, lookDirectionToQuaternion, rotateByAngle } from "../../utils/math";
+import { QuaternionFromObj, ToDegree, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../utils/math";
+import { SoundEffects } from "../../utils/sounds/soundEffects";
 
 
 export function missileSteeringSystem(dt: number) {
@@ -14,6 +15,12 @@ export function missileSteeringSystem(dt: number) {
     if (position == undefined) {
       // lul wut
       world.removeComponent(entity, "missileRange")
+      continue
+    }
+    if (world.has(entity) == false) {
+      console.log("[MissileSystem] dead missile found and removed")
+      queries.missiles.remove(entity)
+      // skipping dead particle
       continue
     }
     // check if missile is in explosion range to anything
@@ -41,6 +48,7 @@ export function missileSteeringSystem(dt: number) {
             }
             registerHit(possibleTarget, entity, distance, weaponClass)
             console.log("[MissileSystem] BOOM")
+            SoundEffects.Explosion(Vector3FromObj(position))
             world.remove(entity)
             continue missiles;
           }
@@ -56,6 +64,7 @@ export function missileSteeringSystem(dt: number) {
         console.log("[MissileSystem] exploded")
         ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)
         world.remove(entity)
+        continue missiles;
       }
       const targetPosition = Vector3FromObj(target.position)
       const targetVelocity = Vector3FromObj(target.velocity)
@@ -91,6 +100,7 @@ export function missileSteeringSystem(dt: number) {
       // end of the line
       // console.log("[MissileSystem] end of line")
       ExplosionParticleEmitter("assets/hull_spark.png", end, AppContainer.instance.scene)
+      SoundEffects.Explosion(Vector3FromObj(position))
       world.remove(entity)
     }
   }

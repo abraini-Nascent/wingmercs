@@ -1,14 +1,16 @@
 import * as GUI from "@babylonjs/gui"
-import { Color4, DynamicTexture, Quaternion, Vector2, Vector3 } from "@babylonjs/core";
+import { Color4, DynamicTexture, Quaternion, Sound, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { Entity, queries, world } from "../../world/world";
 import { QuaternionFromObj, ToDegree, ToDegree360, Vector3FromObj } from "../../utils/math";
 import { DynamicTextureImage, TextSizeAnimationComponent, TintedImage } from '../../utils/guiHelpers';
+import { SoundEffects } from "../../utils/sounds/soundEffects";
 
 export class RadarDisplay {
 
   panel: GUI.StackPanel
   missileLock: GUI.TextBlock
+  missileLockWarning: Sound
   radarTexture: DynamicTexture
   radarImage: DynamicTextureImage
   radarImageBackground: GUI.Image
@@ -127,6 +129,16 @@ export class RadarDisplay {
       if (target.isTargetable == "missile" && target.missileRange?.target == playerId) {
         locked = true
         missileIncoming = true
+        if (this.missileLockWarning == undefined) {
+          this.missileLockWarning = SoundEffects.MissileIncoming()
+          this.missileLockWarning.loop = true
+        }
+      } else {
+        if (this.missileLockWarning != undefined) {
+          this.missileLockWarning.stop()
+          this.missileLockWarning.dispose()
+          this.missileLockWarning = undefined
+        }
       }
       if (hitPlayer.has(world.id(target))) {
         const positionHit = this.radarPositionToQuadrant(radarPosition)

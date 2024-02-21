@@ -1,6 +1,15 @@
-import { ParticleSystem, PhysicsMotionType, Scene, Texture, Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
+import { Material, ParticleSystem, PhysicsMotionType, Scene, Sound, Texture, Vector3 } from "@babylonjs/core"
+import { MovementCommand, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
+import { MercParticles } from "../../utils/particles/mercParticles"
+import { MercParticlePointEmitter, MercParticleSphereEmitter } from "../../utils/particles/mercParticleEmitters"
+import { Vector3FromObj } from "../../utils/math"
+import SamJs from "sam-js"
+import { barks } from "../../data/barks"
+import { randomItem } from "../../utils/random"
+import { translateIPA } from "../../data/IAP"
+import { CreatAudioSource, SAM, VoiceSound } from "../../utils/speaking"
+import { SoundEffects } from "../../utils/sounds/soundEffects"
 
 /**
  * makes a ship do the death rattle
@@ -10,93 +19,73 @@ queries.deathComes.onEntityAdded.subscribe(
   (() => {
     let i = 0
     return (entity) => {
+      if (entity == AppContainer.instance.player?.playerEntity) {
+        let sam = new SamJs({phonetic: false})
+        let buffer = sam.buf32("wompwompwomp ee jekt ee jekt ee jekt -", false)
+        let audioBuffer = CreatAudioSource(buffer)
+        let sound = new Sound("eject damnit", audioBuffer)
+        sound.loop = true
+        sound.play()
+        setTimeout(() => {
+          sound.stop()
+        }, 10000)
+        return
+      }
+      // simulating a spiral
       if (entity.ai != undefined) {
         // dead don't think
-        world.removeComponent(entity, "ai")
-      }
-      // for a simple death animation we are going to enable the physics system and thwack it hard
-      // simulating a dagroll death
-      // add add lots of particles
-      const originalPosition = new Vector3(entity.position.x, entity.position.y, entity.position.z)
-      if (entity.body != undefined) {
-        // FIXME this isn't working
-        let impulse = new Vector3(Math.random(), Math.random(), Math.random())
-        const magnitude = 300 * Math.random()
-        // entity.acceleration = impulse.clone()
-        entity.rotationalVelocity = { roll: impulse.x, pitch: impulse.y, yaw: impulse.z }
-        /*
-        world.removeComponent(entity, "velocity")
-        world.removeComponent(entity, "driftVelocity")
-        world.removeComponent(entity, "acceleration")
-        world.removeComponent(entity, "position")
-        entity.body.disablePreStep = true
-        let impulse = new Vector3(Math.random(), Math.random(), Math.random())
-        const magnitude = 300 * Math.random()
-        impulse = impulse.normalize()
-        const offsetPosition = originalPosition.add(impulse)
-        impulse.maximizeInPlaceFromFloats(magnitude, magnitude, magnitude)
-        entity.body.setMotionType(PhysicsMotionType.DYNAMIC)
-        entity.body.applyImpulse(impulse, originalPosition)
-        entity.body.applyForce(impulse, originalPosition)
-        // entity.body.applyImpulse(impulse, offsetPosition)
-        */
+        // world.removeComponent(entity, "ai")
+        entity.ai.type = "deathRattle"
       }
       const scene = AppContainer.instance.scene
-      const trailParticle = TrailParticleEmitter("assets/hull_spark", originalPosition, scene)
-      const onBeforeRender = scene.onBeforeRenderObservable.add((scene, event) => {
-        if (trailParticle.isAlive()) {
-          const emitter: Vector3 = trailParticle.emitter as Vector3
-          emitter.copyFrom(entity.node.position)
-        }
-      })
+      const pointEmitter = new MercParticlePointEmitter()
+      pointEmitter.initialPositionFunction = (particle) => {
+        Vector3FromObj(entity.position, particle.position)
+        return particle
+      }
+      world.removeComponent(entity, "trail")
+      let bark: { english: string; ipa: string; sam: string; } = randomItem(barks.enemyDeath)
+      setTimeout(() => { 
+        const sound = VoiceSound(bark.ipa, SAM)
+        sound.maxDistance = 10000
+        sound.spatialSound = true
+        sound.attachToMesh(entity.node);
+        sound.play()
+      }, 1)
+      let sps = MercParticles.fireSmokeTrail(`death-rattle-${i}`, scene, pointEmitter)
+      sps.begin()
+      // is there a better way than using a timeout...
       setTimeout(() => {
-        onBeforeRender.remove()
-        world.remove(entity)
+        SoundEffects.Explosion(Vector3FromObj(entity.position))
+        sps.dispose()
+        sps = undefined
+        let fade = 300
+        let observer = scene.onAfterRenderObservable.add(() => {
+          let dt = scene.getEngine().getDeltaTime()
+          fade -= dt
+          let st = dt / 1000
+          
+          entity.node.scaling.x -= st
+          entity.node.scaling.y -= st
+          entity.node.scaling.z -= st
+          
+          // for (let mesh of entity.node.getChildMeshes()) {
+          //   mesh.material.alphaMode = Material.MATERIAL_ALPHATEST
+          //   mesh.material.alpha -= st
+          //   if (mesh.material.alpha <= 0) {
+          //     mesh.material.alpha = 0
+          //   }
+          // }
+          if (fade <= 0) {
+            const sphereEmitter = new MercParticleSphereEmitter()
+            Vector3FromObj(entity.position, sphereEmitter.position)
+            let sphereSps = MercParticles.deathExplosion(`death-explosion-${i}`, scene, sphereEmitter)
+            observer.remove()
+            observer = undefined
+            world.remove(entity)
+          }
+        })
       }, 3000)
     }
   })()
 )
-
-function TrailParticleEmitter(texture: string, point: Vector3, scene: Scene): ParticleSystem {
-  //Cone around emitter
-  var radius = 2
-  var angle = Math.PI / 3
-
-  // Create a particle system
-  var particleSystem = new ParticleSystem("deathTrail", 2000, scene)
-
-  //Texture of each particle
-  particleSystem.particleTexture = new Texture(texture, scene, null, null, Texture.NEAREST_SAMPLINGMODE)
-
-  // Where the particles come from
-  particleSystem.emitter = point.clone()
-
-  // Size of each particle (random between...
-  particleSystem.minSize = 0.5
-  particleSystem.maxSize = 2.5
-
-  // Life time of each particle (random between...
-  particleSystem.minLifeTime = 3
-  particleSystem.maxLifeTime = 5
-
-  // Emission rate
-  particleSystem.emitRate = 100
-
-
-  /******* Emission Space ********/
-  // const coneEmiter = particleSystem.createConeEmitter(radius, angle)
-  // coneEmiter.emitFromSpawnPointOnly = true
-  particleSystem.emitter = point.clone()
-  /// wait how do we set direction?
-
-  // Speed
-  particleSystem.minEmitPower = 2
-  particleSystem.maxEmitPower = 4
-  particleSystem.updateSpeed = 0.1
-
-  particleSystem.targetStopDuration = 6
-  particleSystem.disposeOnStop = true
-  // Start the particle system
-  particleSystem.start()
-  return particleSystem
-}

@@ -116,17 +116,17 @@ export const Dirk: ShipDetails = Object.seal({
     {
       type: "laser",
       position: {
-        x: -0.5,
-        y: -0.5,
-        z: -0.5
+        x: -2.5,
+        y: -2.5,
+        z: 0.5
       },
     },
     {
       type: "laser",
       position: {
-        x: 0.5,
-        y: -0.5,
-        z: -0.5
+        x: 2.5,
+        y: -2.5,
+        z: 0.5
       },
     }
   ],

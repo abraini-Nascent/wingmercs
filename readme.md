@@ -40,9 +40,18 @@ We will build out the same space flight and combat features as classic WC
 - "drift" using afterburner slide. Afterburner acceleration and velocity over the speed limit of the plane does not match the direction of the plane
 - "drift" by cutting off the lock between direction of the plane and "cruise" speed
 
+## References
+- Sound effects generated from https://pro.sfxr.me/
+- 3d Models of ships from Kenney https://www.kenney.nl/assets/space-kit
+- Crosshairs from https://opengameart.org/content/64-crosshairs-pack-split
+
 ## Bugs:
-- [ ] afterburner seems to go on forever
+- [x] afterburner seems to go on forever
 - [ ] static size VDUs, the are all different sizes and are not consistent so don't look good
+- [x] I think the AI can only turn up and right? or down and left? they seem to be stuck making only one direction turns
+- [ ] targeting hud stays active after target leaves screen
+- [ ] player ship continues to emit particles after death screen and on score screen
+- [ ] scene, player, and enemies don't reset on a new game after death
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -114,14 +123,43 @@ We will build out the same space flight and combat features as classic WC
   - [x] weapon selection hud
   - [ ] gun selection hud
   - [x] damaged systems hud
+  - [ ] move player ship stats to the right of the left VDU so it's always visible
+    - [ ] add color coding to the player ship stats bars
+    - [ ] flash ship stat as it's hit
+    - [ ] quickly flash ship stat red if it's empty
 - [ ] massive juicing
   - [ ] sounds
+    - [x] player shields hit
+    - [x] player armor hit
+    - [x] player systems hit
+    - [x] enemy shields hit
+    - [x] enemy armor hit
+    - [x] enemy systems hit
+    - [x] missile launched
+    - [x] missile explosion
+    - [x] missile lock tracking
+    - [x] missile locked
+    - [x] afterburners on
+    - [ ] drift on
+    - [ ] missile incoming
+    - [ ] cockpit vdu input
+    - [ ] target locked
+    - [ ] menu buttons
   - [ ] music
   - [ ] main menu runs demo ai vs ai scene
-  - [ ] damaged systems animations
+  - [ ] damaged systems vdu animations
   - [ ] replace sprite particles with 3d shapes
-  - [ ] fix trails and afterburner effects
-  - [ ] replace laser particle models and missile models
+    - [x] shields hit
+    - [ ] shields collapsed
+    - [ ] shields pulse
+    - [x] armor hit
+    - [x] systems damaged
+    - [ ] missile explosion
+    - [ ] death rattle smoke trail.
+    - [ ] death explosion.
+  - [x] fix trails and afterburner effects
+  - [x] replace laser particle models
+  - [ ] replace missile models
   - [ ] 3d cockpit frame model
 - [ ] code cleanup and polish
 

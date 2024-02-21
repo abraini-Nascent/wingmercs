@@ -1,5 +1,4 @@
 import { world, queries } from './world/world';
-import { InputAgent } from './agents/inputAgent';
 import { Engine, HavokPlugin, Observable, Scene, TargetCamera } from "@babylonjs/core"
 import { PlayerAgent } from "./agents/playerAgent"
 import { HavokPhysicsWithBindings } from "@babylonjs/havok"
@@ -12,7 +11,6 @@ export class AppContainer {
 
   }
   player: PlayerAgent
-  input: InputAgent
   camera: TargetCamera
   server: boolean = false
   engine: Engine

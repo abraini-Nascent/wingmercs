@@ -26,7 +26,7 @@ export type ShipArmor = {
   left: number,
   right: number,
 }
-export type AIType = "basicCombat" | "demoLoop"
+export type AIType = "basicCombat" | "deathRattle" | "demoLoop"
 export type ShipSystems = {
   quadrant: {
     fore: {
@@ -104,6 +104,7 @@ export type Entity = {
   afterburnerVelocity?: { x: number; y: number; z: number }
   afterburnerActive?: boolean
   brakingActive?: boolean
+  barkedSpooked?: boolean
   driftVelocity?: { x: number; y: number; z: number }
   breakingPower?: number
   breakingVelocity?: { x: number; y: number; z: number }
@@ -146,6 +147,7 @@ export type Entity = {
   originatorId?: string
   planeTemplate?: string
   visible?: boolean
+  missileEngine?: true
   // net code components
   local?: boolean // local to client
   owner?: string // who owns the state of this entity
@@ -169,6 +171,7 @@ export type Entity = {
   engine?: ShipEngine
   shields?: ShipShields
   systems?: ShipSystems
+  systemsDamaged?: boolean
   score?: Score
   armor?: ShipArmor
   vduState?: VDUState
@@ -203,6 +206,7 @@ export const queries = {
   weapons: world.with("weapons"),
   engines: world.with("engine"),
   afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
+  afterburner: world.with("afterburnerActive"),
   shields: world.with("shields"),
   particle: world.with("particleRange"),
   missiles: world.with("missileRange"),
@@ -213,9 +217,11 @@ export const queries = {
   fireCommands: world.with("fireCommand"),
   targets: world.with("isTargetable"),
   ai: world.with("ai"),
+  systemsDamaged: world.with("systemsDamaged"),
   deathComes: world.with("deathRattle"),
   damageable: world.with("health"),
-  cameras: world.with("camera")
+  cameras: world.with("camera"),
+  missileEngine: world.with("missileEngine", "node")
 }
 
 /**

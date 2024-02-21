@@ -2,6 +2,7 @@
 // Added gradients from BaseParticleSystem
 
 import { Color3, Color4, ColorGradient, FactorGradient, GradientHelper, IValueGradient, Mesh, MeshBuilder, Nullable, Observer, Scalar, Scene, SolidParticle, SolidParticleSystem, StandardMaterial, TmpVectors, Vector3 } from "@babylonjs/core";
+import { MercParticlePointEmitter, MercParticlesEmitter } from "./mercParticleEmitters";
 
 export class MercParticleSystem {
   
@@ -493,6 +494,59 @@ export class MercParticleSystem {
     particle.rotation.copyFrom(particle.props.rotation)
 
     return particle;
+  }
+}
+
+export class MercParticleSystemPool {
+  count = 0
+  systems = new Map<number, MercParticleSystem>()
+  pool: MercParticleSystem[] = []
+  factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem
+  constructor(factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem) {
+    this.factory = factory
+  }
+  prime(count: number) {
+    if (this.count < count) {
+      count = count - this.count
+    }
+    for (let i = 0; i < count; i += 1) {
+      setTimeout(() => {
+        this.count += 1
+        let sps = this.factory(this.count, new MercParticlePointEmitter())
+        this.pool.push(sps)
+      }, 1)
+    }
+  }
+  getSystem(entityId: number, emitter: MercParticlesEmitter): MercParticleSystem {
+    if (this.pool.length == 0) {
+      this.count += 1
+      let sps = this.factory(this.count, emitter)
+      this.systems.set(entityId, sps)
+      return sps
+    }
+    let sps = this.pool.pop()
+    sps.initialPositionFunction = emitter.initialPositionFunction
+    sps.initialDirectionFunction = emitter.initialDirectionFunction
+    sps.begin()
+    return sps
+  }
+  release(entityId) {
+    if (this.systems.has(entityId)) {
+      let sps = this.systems.get(entityId)
+      sps.stopped = true
+      this.systems.delete(entityId)
+      this.pool.push(sps)
+    }
+  }
+  clear() {
+    for (const sps of this.pool) {
+      sps.dispose()
+    }
+    this.pool = []
+    for (const sps of this.systems.values()) {
+      sps.dispose()
+    }
+    this.systems = new Map<number, MercParticleSystem>()
   }
 }
 

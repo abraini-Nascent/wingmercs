@@ -5,7 +5,7 @@ export function DegreeToRadian(degrees: number): number {
   return degrees * (Math.PI/180)
 }
 
-export function Vector3FromObj(obj: {x: number, y: number, z: number}, ref: Vector3 | undefined): Vector3 {
+export function Vector3FromObj(obj: {x: number, y: number, z: number}, ref?: Vector3 | undefined): Vector3 {
   if (ref != undefined) {
     ref.x = obj.x
     ref.y = obj.y
@@ -15,7 +15,7 @@ export function Vector3FromObj(obj: {x: number, y: number, z: number}, ref: Vect
   return new Vector3(obj.x, obj.y, obj.z)
 }
 
-export function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}, ref: Quaternion | Quaternion): Quaternion {
+export function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}, ref?: Quaternion | Quaternion): Quaternion {
   if (ref) {
     ref.x = obj.x
     ref.y = obj.y

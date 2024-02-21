@@ -102,6 +102,14 @@ class App {
       const dt = engine.getDeltaTime()
       AppContainer.instance.gameScene?.runLoop(dt)
     })
+    // Request permission for audio on user interaction
+    document.addEventListener('click', function () {
+      if (Engine.audioEngine && Engine.audioEngine.canUseWebAudio && Engine.audioEngine.unlocked == false) {
+        Engine.audioEngine.audioContext.resume().then(function () {
+          console.log('[APP] Audio context is now unlocked');
+        });
+      }
+  });
   }
 }
 new App()

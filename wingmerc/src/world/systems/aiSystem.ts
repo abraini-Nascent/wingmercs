@@ -1,5 +1,5 @@
 import { Entity, FireCommand, MovementCommand } from '../world';
-import { Mesh, MeshBuilder, Quaternion, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
+import { Color3, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import * as Ships from '../../data/ships';
@@ -18,6 +18,9 @@ export function aiSystem(dt: number) {
         break;
       case "demoLoop":
         demoLoopAI(entity, dt)
+        break;
+      case "deathRattle":
+        deathRattle(entity, dt)
         break;
     }
   }
@@ -44,6 +47,20 @@ function timer(blackboard: any, key: string, dt: number, delay: number, time: nu
   }
 }
 
+function deathRattle(entity: Entity, dt: number) {
+  let movementCommand = {
+    pitch: 0,
+    yaw: 0,
+    roll: 0,
+    deltaSpeed: 100,
+    // afterburner: 1,
+    // brake: brake,
+    brake: 0,
+    drift: 0,
+  } as MovementCommand
+  world.update(entity, "movementCommand", movementCommand)
+}
+
 function demoLoopAI(entity: Entity, dt: number) {
   const { ai, position, rotationQuaternion} = entity;
   const { blackboard } = ai
@@ -64,12 +81,12 @@ function demoLoopAI(entity: Entity, dt: number) {
   } as FireCommand
   // afterburner demo
   timer(blackboard, "afterburner", dt, 15000, 5000, () => {
-    movementCommand.afterburner = 1
+    // movementCommand.afterburner = 1
   })
 
   // roll demo
   timer(blackboard, "roll", dt, 1, 1000, () => {
-    movementCommand.roll = 1
+    // movementCommand.roll = 1
   })
 
   // brake demo
@@ -78,7 +95,7 @@ function demoLoopAI(entity: Entity, dt: number) {
   })
 
   timer(blackboard, "fireGuns", dt, 1000, 1000, () => {
-    fireCommand.gun = 1
+    // fireCommand.gun = 1
   })
 
   if (blackboard.target == undefined) {
@@ -94,19 +111,22 @@ function demoLoopAI(entity: Entity, dt: number) {
     moveTargetBox(blackboard, targetPosition)
     blackboard.target = targetPosition
   } else {
+
     let tmp = TmpVectors.Vector3[0]
     tmp.x = position.x
     tmp.y = position.y
     tmp.z = position.z
-    if (tmp.subtract(blackboard.target).length() < 250) {
+    if (tmp.subtract(blackboard.target).length() < 50) {
       blackboard.target = undefined
     } else {
-      let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), blackboard.target)
+      // let velocity: Vector3 = blackboard.targetBoxVelovity
+      // let box = blackboard.targetBox as Mesh
+      // box.position.addInPlace(velocity.scale(dt / 1000))
+      let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), blackboard.target, SteeringHardNormalizeClamp) //SteeringHardTurnClamp)
+      console.log(`[AI] steering:`, input)
       movementCommand.pitch = input.pitch
       movementCommand.yaw = input.yaw
-      if (movementCommand.yaw != 0 || movementCommand.pitch != 0) {
-        movementCommand.roll = 0
-      }
+      movementCommand.roll = input.roll
     }
   }
   world.update(entity, "setSpeed", 250)
@@ -117,9 +137,20 @@ function demoLoopAI(entity: Entity, dt: number) {
 function moveTargetBox(blackboard: any, position: Vector3) {
   let box = blackboard.targetBox as Mesh
   if (box == undefined) {
-    blackboard.targetBox = MeshBuilder.CreateBox("ai target box", {size: 10})
+    let newBox = MeshBuilder.CreateBox("ai target box", {size: 150})
+    let mat = new StandardMaterial("target box")
+    mat.emissiveColor = new Color3(1, 0.2, 0.2)
+    mat.specularColor = new Color3(0,0,0)
+    mat.diffuseColor = new Color3(1, 0.2, 0.2)
+    newBox.material = mat
+    blackboard.targetBox = newBox
     box = blackboard.targetBox
   }
+  // let tmpMove = TmpVectors.Vector3[1]
+  // tmpMove.set(Scalar.RandomRange(-Math.PI, Math.PI), Scalar.RandomRange(-Math.PI, Math.PI), Scalar.RandomRange(-Math.PI, Math.PI))
+  // tmpMove.normalize()
+  // tmpMove.scaleInPlace(Scalar.RandomRange(0, 250))
+  // blackboard.targetBoxVelovity = tmpMove.clone()
   box.position.copyFrom(position)
 }
 
@@ -157,9 +188,10 @@ function basicCombatAI(entity: Entity, dt: number) {
   }
   // TODO: if we are being chased we should after burner away before trying to turn back towards the player
   // TODO: if we need to do large turns we should apply brakes while turning
-  let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition)
+  let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardNormalizeClamp)
+  // console.log(`[AI] steering`, input)
   let cinamaticRoll = 0
-  if (input.pitch < 0.1 && input.roll < 0.1 && distanceToTarget < 1400) {
+  if (Math.abs(input.pitch) < 0.1 && Math.abs(input.roll) < 0.1 && distanceToTarget < 1400) {
     const command = {
       gun: 1
     } as FireCommand
@@ -182,13 +214,55 @@ function basicCombatAI(entity: Entity, dt: number) {
     roll: cinamaticRoll,
     deltaSpeed: 0,
     afterburner: 0,
-    // brake: brake,
-    brake: 0,
+    brake: brake,
     drift: 0,
   })
 }
 
-function calculateSteering(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3): { pitch: number, roll: number, yaw: number } {
+/** the steering error (-180 to 180 degrees) is clamped to -90 to 90 and normalized to -1 to 1, an error of < 1 degree is clamped to 0 */
+export function SteeringHardNormalizeClamp({ pitch, yaw, roll }: SteeringResult): SteeringResult {
+  // console.log("[SteeringHardNormalizeClamp] error", { pitch, roll, yaw})
+  // remove less than 1 degree
+  pitch = (Math.abs(pitch) <= Math.PI / 180) ? 0 : pitch
+  yaw = (Math.abs(yaw) <= Math.PI / 180) ? 0 : yaw
+  roll = (Math.abs(roll) <= Math.PI / 180) ? 0 : roll
+  // clamp
+  pitch = clamp(pitch, -Math.PI / 2, Math.PI / 2)
+  yaw = clamp(yaw, -Math.PI / 2, Math.PI / 2)
+  roll = clamp(roll, -Math.PI / 2, Math.PI / 2)
+  // console.log("[SteeringHardNormalizeClamp] clamp", { pitch, roll, yaw})
+  // normalize
+  pitch = pitch / (Math.PI / 2)
+  yaw = yaw / (Math.PI / 2)
+  roll = roll / (Math.PI / 2)
+  // console.log("[SteeringHardNormalizeClamp] normalize", { pitch, roll, yaw})
+
+  return { pitch, roll, yaw }
+}
+/** the steering error (-180 to 180 degrees) is normalized to -1 to 1, an error of < 1 degree is clamped to 0 */
+export function SteeringSoftNormalizeClamp({ pitch, yaw, roll }: SteeringResult): SteeringResult {
+  pitch = (Math.abs(pitch) <= Math.PI / 180) ? 0 : pitch
+  yaw = (Math.abs(yaw) <= Math.PI / 180) ? 0 : yaw
+  roll = (Math.abs(roll) <= Math.PI / 180) ? 0 : roll
+  pitch = pitch / Math.PI
+  yaw = yaw / Math.PI
+  roll = roll / Math.PI
+
+  return { pitch, roll, yaw }
+}
+/** if the steering error is greater than 1 degree a full turn command is given */
+export function SteeringHardTurnClamp({ pitch, yaw, roll }: SteeringResult): SteeringResult {
+  pitch = (Math.abs(pitch) > Math.PI / 180 ? (pitch < 0 ? -1 : 1) : 0)
+  yaw = Math.abs(yaw) > Math.PI / 180 ? (yaw < 0 ? -1 : 1) : 0
+  roll = Math.abs(roll) > Math.PI / 180 ? (roll < 0 ? -1 : 1) : 0
+
+  if (yaw != 0 || pitch != 0) {
+    roll = 0
+  }
+  return { pitch, roll, yaw }
+}
+export type SteeringResult = { pitch: number, roll: number, yaw: number }
+function calculateSteering(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
   let error = targetPosition.subtract(currentPosition)
   error = error.applyRotationQuaternion(Quaternion.Inverse(currentRotation)) // transform to local space
 
@@ -197,14 +271,16 @@ function calculateSteering(dt: number, currentPosition: Vector3, currentRotation
   let rollError  = new Vector3(error.x, error.y, 0      ).normalize()
   let yawError   = new Vector3(error.x, 0,       error.z).normalize()
 
-  let targetInput = new Vector3()
-  let pitch = signedAngle(Vector3.Forward(true), pitchError, Vector3.Right())
+  let pitch = signedAngle(Vector3.Forward(true), pitchError, Vector3.Right()) * -1 // pitch is inverted
   let yaw = signedAngle(Vector3.Forward(true), yawError, Vector3.Up())
   let roll = signedAngle(Vector3.Up(), rollError, Vector3.Forward(true))
   // we need to clamp from -1 to 1
-  pitch = clamp(pitch, -1, 1)
-  yaw = clamp(yaw, -1, 1)
-  roll = clamp(roll, -1, 1)
+  if (clampStrategy != undefined) {
+    return clampStrategy({ pitch, roll, yaw })
+  }
+  pitch = clampInput(pitch)
+  yaw = clampInput(yaw)
+  roll = clampInput(roll)
   if (Math.floor(pitch * 100) == 0) {
     pitch = 0
   }
@@ -214,12 +290,8 @@ function calculateSteering(dt: number, currentPosition: Vector3, currentRotation
   if (Math.floor(yaw * 100) == 0) {
     yaw = 0
   }
-  targetInput.x = pitch
-  targetInput.y = yaw
-  targetInput.z = roll
 
-  // TODO: clamp turning speeds to ship roll, pitch, yaw capabilities
-  return { pitch, roll: 0, yaw }
+  return { pitch, roll, yaw }
 }
 
 function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
@@ -230,24 +302,30 @@ function Vector3FromObject(obj: {x: number, y: number, z: number}): Vector3 {
   return new Vector3(obj.x, obj.y, obj.z);
 }
 
+/** Will convert from -180/180 degrees in radians to -1/1 */
+function clampInput(angle: number) {
+  return angle / Math.PI
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
 function signedAngle(from: Vector3, to: Vector3, axis: Vector3): number {
-  let unsignedAngle = Vector3.GetAngleBetweenVectors(from, to, axis);
+  return Vector3.GetAngleBetweenVectors(from, to, axis);
+  // let unsignedAngle = Vector3.GetAngleBetweenVectors(from, to, axis);
 
-  // Calculate the cross product between 'from' and 'to'
-  let cross = Vector3.Cross(from, to);
+  // // Calculate the cross product between 'from' and 'to'
+  // let cross = Vector3.Cross(from, to);
 
-  // Check the direction of the cross product to determine the sign of the angle
-  let dot = Vector3.Dot(axis, cross);
-  let sign = dot < 0 ? -1 : 1;
+  // // Check the direction of the cross product to determine the sign of the angle
+  // let dot = Vector3.Dot(axis, cross);
+  // let sign = dot < 0 ? -1 : 1;
 
-  // Apply the sign to the unsigned angle
-  let signedAngle = unsignedAngle * sign;
+  // // Apply the sign to the unsigned angle
+  // let signedAngle = unsignedAngle * sign;
 
-  return signedAngle;
+  // return signedAngle;
 }
 
 /* 

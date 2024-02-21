@@ -1,4 +1,4 @@
-import { TmpVectors, Vector3 } from '@babylonjs/core';
+import { Observer, Scalar, Scene, Sound, TmpVectors, Vector3 } from '@babylonjs/core';
 /**
  * TODO: 
  * Audio cue on hitting shield or armor or health
@@ -10,6 +10,11 @@ import { RouletteSelectionStochastic, rand, randomItem } from '../utils/random';
 import { AppContainer } from '../app.container';
 import { MercParticles } from '../utils/particles/mercParticles';
 import { MercParticleConeEmitter, MercParticlePointEmitter } from '../utils/particles/mercParticleEmitters';
+import { MercParticleSystemPool } from '../utils/particles/mercParticleSystem';
+import { barks } from '../data/barks';
+import { translateIPA } from '../data/IAP';
+import { SAM, VoiceSound } from '../utils/speaking';
+import { SoundEffects } from '../utils/sounds/soundEffects';
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
 export type ParticleEntity = Pick<Entity, "damage" | "originatorId">
@@ -53,9 +58,10 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         } else {
           damage = 0
         }
-        console.log("[ParticleSystem] hit front shield", hitEntity.shields.currentFore, damage)
+        console.log("[Damage] hit front shield", hitEntity.shields.currentFore, damage)
         if (damage == 0) {
           shieldSprayFrom(hitEntity, hitPointWorld, directionOfHit)
+          SoundEffects.ShieldHit(hitEntityPosition.clone())
         }
       } else if (quadrant == "aft" && hitEntity.shields.currentAft >= 0) {
         let oldDamage = damage
@@ -66,9 +72,10 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         } else {
           damage = 0
         }
-        console.log("[ParticleSystem] hit back shield", hitEntity.shields.currentAft, damage)
+        console.log("[Damage] hit back shield", hitEntity.shields.currentAft, damage)
         if (damage == 0) {
           shieldSprayFrom(hitEntity, hitPointWorld, directionOfHit)
+          SoundEffects.ShieldHit(hitEntityPosition.clone())
         }
       }
       if (shooterStats) { shooterStats.shieldDamageGiven += oldShieldDamage - damage }
@@ -83,7 +90,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             damage = Math.abs(hitEntity.armor.front)
             hitEntity.armor.front = 0
           }
-          console.log("[ParticleSystem] hit front armor", hitEntity.armor.front)
+          console.log("[Damage] hit front armor", hitEntity.armor.front)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
@@ -91,7 +98,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             damage = Math.abs(hitEntity.armor.right)
             hitEntity.armor.right = 0
           }
-          console.log("[ParticleSystem] hit right armor", hitEntity.armor.right)
+          console.log("[Damage] hit right armor", hitEntity.armor.right)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
@@ -99,7 +106,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             damage = Math.abs(hitEntity.armor.back)
             hitEntity.armor.back = 0
           }
-          console.log("[ParticleSystem] hit back armor", hitEntity.armor.back)
+          console.log("[Damage] hit back armor", hitEntity.armor.back)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
@@ -107,9 +114,10 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             damage = Math.abs(hitEntity.armor.left)
             hitEntity.armor.left = 0
           }
-          console.log("[ParticleSystem] hit left armor", hitEntity.armor.left)
+          console.log("[Damage] hit left armor", hitEntity.armor.left)
         }
         damageSprayFrom(hitEntity, hitPointWorld, directionOfHit)
+        SoundEffects.ArmorHit(hitEntityPosition.clone())
         // ConeParticleEmitter("assets/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
         let armorDamageDelt = oldArmorDamage - damage
         if (shooterStats) { shooterStats.armorDamageGiven += armorDamageDelt }
@@ -117,6 +125,18 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         
         // start knocking down system health
         if (damage > 0 && hitEntity.health != undefined) {
+          SoundEffects.SystemHit(hitEntityPosition.clone())
+          if (hitEntity.barkedSpooked == undefined && Scalar.RandomRange(0, 1) > 0.5) {
+            world.addComponent(hitEntity, "barkedSpooked", true)
+            let bark: { english: string; ipa: string; sam: string; } = randomItem(barks.enemySpooked)
+            setTimeout(() => { 
+              const sound = VoiceSound(bark.ipa, SAM)
+              sound.maxDistance = 10000
+              sound.spatialSound = true
+              sound.attachToMesh(hitEntity.node);
+              sound.play()
+            }, 1)
+          }
           /*
           https://www.wcnews.com/news/update/14668#:~:text=The%20amount%20of%20internal%20damage,and%20additional%20generic%20ship%20damage.
           Unnamed Character:
@@ -143,7 +163,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             randomDamage += rand(1, remaining)
           }
           hitEntity.health -= randomDamage
-          console.log("[ParticleSystem] hit health", randomDamage, hitEntity.health)
+          console.log("[Damage] hit health", randomDamage, hitEntity.health)
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           switch (damagedSystem) {
             case "guns": {
@@ -168,8 +188,11 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
               hitEntity.systems.state[damagedSystem] = Math.max(0, hitEntity.systems.state[damagedSystem] - randomDamage)
             break;
           }
-          console.log("[ParticleSystem] damaged system:", damagedSystem, randomDamage)
-          console.log("[ParticleSystem] remaining health:", hitEntity.health)
+          if (hitEntity.systemsDamaged == undefined) {
+            world.addComponent(hitEntity, "systemsDamaged", true)
+          }
+          console.log("[Damage] damaged system:", damagedSystem, randomDamage)
+          console.log("[Damage] remaining health:", hitEntity.health)
           // double up particle effects and play a different sound
           // ConeParticleEmitter("assets/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
           if (hitEntity.health <= 0 && hitEntity.deathRattle == undefined) {
@@ -190,15 +213,24 @@ export function selectSystemForQuadrant(entity: Entity, quadrant: "fore" | "aft"
 }
 
 const DamageSprayName = "damage spray from hit"
+export const damageSprayParticlePool = new MercParticleSystemPool((count, emitter) => {
+  const scene = AppContainer.instance.scene
+  return MercParticles.damageSpray(`${DamageSprayName}-${count}`, scene, emitter, false, false)
+})
+let sprayIds = 0
 export function damageSprayFrom(hitEntity: Entity, hitPointWorld: Vector3, directionOfHit: Vector3) {
   const scene = AppContainer.instance.scene
   const inverseDirectionOfHit = directionOfHit.multiplyByFloats(-1, -1, -1)
   const hitEntityPosition = Vector3FromObj(hitEntity.position, TmpVectors.Vector3[0])
   const delta = hitPointWorld.subtract(hitEntityPosition)
   const emitter = new MercParticleConeEmitter(delta, inverseDirectionOfHit, 2, 10)
-  let sys = MercParticles.damageSpray(DamageSprayName, scene, emitter)
+  sprayIds += 1
+  const sprayId = sprayIds
+  let sys = damageSprayParticlePool.getSystem(sprayId, emitter)
+  sys.begin()
   let sub = scene.onAfterRenderObservable.add(() => {
     if (sys.done) {
+      damageSprayParticlePool.release(sprayId)
       sub.remove()
       sub = undefined
       sys = undefined
@@ -208,12 +240,48 @@ export function damageSprayFrom(hitEntity: Entity, hitPointWorld: Vector3, direc
   })
 }
 
+export class ShieldPulser {
+  pulsing = new Set<number>()
+  renderObserver: Observer<Scene>
+  pulse(entity: Entity) {
+    const entityId = world.id(entity)
+    const shieldMesh = entity.shieldMesh
+    if (shieldMesh == undefined) {
+      return
+    }
+    shieldMesh.material.alpha += 0.25
+    this.pulsing.add(entityId)
+  }
+  update(dt) {
+    let delta = dt / 1000
+    for (const entityId of this.pulsing) {
+      const entity = world.entity(entityId)
+      if (entity == undefined) {
+        this.pulsing.delete(entityId)
+        continue
+      }
+      const shieldMesh = entity.shieldMesh
+      if (shieldMesh == undefined) {
+        this.pulsing.delete(entityId)
+        continue
+      }
+      shieldMesh.material.alpha -= delta
+      if (shieldMesh.material.alpha <= 0) {
+        shieldMesh.material.alpha = 0
+        this.pulsing.delete(entityId)
+      }
+    }
+  }
+}
+export const shieldPulserSystem = new ShieldPulser()
+
 const ShieldSprayName = "shield spray from hit"
 export function shieldSprayFrom(hitEntity: Entity, hitPointWorld: Vector3, directionOfHit: Vector3) {
   const scene = AppContainer.instance.scene
   const inverseDirectionOfHit = directionOfHit.multiplyByFloats(-1, -1, -1)
   const hitEntityPosition = Vector3FromObj(hitEntity.position, TmpVectors.Vector3[0])
   const delta = hitPointWorld.subtract(hitEntityPosition)
+  shieldPulserSystem.pulse(hitEntity)
   const emitter = new MercParticleConeEmitter(delta, inverseDirectionOfHit, 5, 10)
   let sys = MercParticles.shieldSpray(ShieldSprayName, scene, emitter)
   let sub = scene.onAfterRenderObservable.add(() => {

@@ -17,8 +17,8 @@ export function moveCommandSystem(dt: number) {
     const shipTemplate: { cruiseSpeed: number, maxSpeed: number, pitch: number, yaw: number, roll: number, accelleration: number, afterburnerAccelleration: number, breakingForce: number, breakingLimit: number } = Ships[shipTemplateName] ?? Ships.Dirk
 
     // scale back speeds based on damage, minimum 20% capability even if destroyed
-    const maxDamagedSpeed = shipTemplate.maxSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
-    const maxDamagedCruiseSpeed = shipTemplate.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1 / systems?.base?.engines ?? 1))
+    const maxDamagedSpeed = shipTemplate.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
+    const maxDamagedCruiseSpeed = shipTemplate.cruiseSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
     if (maxDamagedCruiseSpeed < setSpeed) {
       setSpeed = maxDamagedCruiseSpeed
       world.update(entity, "setSpeed", setSpeed)
@@ -32,9 +32,9 @@ export function moveCommandSystem(dt: number) {
       //// change direction of the ship...
       if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
 
-        let pitchSpeed = shipTemplate.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 10% capability even if "destroyed"
-        let yawSpeed   = shipTemplate.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))   // Degrees per second, min 10% capability even if "destroyed"
-        let rollSpeed  = shipTemplate.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))  // Degrees per second, min 10% capability even if "destroyed"
+        let pitchSpeed = Math.max(40, shipTemplate.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
+        let yawSpeed   = Math.max(40, shipTemplate.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
+        let rollSpeed  = Math.max(40, shipTemplate.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
         // Positive for down, negative for up
         const deltaPitch = (((pitchSpeed * (movementCommand.pitch ?? 0))) / 1000) * dt;
         // Positive for right, negative for left
@@ -49,7 +49,6 @@ export function moveCommandSystem(dt: number) {
       world.update(entity, "rotationalVelocity", rotationalVelocity);
 
       //// change speed of the ship
-      // TODO: this should take into consideration damage
       const cruiseAcceleration = (shipTemplate.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       const afterburnerAcceleration = (shipTemplate.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
       const breakAcceleration = (shipTemplate.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
@@ -58,7 +57,6 @@ export function moveCommandSystem(dt: number) {
         let maxAfterburner = maxDamagedSpeed - setSpeed
         let afterburner = afterburnerVelocity ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z) : Vector3.Zero();
         let currentAfterburner = afterburner.length()
-        // TODO: this should take into consideration damage
         let newSpeed = maxDamagedSpeed;
         if (currentAfterburner < maxAfterburner) {
           newSpeed = Math.min(currentAfterburner + afterburnerAcceleration, maxDamagedSpeed)
@@ -112,6 +110,9 @@ export function moveCommandSystem(dt: number) {
       }
       const breakingForward = new Vector3(0, 0, 1)
       const breakingMovement = breakingForward.multiplyByFloats(nextBreakingPower, nextBreakingPower, nextBreakingPower)
+      if (breakingMovement.length() > currentSpeed) {
+        breakingMovement.normalize().scaleInPlace(currentSpeed)
+      }
       breakingMovement.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
       world.update(entity, "breakingVelocity", breakingMovement)
 

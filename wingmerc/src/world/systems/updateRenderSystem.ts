@@ -1,8 +1,12 @@
-import { Color3, IDisposable, Material, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpColors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
+import { MercParticleSystemPool } from './../../utils/particles/mercParticleSystem';
+import { Color3, IDisposable, Material, Mesh, MeshBuilder, Quaternion, Scalar, Sound, StandardMaterial, TmpColors, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
+import { Entity, queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
-import { ToRadians } from "../../utils/math"
+import { ToRadians, Vector3FromObj } from "../../utils/math"
+import { MercParticles } from "../../utils/particles/mercParticles"
+import { MercParticleCustomEmitter, MercParticlesEmitter } from "../../utils/particles/mercParticleEmitters"
+import { SoundEffects } from '../../utils/sounds/soundEffects';
 
 
 let targetingBox: Mesh
@@ -73,6 +77,7 @@ queries.meshed.onEntityAdded.subscribe(
       const children = meshNode.getChildMeshes()
       let mat: StandardMaterial = undefined
       let engineMesh: Mesh = undefined
+      let shieldMesh: Mesh = undefined
       if (entity.meshColor != undefined) {
         // TODO: we could cache and reuse mats of the same color
         mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
@@ -108,14 +113,18 @@ queries.meshed.onEntityAdded.subscribe(
           mat.emissiveColor = new Color3(0, 0, 0.5)
           mat.diffuseColor = new Color3(0, 0, 0.5)
           mat.specularColor = Color3.Black()
-          mat.alpha = 0.25
+          mat.alpha = 0
           mat.wireframe = true
           instanceMesh.material = mat
           instanceMesh.isVisible = visible
+          shieldMesh = instanceMesh
         }
       }
       world.addComponent(entity, "node", newNode)
       world.addComponent(entity, "engineMesh", engineMesh)
+      if (shieldMesh) {
+        world.addComponent(entity, "shieldMesh", shieldMesh)
+      }
     }
   })()
 )
@@ -175,27 +184,22 @@ queries.trailers.onEntityAdded.subscribe(
           newTrail.material = ColorMaterialCache(color)
           trails.push(newTrail)
         }
-        world.addComponent(entity, "trailMeshs", {trails, disposables})
-        world.addComponent(entity, "node", node)
+        world.update(entity, {
+          trailMeshs: {trails, disposables},
+          node
+        })
       }, 1)
     }
   })()
 )
-queries.trailers.onEntityRemoved.subscribe(
-  (() => {
-    let i = 0
-    return (entity) => {
-      if (world.has(entity)) {
-        if (entity.trailMeshs != undefined && entity.trailMeshs.disposables.length > 0) {
-          for (const disposable of entity.trailMeshs.disposables) {
-              disposable.dispose()
-          }
-          world.removeComponent(entity, "trailMeshs")
-        }
-      }
+queries.trailers.onEntityRemoved.subscribe((entity) => {
+  if (entity.trailMeshs != undefined && entity.trailMeshs.disposables.length > 0) {
+    for (const disposable of entity.trailMeshs.disposables) {
+        disposable.dispose()
     }
-  })()
-)
+    world.removeComponent(entity, "trailMeshs")
+  }
+})
 
 queries.meshed.onEntityRemoved.subscribe(
   (() => {
@@ -219,6 +223,27 @@ queries.meshed.onEntityRemoved.subscribe(
   })()
 )
 
+const AfterburnerSounds = new Map<Entity, Sound>()
+queries.afterburner.onEntityAdded.subscribe((entity) => {
+  console.log("afterburner on")
+  if (AfterburnerSounds.has(entity) == false) {
+    let sound = SoundEffects.AfterburnerEngine(Vector3FromObj(entity.position))
+    sound.attachToMesh(entity.node)
+    sound.loop = true
+    sound.play()
+    sound.setVolume(0)
+    sound.setVolume(1, 5)
+    AfterburnerSounds.set(entity, sound)
+  }
+})
+queries.afterburner.onEntityRemoved.subscribe((entity) => {
+  console.log("afterburner off")
+    if (AfterburnerSounds.has(entity)) {
+      let sound = AfterburnerSounds.get(entity)
+      SoundEffects.Silience(sound)
+      AfterburnerSounds.delete(entity)
+    }
+})
 queries.afterburnerTrails.onEntityAdded.subscribe(
   (entity) => {
     const {trailMeshs, trailOptions} = entity
@@ -314,3 +339,54 @@ queries.afterburnerTrails.onEntityRemoved.subscribe(
     entityHidden.afterburnerAnimation = observer
   }
 )
+
+/**
+ * Adds the particle system that occasionally spits out sparks behind the ship, more sparks the more damaged
+ */
+export const damagedSystemsSprayParticlePool = new MercParticleSystemPool((count: number, emitter: MercParticlesEmitter) => {
+  return MercParticles.damagedSystemsSpray(`damages-systems-${count}`, AppContainer.instance.scene, emitter, false, false)
+})
+// TODO clear pool when scene changes
+
+queries.systemsDamaged.onEntityAdded.subscribe((entity) => {
+  const emitter = new MercParticleCustomEmitter(
+    (particle) => {
+      Vector3FromObj(entity.position, particle.position)
+      return particle
+    },
+    (particle) => {
+      const velocity = Vector3FromObj(entity.velocity, TmpVectors.Vector3[0])
+      velocity.scaleInPlace(0.9)
+      // velocity.x = velocity.x * -1
+      // velocity.y = velocity.y * -1
+      // velocity.z = velocity.z * -1
+      let direction = (particle.props.direction as Vector3)
+      direction.set(velocity.x, velocity.y, velocity.z)
+      direction.x += Scalar.RandomRange(-Math.PI, Math.PI)
+      direction.y += Scalar.RandomRange(-Math.PI, Math.PI)
+      direction.z += Scalar.RandomRange(-Math.PI, Math.PI)
+      return particle
+    }
+  )
+  console.log(`[SystemsDamaged] \\${world.id(entity)}\\ added damaged systems spray`)
+  let system = damagedSystemsSprayParticlePool.getSystem(world.id(entity), emitter)
+  system.begin()
+  let timeout: number
+  let spark: () => void
+  spark = () => {
+    let delay = Scalar.RandomRange(2000, 2500)
+    timeout = setTimeout(() => {
+      if (world.has(entity) == false) {
+        clearTimeout(timeout)
+        return
+      }
+      system.begin()
+      spark()
+    }, delay)
+  }
+  spark()
+})
+queries.systemsDamaged.onEntityRemoved.subscribe((entity) => {
+  console.log(`[SystemsDamaged] \\${world.id(entity)}\\ removed damaged systems spray`)
+  damagedSystemsSprayParticlePool.release(world.id(entity))
+})

@@ -2,7 +2,7 @@ import { Debounce, DebounceTimedMulti } from './../../utils/debounce';
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
 import { ModelViewerScreen } from './modelViewerScreen';
-import { ArcFollowCamera, ArcRotateCamera, Color3, Color4, ColorGradient, DeviceSourceManager, DeviceType, FactorGradient, IDisposable, Mesh, MeshBuilder, Ray, RayHelper, Scalar, StandardMaterial, TmpVectors, Vector3 } from '@babylonjs/core';
+import { ArcFollowCamera, ArcRotateCamera, Color3, Color4, ColorGradient, DeviceSourceManager, DeviceType, FactorGradient, IDisposable, Mesh, MeshBuilder, Ray, RayHelper, Scalar, Sound, StandardMaterial, TmpVectors, Vector3 } from '@babylonjs/core';
 import { ToRadians } from '../../utils/math';
 import { AIType, Entity, ShipArmor, ShipShields, ShipSystems, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
@@ -24,10 +24,14 @@ import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
 import { particleSystem } from '../../world/systems/particleSystem';
 import { missileSteeringSystem } from '../../world/systems/missileSteeringSystem';
 import { missileTargetingSystem } from '../../world/systems/missileTargetingSystem';
-import { updateRenderSystem } from '../../world/systems/updateRenderSystem';
+import { damagedSystemsSprayParticlePool, updateRenderSystem } from '../../world/systems/updateRenderSystem';
 import { createShip } from '../../world/factories';
 import { KeyboardMap } from '../../utils/keyboard';
-import { registerHit } from '../../world/damage';
+import { damageSprayParticlePool, registerHit, shieldPulserSystem } from '../../world/damage';
+import SamJs from 'sam-js';
+import { translateIPA } from '../../data/IAP';
+import { barks } from '../../data/barks';
+import { CreatAudioSource, RenderAudioBuffer } from '../../utils/speaking';
 
 const divFps = document.getElementById("fps");
 const Radius = 500;
@@ -58,6 +62,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     appContainer.camera = new ArcRotateCamera("ModelViewerCamera", ToRadians(45), 0, Radius, Vector3.Zero(), appContainer.scene)
     // appContainer.camera = new ArcFollowCamera("ModelViewerCamera", ToRadians(45), 0, Radius, box, appContainer.scene)
     appContainer.camera.attachControl()
+    appContainer.camera.maxZ = 50000
     this.cameraEntity = world.add({
       targetName: "debug camera",
       camera: "debug"
@@ -81,6 +86,8 @@ export class ModelViewerScene implements GameScene, IDisposable {
     world.update(model, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
     this.ship = model
     this.ship.ai.type = undefined
+    damageSprayParticlePool.prime(50)
+    damagedSystemsSprayParticlePool.prime(10)
     
     // let testSpawnEmitter = new MercParticleSphereEmitter()
     // const scene = AppContainer.instance.scene
@@ -119,25 +126,75 @@ export class ModelViewerScene implements GameScene, IDisposable {
     const camera = appContainer.camera as ArcRotateCamera
     // "UP" [38]
     if (kbd?.getInput(KeyboardMap.D) && this.debouncer.tryNow(KeyboardMap.D)) {
-      const ray = new Ray(camera.position, new Vector3(this.ship.position.x, this.ship.position.y, this.ship.position.z).subtract(camera.position))
-      const pickedInfo = appContainer.scene.pickWithRay(ray)
-      // const intersects = ray.intersectsMesh(this.ship.physicsMesh)
-      if (pickedInfo.hit) {
-        console.log(pickedInfo.pickedPoint)
-        registerHit(this.ship, {damage: 1, originatorId: "-1"}, pickedInfo.pickedPoint)
-        // let box = MeshBuilder.CreateBox("test box", { size: 1 })
-        // box.position.copyFrom(pickedInfo.pickedPoint)
+      if (world.has(this.ship)) {
+        const ray = new Ray(camera.position, new Vector3(this.ship.position.x, this.ship.position.y, this.ship.position.z).subtract(camera.position))
+        const pickedInfo = appContainer.scene.pickWithRay(ray)
+        // const intersects = ray.intersectsMesh(this.ship.physicsMesh)
+        if (pickedInfo.hit) {
+          console.log(pickedInfo.pickedPoint)
+          registerHit(this.ship, {damage: 20, originatorId: "-1"}, pickedInfo.pickedPoint)
+          // let box = MeshBuilder.CreateBox("test box", { size: 1 })
+          // box.position.copyFrom(pickedInfo.pickedPoint)
+        }
       }
     }
     // "DOWN" [40]
     if (kbd?.getInput(KeyboardMap.K)) {
 
     }
-    if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A)) {
+    if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A) && world.has(this.ship)) {
       if (this.ship.ai.type == undefined) {
         this.ship.ai.type = "demoLoop"
       } else {
         this.ship.ai.type = undefined
+      }
+    }
+    if (kbd?.getInput(KeyboardMap.T) && this.debouncer.tryNow(KeyboardMap.T)) {
+      
+/**
+ * DESCRIPTION          SPEED     PITCH     THROAT    MOUTH
+ * Elf                   72        64        110       160
+ * Little Robot          92        60        190       190
+ * Stuffy Guy            82        72        110       105
+ * Little Old Lady       82        32        145       145
+ * Extra-Terrestrial    100        64        150       200
+ * SAM                   72        64        128       128
+ */
+    try {
+        let sam = new SamJs({
+          debug: true,
+          phonetic: true, 
+          speed: 52,
+          pitch: 64,
+          throat: 128,
+          mouth: 128
+        })
+        let woof
+        let barkindex = 0
+        woof = () => {
+          let bark = barks.enemyDeath[barkindex]
+          if (!bark) { return }
+          let samSentence = translateIPA(bark.ipa, true)
+          console.log(`${bark.english}: \\${samSentence}\\`)
+          let result = sam.buf32(samSentence, true)
+          if (result instanceof Float32Array) {
+            // const audioBuffer = RenderAudioBuffer(result)
+            const audioBuffer = CreatAudioSource(result)
+            let sound = new Sound("test", audioBuffer, undefined, undefined)
+            sound.onEndedObservable.addOnce(() => {
+              console.log("sam spoke:")
+              if (true) {
+                barkindex += 1
+                setTimeout(() => { woof() }, 1000)
+              }
+            })
+            sound.play()
+          }
+        }
+        woof()
+      }
+      catch(error) {
+        console.log("sam constructor error", error)
       }
     }
   }
@@ -162,12 +219,15 @@ export class ModelViewerScene implements GameScene, IDisposable {
     missileTargetingSystem(delta)
     aiSystem(delta)
     warpSystem()
+    shieldPulserSystem.update(delta)
     updateRenderSystem()
 
-    let camera = appContainer.camera as ArcRotateCamera
-    camera.target.x = this.ship.position.x
-    camera.target.y = this.ship.position.y
-    camera.target.z = this.ship.position.z
+    if (world.has(this.ship)) {
+      let camera = appContainer.camera as ArcRotateCamera
+      camera.target.x = this.ship.position.x
+      camera.target.y = this.ship.position.y
+      camera.target.z = this.ship.position.z
+    }
 
     scene.render()
     divFps.innerHTML = engine.getFps().toFixed() + " fps";

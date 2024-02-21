@@ -17,6 +17,7 @@ import { TargetingHUD } from './spaceCombatHUD.TargetingHUD';
 import { SpeedHUD } from './spaceCombatHUD.SpeedHUD';
 import { DamageVDU } from './spaceCombatHUD.DamageVDU';
 import { WeaponsVDU } from './spaceCombatHUD.WeaponsVDU';
+import { SoundEffects } from '../../utils/sounds/soundEffects';
 
 export class CombatHud {
   gui: AdvancedDynamicTexture
@@ -236,9 +237,11 @@ export class CombatHud {
     const playerEntity = AppContainer.instance.player.playerEntity
     
     if (playerEntity.vduState.left != this.leftVDU) {
+      SoundEffects.Select().play()
       this.leftVDU = this.switchDisplay(this.vdu1Container, playerEntity.vduState.left)
     }
     if (playerEntity.vduState.right != this.rightVDU) {
+      SoundEffects.Select().play()
       this.rightVDU = this.switchDisplay(this.vdu2Container, playerEntity.vduState.right)
     }
     this.power.text = `⚡${this.powerBar()} `

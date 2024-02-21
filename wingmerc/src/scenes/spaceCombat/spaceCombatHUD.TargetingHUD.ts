@@ -1,18 +1,21 @@
 import * as GUI from "@babylonjs/gui"
-import { Color4, Frustum, Matrix, Vector2, Vector3 } from "@babylonjs/core";
+import { Color4, Frustum, Matrix, Sound, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { Entity, world } from "../../world/world";
 import * as Ships from "../../data/ships";
 import { TintedImage } from '../../utils/guiHelpers';
+import { SoundEffects } from "../../utils/sounds/soundEffects";
 
 export class TargetingHUD {
   
   hud: GUI.Container
   crosshair: GUI.Image
+  leadTarget: GUI.Image
   lockBox: GUI.Image
   targetBox: GUI.Image
   missileLockTarget: GUI.Image
-  leadTarget: GUI.Image
+  missileLockSound: Sound
+  missileLockingSound: Sound
 
   get mainComponent(): GUI.Control {
     return this.hud
@@ -107,6 +110,16 @@ export class TargetingHUD {
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == -1) {
       this.lockBox.isVisible = false
       this.targetBox.isVisible = false
+      this.leadTarget.isVisible = false
+      this.missileLockTarget.isVisible = false
+      if (this.missileLockSound != undefined) {
+        SoundEffects.Silience(this.missileLockSound)
+        this.missileLockSound = undefined
+      }
+      if (this.missileLockingSound != undefined) {
+        SoundEffects.Silience(this.missileLockingSound)
+        this.missileLockingSound = undefined
+      }
       return 
     }
     let targetEntity = world.entity(playerEntity.targeting.target)
@@ -136,6 +149,14 @@ export class TargetingHUD {
     }
 
     if (lockPosition && playerEntity.targeting?.missileLocked) {
+      if (this.missileLockSound == undefined) {
+        this.missileLockSound = SoundEffects.MissileTone()
+        this.missileLockSound.loop = true
+      }
+      if (this.missileLockingSound != undefined) {
+        SoundEffects.Silience(this.missileLockingSound)
+        this.missileLockingSound = undefined
+      }
       this.missileLockTarget.topInPixels = lockPosition.y
       this.missileLockTarget.leftInPixels = lockPosition.x
       this.missileLockTarget.widthInPixels = 52
@@ -144,6 +165,10 @@ export class TargetingHUD {
       this.missileLockTarget.paddingLeftInPixels = -52
       this.missileLockTarget.isVisible = true
     } else if (lockPosition && playerEntity.targeting?.targetingTime > 0) {
+      if (this.missileLockingSound == undefined) {
+        this.missileLockingSound = SoundEffects.MissileLock()
+        this.missileLockingSound.loop = true
+      }
       let alpha = playerEntity.targeting?.targetingTime / 3000
       let currentSize = 104 - (52 * alpha)
       this.missileLockTarget.widthInPixels = currentSize
@@ -155,6 +180,14 @@ export class TargetingHUD {
       this.missileLockTarget.isVisible = true
     } else {
       this.missileLockTarget.isVisible = false
+      if (this.missileLockSound != undefined) {
+        SoundEffects.Silience(this.missileLockSound)
+        this.missileLockSound = undefined
+      }
+      if (this.missileLockingSound != undefined) {
+        SoundEffects.Silience(this.missileLockingSound)
+        this.missileLockingSound = undefined
+      }
     }
 
     if (playerEntity.targeting.gunInterceptPosition) {

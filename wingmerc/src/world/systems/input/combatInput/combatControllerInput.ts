@@ -1,11 +1,11 @@
-import { FireCommand, MovementCommand, world } from './../world/world';
+import { FireCommand, MovementCommand, world } from '../../../world';
 import { GamepadManager, Xbox360Pad } from "@babylonjs/core";
-import { AppContainer } from "../app.container";
-import { Debounce } from '../utils/debounce';
+import { AppContainer } from "../../../../app.container";
+import { Debounce } from '../../../../utils/debounce';
 
 const DriftThreshold = 1000
 const SlowThreshold = 333
-export class InputAgent {
+export class CombatControllerInput {
   gamepadManager: GamepadManager
   playerGamepad: number
   driftTime: number

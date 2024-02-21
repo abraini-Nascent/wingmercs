@@ -26,16 +26,16 @@ export const EnemyLight: ShipDetails = Object.seal({
     ]
   },
   shields: {
-    fore: 50,
-    aft: 50,
+    fore: 35,
+    aft: 35,
     rechargeRate: 3,
     energyDrain: 3,
   },
   armor: {
-    front: 40,
-    back: 40,
-    left: 30,
-    right: 30,
+    front: 30,
+    back: 20,
+    left: 15,
+    right: 15,
   },
   systems: {
     quadrant: {
@@ -103,9 +103,9 @@ export const EnemyLight: ShipDetails = Object.seal({
     }
   },
   health: 50,
-  pitch: 80,
-  roll: 80,
-  yaw: 80,
+  pitch: 120,
+  roll: 120,
+  yaw: 140,
   accelleration: 30,
   afterburnerAccelleration: 60,
   breakingForce: 30,

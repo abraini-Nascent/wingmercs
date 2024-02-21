@@ -2,7 +2,6 @@ import * as GUI from '@babylonjs/gui';
 import { MercScreen } from "../screen"
 import { AppContainer } from '../../app.container';
 import { PlayerAgent } from '../../agents/playerAgent';
-import { InputAgent } from '../../agents/inputAgent';
 import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop';
 import { ModelViewerScene } from '../modelViewer/modelViewerLoop';
 
@@ -47,12 +46,13 @@ export class MainMenuScreen extends MercScreen {
     startButton.heightInPixels = 28
     startButton.widthInPixels = 280
     startButton.onPointerClickObservable.addOnce(() => {
-      const appContainer = AppContainer.instance
+      setTimeout(() => {
+        const appContainer = AppContainer.instance
       appContainer.server = true
-      appContainer.player = new PlayerAgent(appContainer.engine)
-      appContainer.input = new InputAgent()
+      appContainer.player = new PlayerAgent()
       appContainer.gameScene = new SpaceCombatScene()
       this.dispose()
+      }, 333)
     })
     mainPanel.addControl(startButton)
 
