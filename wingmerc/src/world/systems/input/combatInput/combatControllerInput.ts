@@ -1,17 +1,29 @@
+import { LatchMulti, LatchOn, LatchToggle } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
 import { GamepadManager, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
-import { Debounce } from '../../../../utils/debounce';
+import { Debounce, DebounceTimedMulti } from '../../../../utils/debounce';
 
 const DriftThreshold = 1000
 const SlowThreshold = 333
+
+const Drift = 0
+const Camera = 1
+const SpeedUp = 2
+const WeaponFire = 3
+const WeaponSelect = 4
+const GunSelect = 5
+const Target = 6
+
 export class CombatControllerInput {
   gamepadManager: GamepadManager
   playerGamepad: number
   driftTime: number
   slowDebounce: number
   fastDebounce: number
-  cameraDebounce: Debounce = new Debounce()
+  inputDebounce: DebounceTimedMulti = new DebounceTimedMulti()
+  latchingDebounce: LatchMulti = new LatchMulti()
+
   constructor() {
     const gamepadManager = new GamepadManager();
     this.gamepadManager = gamepadManager
@@ -37,38 +49,43 @@ export class CombatControllerInput {
     // "Z" [90]
     const drift = 0
     
+    // SPEED DOWN / DRIFT
     if (gamepad.buttonA) {
-      this.driftTime += dt
-      if (this.driftTime > DriftThreshold) {
+      let driftLatch = this.latchingDebounce.tryNow(Drift)
+      if (driftLatch == LatchToggle) {
+        movementCommand.deltaSpeed = -25
+      } else if (driftLatch == LatchOn) {
         movementCommand.drift = 1
-      } else {
-        if (this.slowDebounce == 0) {
-          movementCommand.deltaSpeed = -25
-        }
-        this.slowDebounce += dt
-        if (this.slowDebounce > SlowThreshold) {
-          this.slowDebounce == 0
-        }
       }
     } else {
-      this.driftTime = 0
-      this.slowDebounce = 0
+      this.latchingDebounce.clear(Drift)
     }
+
+    if (gamepad.buttonB && this.inputDebounce.tryNow(SpeedUp)) {
+      movementCommand.deltaSpeed = +25
+    } else if (gamepad.buttonB == 0) {
+      this.inputDebounce.clear(SpeedUp)
+    }
+    // BRAKE
     if (gamepad.buttonLB) {
       movementCommand.brake = 1
     }
-    if (gamepad.dPadUp) {
-      if (this.cameraDebounce.tryNow(dt)) {
-        if (AppContainer.instance.player.playerEntity.camera == "follow") {
-          world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
-        } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
-          world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
-        } else {
-          world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
-        }
+    if (gamepad.dPadUp && this.inputDebounce.tryNow(Camera)) {
+      if (AppContainer.instance.player.playerEntity.camera == "follow") {
+        world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
+      } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
+        world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
+      } else {
+        world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
       }
-    } else {
-      this.cameraDebounce.clear()
+    }
+    if (gamepad.dPadLeft && this.inputDebounce.tryNow(WeaponSelect)) {
+      const player = AppContainer.instance.player.playerEntity
+      player.weapons.selected += 1
+      let weaponCount = player.weapons.mounts.length
+      if (player.weapons.selected >= weaponCount) {
+        player.weapons.selected = 0
+      }
     }
 
     // pitch yaw roll
@@ -77,21 +94,8 @@ export class CombatControllerInput {
     movementCommand.roll = gamepad.rightStick.x * -1
 
     /// AFTERBURNER - ACCELERATE
-    // "SPACE" [32]
     if (gamepad.buttonLeftStick) {
       movementCommand.afterburner = 1
-    }
-    // "0" [48]
-    if (gamepad.buttonB) {
-      if (this.fastDebounce == 0) {
-        movementCommand.deltaSpeed = +25
-      }
-      this.fastDebounce += dt
-      if (this.fastDebounce > SlowThreshold) {
-        this.fastDebounce = 0
-      }
-    } else {
-      this.fastDebounce = 0
     }
 
     world.update(AppContainer.instance.player.playerEntity, "movementCommand", movementCommand)
@@ -100,10 +104,10 @@ export class CombatControllerInput {
     if (gamepad.rightTrigger > 0.2) {
       fireCommand.gun = 1
     }
-    if (gamepad.buttonX) {
+    if (gamepad.buttonX && this.inputDebounce.tryNow(WeaponFire)) {
       fireCommand.weapon = 1
     }
-    if (gamepad.buttonY) {
+    if (gamepad.buttonY && this.inputDebounce.tryNow(Target)) {
       fireCommand.lock = true
     }
     world.update(AppContainer.instance.player.playerEntity, "fireCommand", fireCommand)

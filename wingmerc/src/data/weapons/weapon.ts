@@ -2,7 +2,7 @@ export type Weapon = {
   /** id */
   class: string,
   /** type */
-  type: string,
+  type: "heatseeking" | "dumbfire",
   /** display name */
   name: string,
   /** range before dissipating */

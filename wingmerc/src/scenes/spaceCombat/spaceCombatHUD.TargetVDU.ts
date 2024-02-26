@@ -32,8 +32,7 @@ export class TargetVDU {
     lockPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
     lockPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
     lockPanel.width = "240px"
-    lockPanel.paddingRightInPixels = 24
-    lockPanel.paddingBottomInPixels = 24
+    lockPanel.height = "240px"
 
     const lockType = new GUI.TextBlock("LockType")
     this.lockType = lockType
@@ -42,7 +41,7 @@ export class TargetVDU {
     lockType.color = "white"
     lockType.fontSize = 24
     lockType.height = "24px"
-    lockType.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    lockType.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     lockType.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
     lockPanel.addControl(lockType)
 
@@ -53,7 +52,7 @@ export class TargetVDU {
     lockName.color = "red"
     lockName.fontSize = 24
     lockName.height = "24px"
-    lockName.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    lockName.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     lockName.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
     lockPanel.addControl(lockName)
 
@@ -209,7 +208,7 @@ class TargetBody {
       this.updateArmor(entity.armor.right/planeClass.armor.right, this.armorRight, "╣", "┤", " ")
     }
     if (entity.health) {
-      this.updateHealth(entity.health/planeClass.health, this.health, "╋", "┼", " ")
+      this.updateHealth(entity.health/planeClass.health, this.health, "↑", "⇡", "*")
     } else {
       this.updateHealth(1, this.health, "0", "O", " ")
     }
@@ -256,23 +255,23 @@ class TargetBody {
     }
   }
   updateHealth(percent: number, component: TextBlock, glyphHigh: string, glyphLow: string, glyphEmpty: string) {
-    if (percent == 0) {
+    if (percent < 0.01) {
       component.text = glyphEmpty
     } else if (percent < 0.35) {
       component.text = glyphLow
       component.color = "red"
     } else if (percent < 0.55) {
       component.text = glyphLow
-      component.color = "yellow"
+      component.color = "rgb(200 200 0)"
     } else if (percent < 0.75) {
       component.text = glyphHigh
-      component.color = "yellow"
+      component.color = "rgb(255 255 0)"
     } else if (percent < 0.95) {
       component.text = glyphHigh
-      component.color = "green"
+      component.color = "rgb(0 200 0)"
     } else {
       component.text = glyphHigh
-      component.color = "green"
+      component.color = "rgb(0 255 0)"
     }
   }
 }

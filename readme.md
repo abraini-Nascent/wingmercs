@@ -1,7 +1,7 @@
 # Squadron: Mercenaries
 
 ## Moonshot goal
-Imagine a thrilling spacefaring epic that blends the adrenaline-pumping space flight combat simulation of 'Wing Commander' with the intricate personelle and material management aspects of 'Mechwarrior Mercenaries.' In this immersive game, players will not only engage in intense dogfights and grand-scale space battles, but they'll also assume the role of a resourceful commander, managing a crew of diverse characters, upgrading and customizing their spacecraft, and navigating a dynamic galaxy filled with contracts, alliances, and political intrigue. With its seamless integration of strategic management and action-packed combat, this game offers a uniquely captivating experience that caters to both die-hard simulation enthusiasts and fans of deep, story-driven gameplay.
+Imagine a thrilling spacefaring epic that blends the adrenaline-pumping space flight combat simulation of 'Wing Commander' with the intricate personelle and material management aspects of 'Mechwarrior Mercenaries.' In this immersive game, players will not only engage in intense dogfights and grand-scale space battles, but they'll also assume the role of a resourceful commander, managing a crew of diverse characters, upgrading and customizing their spacecraft, and navigating a dynamic galaxy filled with contracts, alliances, and political intrigue. With its seamless integration of strategic management and action-packed combat, this game offers a uniquely captivating experience that caters to both die-hard simulation enthusiasts and fans of deep, story-generating gameplay.
 
 ## Direct Path 
 > What you need to do is make a beeline for your target. With a basic plan and understanding of where to go, you can start with strong fundamentals and then, when you have that fun core game, expand on it all you want! --GridSagaGames
@@ -47,12 +47,14 @@ We will build out the same space flight and combat features as classic WC
 
 ## Bugs:
 - [x] afterburner seems to go on forever
-- [ ] static size VDUs, the are all different sizes and are not consistent so don't look good
+- [x] static size VDUs, they are all different sizes and are not consistent so don't look good
 - [x] I think the AI can only turn up and right? or down and left? they seem to be stuck making only one direction turns
 - [x] targeting hud stays active after target leaves screen
 - [ ] player ship continues to emit particles after death screen and on score screen
-- [ ] enemies aren't shooting as much after steering fix
+- [x] enemies aren't shooting as much after steering fix
+- [ ] trails start from origin when on a sub-node
 - [ ] scene, player, and enemies don't reset on a new game after death
+- [ ] ai aren't shoot missiles
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -61,6 +63,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] brake
   - [x] arcade constant speed/velocity
   - [x] roll pitch yaw independence
+  - [ ] ramp input so movement isn't jarring
 - [x] gun projectile details
   - [x] add fire position to ship data
   - [x] create fire command and fire system
@@ -98,6 +101,8 @@ We will build out the same space flight and combat features as classic WC
     - [x] show locked target in radar
     - [x] color code targets in radar
     - [x] damage indicator in radar (light up quadrant hit)
+    - [x] color intensity for ship distance
+    - [x] color code dead targets dark-gray
 - [x] gamepad controls
 - [x] respawn killed ships
 - [x] heal player every three dead ships
@@ -113,6 +118,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] time counts down till game over
   - [ ] hi-score leaderboard
   - [x] stats for nerds
+  - [ ] scoring is missing some stats
 - [ ] more enemy types
   - [ ] medium 1
   - [ ] medium 2
@@ -124,8 +130,8 @@ We will build out the same space flight and combat features as classic WC
   - [x] weapon selection hud
   - [ ] gun selection hud
   - [x] damaged systems hud
-  - [ ] move player ship stats to the right of the left VDU so it's always visible
-    - [ ] add color coding to the player ship stats bars
+  - [x] move player ship stats to the right of the left VDU so it's always visible
+    - [x] add color coding to the player ship stats bars
     - [ ] flash ship stat as it's hit
     - [ ] quickly flash ship stat red if it's empty
 - [ ] massive juicing
@@ -141,21 +147,21 @@ We will build out the same space flight and combat features as classic WC
     - [x] missile lock tracking
     - [x] missile locked
     - [x] afterburners on
-    - [ ] drift on
-    - [ ] missile incoming
-    - [ ] cockpit vdu input
-    - [ ] target locked
+    - [x] drift on
+    - [x] missile incoming
+    - [x] cockpit vdu input
+    - [x] target locked
     - [ ] menu buttons
   - [ ] music
   - [ ] main menu runs demo ai vs ai scene
   - [ ] damaged systems vdu animations
-  - [ ] replace sprite particles with 3d shapes
+  - [x] replace sprite particles with 3d shapes
     - [x] shields hit
-    - [ ] shields collapsed
+    - [ ] ~shields collapsed~
     - [x] shields pulse
     - [x] armor hit
     - [x] systems damaged
-    - [ ] missile explosion
+    - [x] missile explosion
     - [x] death rattle smoke trail.
     - [x] death explosion.
   - [x] fix trails and afterburner effects

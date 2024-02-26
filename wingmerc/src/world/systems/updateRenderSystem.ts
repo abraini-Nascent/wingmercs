@@ -232,7 +232,7 @@ queries.afterburner.onEntityAdded.subscribe((entity) => {
     sound.loop = true
     sound.play()
     sound.setVolume(0)
-    sound.setVolume(1, 5)
+    sound.setVolume(1, 3)
     AfterburnerSounds.set(entity, sound)
   }
 })
@@ -244,6 +244,49 @@ queries.afterburner.onEntityRemoved.subscribe((entity) => {
       AfterburnerSounds.delete(entity)
     }
 })
+const DriftSounds = new Map<Entity, Sound>()
+queries.drift.onEntityAdded.subscribe((entity) => {
+  console.log("drift on")
+  if (DriftSounds.has(entity) == false) {
+    let sound = SoundEffects.DriftMode(Vector3FromObj(entity.position))
+    sound.attachToMesh(entity.node)
+    sound.loop = true
+    sound.play()
+    sound.setVolume(0)
+    sound.setVolume(1, 1)
+    DriftSounds.set(entity, sound)
+  }
+})
+queries.drift.onEntityRemoved.subscribe((entity) => {
+  console.log("drift off")
+    if (DriftSounds.has(entity)) {
+      let sound = DriftSounds.get(entity)
+      SoundEffects.Silience(sound)
+      DriftSounds.delete(entity)
+    }
+})
+const BrakeSounds = new Map<Entity, Sound>()
+queries.brake.onEntityAdded.subscribe((entity) => {
+  console.log("brake on")
+  if (BrakeSounds.has(entity) == false) {
+    let sound = SoundEffects.BrakeMode(Vector3FromObj(entity.position))
+    sound.attachToMesh(entity.node)
+    sound.loop = true
+    sound.play()
+    sound.setVolume(0)
+    sound.setVolume(1, 1)
+    BrakeSounds.set(entity, sound)
+  }
+})
+queries.brake.onEntityRemoved.subscribe((entity) => {
+  console.log("brake off")
+    if (BrakeSounds.has(entity)) {
+      let sound = BrakeSounds.get(entity)
+      SoundEffects.Silience(sound)
+      BrakeSounds.delete(entity)
+    }
+})
+
 queries.afterburnerTrails.onEntityAdded.subscribe(
   (entity) => {
     const {trailMeshs, trailOptions} = entity

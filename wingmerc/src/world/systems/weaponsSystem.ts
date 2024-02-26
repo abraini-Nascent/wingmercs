@@ -6,6 +6,7 @@ import * as Weapons from "../../data/weapons"
 import { Gun } from "../../data/guns/gun";
 import { Weapon } from './../../data/weapons/weapon';
 import { SoundEffects } from "../../utils/sounds/soundEffects";
+import { AppContainer } from '../../app.container';
 
 console.log("[WeaponsSystem] online");
 queries.fireCommands.onEntityAdded.subscribe((entity) => {
@@ -89,8 +90,18 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
   // entity wants to fire weapons
   if (fireCommand.weapon) {
     const { position, direction, rotation, rotationQuaternion, targeting, weapons } = entity
-    if (targeting != undefined && weapons != undefined 
-      && targeting.missileLocked && weapons.mounts[weapons.selected].count > 0 && weapons.delta == 0) {
+    const mounts = entity.weapons.mounts
+    const selectedWeapon = mounts[entity.weapons.selected]
+    let canFire = true
+    if (selectedWeapon == undefined || selectedWeapon.count == 0) {
+      canFire = false
+    }
+    const weaponClass = Weapons[selectedWeapon.type] as Weapon
+    if (weaponClass.type == "heatseeking" && !(targeting != undefined && weapons != undefined 
+      && targeting.missileLocked && weapons.mounts[weapons.selected].count > 0 && weapons.delta == 0)) {
+      canFire = false
+    }
+    if (canFire) {
         const weaponClass: Weapon = Weapons[weapons.mounts[weapons.selected].type]
         weapons.mounts[weapons.selected].count -= 1
         if (weapons.mounts[weapons.selected].count == 0) {
@@ -210,6 +221,14 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
     }
     targeting.target = closestTarget
     targeting.locked = true
+    if (entity == AppContainer.instance.player.playerEntity) {
+      let sound = SoundEffects.Select()
+      sound.play()
+      sound.onended = () => {
+        sound.dispose()
+        sound = undefined
+      }
+    }
     world.update(entity, "targeting", targeting)
   }
   // remove the command

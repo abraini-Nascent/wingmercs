@@ -4,12 +4,13 @@ import { KeyboardMap } from "../../../../utils/keyboard"
 import { Dirk } from "../../../../data/ships"
 import { Inspector } from "@babylonjs/inspector"
 import { AppContainer } from "../../../../app.container"
+import { DebounceTimed } from "../../../../utils/debounce"
 
-const LeftDisplays: Display[] = ["armor", "damage", "guns", "weapons"]
+const LeftDisplays: Display[] = ["damage", "guns", "weapons"]
 const RightDisplays: Display[] = ["target"]
 
 let dsm: DeviceSourceManager
-
+let vduDebounce = new DebounceTimed()
 /**
  *
  * @param dt delta time in milliseconds
@@ -85,7 +86,7 @@ export function combatKeyboardInput(dt: number) {
   if (
     dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.OPEN_BRACKET)
   ) {
-    if (this.vduDebounce.tryNow()) {
+    if (vduDebounce.tryNow()) {
       let displayIdx =
         LeftDisplays.findIndex((d) => {
           return d == playerEntity.vduState.left
@@ -103,7 +104,7 @@ export function combatKeyboardInput(dt: number) {
       .getDeviceSource(DeviceType.Keyboard)
       ?.getInput(KeyboardMap.CLOSE_BRACKET)
   ) {
-    if (this.vduDebounce.tryNow()) {
+    if (vduDebounce.tryNow()) {
       let displayIdx =
         RightDisplays.findIndex((d) => {
           return d == playerEntity.vduState.right

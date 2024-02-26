@@ -102,9 +102,10 @@ export type Entity = {
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
-  afterburnerActive?: boolean
-  brakingActive?: boolean
-  barkedSpooked?: boolean
+  afterburnerActive?: true
+  driftActive?: true
+  brakingActive?: true
+  barkedSpooked?: true
   driftVelocity?: { x: number; y: number; z: number }
   breakingPower?: number
   breakingVelocity?: { x: number; y: number; z: number }
@@ -207,6 +208,8 @@ export const queries = {
   engines: world.with("engine"),
   afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   afterburner: world.with("afterburnerActive"),
+  drift: world.with("driftActive"),
+  brake: world.with("brakingActive"),
   shields: world.with("shields"),
   particle: world.with("particleRange"),
   missiles: world.with("missileRange"),

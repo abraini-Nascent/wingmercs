@@ -26,6 +26,7 @@ import { damageSprayParticlePool, shieldPulserSystem } from '../../world/damage'
 import '../../world/systems/missileEngineSoundSystem';
 import { CombatControllerInput } from '../../world/systems/input/combatInput/combatControllerInput';
 import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
+import { createShip } from '../../world/factories';
 
 const divFps = document.getElementById("fps");
 const pointsPerSecond = 10;
@@ -125,7 +126,7 @@ export class SpaceCombatScene implements GameScene {
       const z = r * Math.cos(theta);
       const playerEntityPosition = AppContainer.instance.player.playerEntity.position
       // add enemy ship
-      createEnemyShip(x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z)
+      createShip(Ships.EnemyLight, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z)
       this.lastSpawnCount += 1
     }
   }

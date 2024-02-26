@@ -32,7 +32,7 @@ export function particleSystem() {
       }
       console.log(`[ParticleSystem] contact: ${world.id(entity)}`)
       // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
-      registerHit(hitEntity, entity, raycastResult.hitPointWorld)
+      registerHit(hitEntity, entity, raycastResult.hitPointWorld, entity.damage ?? 1)
       const shooter = world.entity(parseInt(entity.originatorId))
       if (shooter?.nerdStats) {
         shooter.nerdStats.roundsHit += 1

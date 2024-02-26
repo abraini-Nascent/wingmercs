@@ -19,6 +19,10 @@ export function moveCommandSystem(dt: number) {
     // scale back speeds based on damage, minimum 20% capability even if destroyed
     const maxDamagedSpeed = shipTemplate.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
     const maxDamagedCruiseSpeed = shipTemplate.cruiseSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
+    if (movementCommand.deltaSpeed != 0) {
+      setSpeed = (Math.max(0, Math.min(shipTemplate.cruiseSpeed, setSpeed + movementCommand.deltaSpeed)))
+      entity.setSpeed = setSpeed
+    }
     if (maxDamagedCruiseSpeed < setSpeed) {
       setSpeed = maxDamagedCruiseSpeed
       world.update(entity, "setSpeed", setSpeed)
@@ -100,6 +104,7 @@ export function moveCommandSystem(dt: number) {
       if (!movementCommand.afterburner && movementCommand.brake) {
         nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, shipTemplate.breakingLimit)
         world.update(entity, "breakingPower", nextBreakingPower)
+        world.addComponent(entity, "brakingActive", true)
       } else if (breakingPower != undefined && breakingPower > 0) {
         nextBreakingPower = Math.max(breakingPower - breakAcceleration, 0)
         if (nextBreakingPower == 0) {
@@ -107,6 +112,9 @@ export function moveCommandSystem(dt: number) {
         } else {
           world.update(entity, "breakingPower", nextBreakingPower)
         }
+      }
+      if (movementCommand.brake == 0 && entity.brakingActive) {
+        world.removeComponent(entity, "brakingActive")
       }
       const breakingForward = new Vector3(0, 0, 1)
       const breakingMovement = breakingForward.multiplyByFloats(nextBreakingPower, nextBreakingPower, nextBreakingPower)
@@ -120,8 +128,12 @@ export function moveCommandSystem(dt: number) {
       if (movementCommand.drift && driftVelocity == undefined) {
         let newDriftVelocity = new Vector3(velocity.x, velocity.y, velocity.z)
         world.update(entity, "driftVelocity", newDriftVelocity)
+        world.addComponent(entity, "driftActive", true)
       }
       if (!movementCommand.drift) {
+        if (entity.driftActive == true) {
+          world.removeComponent(entity, "driftActive")
+        }
         if (driftVelocity != undefined) {
           let newDriftVelocity = new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z)
           let oldLength = newDriftVelocity.length()

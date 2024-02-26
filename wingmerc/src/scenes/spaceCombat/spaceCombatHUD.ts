@@ -27,11 +27,13 @@ export class CombatHud {
   
   targetingHUD: TargetingHUD
   speedHUD: SpeedHUD
+  /** Left */
   vdu1Container: GUI.Container
+  /** Right */
   vdu2Container: GUI.Container
+  statsContainer: GUI.Container
   weapons: WeaponsVDU
   damageDisplay: DamageVDU
-  shipStats: StatsVDU
   enemyTarget: TargetVDU
   radarDisplay: RadarDisplay
 
@@ -40,8 +42,9 @@ export class CombatHud {
   gameOverText: TextSizeAnimationComponent
   getReadyText: TextSizeAnimationComponent
 
-  leftVDU: Display = "armor"
+  leftVDU: Display = "weapons"
   rightVDU: Display = "target"
+  statsVDU: StatsVDU
   registerHitInterceptor: InterceptorSubscription
   hitPlayer: Set<number> = new Set()
   flashTimer = 0
@@ -71,6 +74,8 @@ export class CombatHud {
     if (this.registerHitInterceptor) {
       this.registerHitInterceptor.unsubscribe()
     }
+    this.statsVDU.dispose()
+    this.statsContainer.dispose()
     this.targetingHUD.dispose()
     this.speedHUD.dispose()
     this.shipStats.dispose()
@@ -103,6 +108,10 @@ export class CombatHud {
   setupMain() {
     
     this.hud = new GUI.Container("hud")
+    this.hud.paddingBottomInPixels = 24
+    this.hud.paddingTopInPixels = 24
+    this.hud.paddingLeftInPixels = 24
+    this.hud.paddingRightInPixels = 24
     this.gameoverScreen = new GUI.Container("gameoverScreen")
     this.gui.addControl(this.hud)
 
@@ -112,44 +121,50 @@ export class CombatHud {
     this.speedHUD = new SpeedHUD()
     this.hud.addControl(this.speedHUD.mainComponent)
 
-    this.shipStats = new StatsVDU()
     this.enemyTarget = new TargetVDU()
     this.damageDisplay = new DamageVDU()
     this.weapons = new WeaponsVDU()
     this.radarDisplay = new RadarDisplay()
+    this.statsVDU = new StatsVDU()
 
-    // radarImage.alpha = 1
     const VDU1Container = new GUI.Container("VDU1")
     VDU1Container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
     VDU1Container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
     VDU1Container.width = "240px"
-    VDU1Container.paddingBottomInPixels = 24
-    VDU1Container.paddingLeftInPixels = 24
+    VDU1Container.height = "240px"
+    VDU1Container.background = "rgba(150,150,150,0.2)"
     this.vdu1Container = VDU1Container
-    this.vdu1Container.addControl(this.shipStats.mainComponent)
-    // this.vdu1Container.addControl(this.damageDisplay.mainComponent)
+    this.vdu1Container.addControl(this.weapons.mainComponent)
 
     const VDU2Container = new GUI.Container("VDU2")
     VDU2Container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
     VDU2Container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
     VDU2Container.width = "240px"
-    VDU2Container.paddingBottomInPixels = 24
-    VDU2Container.paddingRightInPixels = 24
+    VDU2Container.height = "240px"
+    VDU2Container.background = "rgba(150,150,150,0.2)"
     this.vdu2Container = VDU2Container
     this.vdu2Container.addControl(this.enemyTarget.mainComponent)
+
+    const statsContainer = new GUI.Container("Stats")
+    statsContainer.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
+    statsContainer.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+    statsContainer.width = "240px"
+    statsContainer.height = "240px"
+    statsContainer.left = 264
+    this.statsContainer = statsContainer
+    this.statsContainer.addControl(this.statsVDU.mainComponent)
 
     const scorePanel = new GUI.StackPanel()
     scorePanel.isVertical = true
     scorePanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     scorePanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
     scorePanel.width = "360px"
-    scorePanel.paddingTopInPixels = 24
 
     const score = new GUI.TextBlock()
     this.score = score
     score.fontFamily = "monospace"
     score.text = "-=Score: 0000000=-"
-    score.color = "white"
+    score.color = "gold"
     score.fontSize = 24
     score.height = "24px"
     score.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
@@ -160,7 +175,7 @@ export class CombatHud {
     this.timeLeft = timeLeft
     timeLeft.fontFamily = "monospace"
     timeLeft.text = "-=Time Left: 0000000=-"
-    timeLeft.color = "white"
+    timeLeft.color = "gold"
     timeLeft.fontSize = 24
     timeLeft.height = "24px"
     timeLeft.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
@@ -172,8 +187,6 @@ export class CombatHud {
     centerBottomPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     centerBottomPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
     centerBottomPanel.width = "240px"
-    centerBottomPanel.paddingTopInPixels = 24
-    centerBottomPanel.paddingBottomInPixels = 24
     
     centerBottomPanel.addControl(this.radarDisplay.mainComponent)
 
@@ -191,6 +204,7 @@ export class CombatHud {
 
     this.hud.addControl(VDU1Container)
     this.hud.addControl(VDU2Container)
+    this.hud.addControl(statsContainer)
     this.hud.addControl(centerBottomPanel)
     this.hud.addControl(scorePanel)
   }
@@ -248,13 +262,13 @@ export class CombatHud {
     this.score.text = `-=Score: ${Math.round(playerEntity.score.total).toString().padStart(8, "0")}=-`
     this.timeLeft.text = `-=Time Left: ${Math.round(playerEntity.score.timeLeft).toString().padStart(8, "0")}=-`
 
-    this.shipStats.update()
+    this.statsVDU.update()
     this.speedHUD.update(dt)
     this.damageDisplay.update()
     this.weapons.update()
     this.enemyTarget.update(playerEntity)
     this.radarDisplay.update(playerEntity, this.hitPlayer, dt)
-    this.targetingHUD.update(playerEntity)
+    this.targetingHUD.update(playerEntity, dt)
   }
 
   powerBar() {
@@ -275,9 +289,6 @@ export class CombatHud {
       vdu.removeControl(oldVDU)
     }
     switch (display) {
-      case "armor":
-        vdu.addControl(this.shipStats.mainComponent)
-        break;
       case "damage": 
         vdu.addControl(this.damageDisplay.mainComponent)
         break;

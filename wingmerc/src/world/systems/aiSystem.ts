@@ -3,7 +3,7 @@ import { Color3, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpVec
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import * as Ships from '../../data/ships';
-import { random } from '../../utils/random';
+import { rand, random, randomItem } from '../../utils/random';
 
 /**
  * 
@@ -70,7 +70,6 @@ function demoLoopAI(entity: Entity, dt: number) {
     roll: 0,
     deltaSpeed: 0,
     afterburner: 0,
-    // brake: brake,
     brake: 0,
     drift: 0,
   } as MovementCommand
@@ -81,21 +80,21 @@ function demoLoopAI(entity: Entity, dt: number) {
   } as FireCommand
   // afterburner demo
   timer(blackboard, "afterburner", dt, 15000, 5000, () => {
-    // movementCommand.afterburner = 1
+    movementCommand.afterburner = 1
   })
 
   // roll demo
   timer(blackboard, "roll", dt, 1, 1000, () => {
-    // movementCommand.roll = 1
+    movementCommand.roll = 1
   })
 
   // brake demo
   timer(blackboard, "brake", dt, 2000, 333, () => {
-    // movementCommand.brake = 1
+    movementCommand.brake = 1
   })
 
   timer(blackboard, "fireGuns", dt, 1000, 1000, () => {
-    // fireCommand.gun = 1
+    fireCommand.gun = 1
   })
 
   if (blackboard.target == undefined) {
@@ -160,21 +159,43 @@ function basicCombatAI(entity: Entity, dt: number) {
 
   // TODO: we should have another way to target what ship to track
   // get the player ship
-  const playerEntity = AppContainer.instance.player?.playerEntity
-  if (playerEntity == undefined) { return }
+  let targetEntity: Entity = AppContainer.instance.player?.playerEntity as Entity
   const { blackboard } = ai;
-  const vectorToTarget = Vector3FromObject(position).subtract(Vector3FromObject(playerEntity.position))
+  if (targetEntity == undefined) {
+    // pick a random other ai
+    if (blackboard.target == undefined) {
+      const possibleEnemies: Entity[] = []
+      for (const ai of queries.ai) {
+        if (ai != entity) {
+          possibleEnemies.push(ai)
+        }
+      }
+      if (possibleEnemies.length > 0) {
+        const enemy = randomItem(possibleEnemies) as Entity
+        blackboard.target = enemy
+        targetEntity = enemy
+      }
+    } else {
+      targetEntity = blackboard.target
+    }
+  }
+  if (world.has(targetEntity) == false) {
+    blackboard.target = undefined
+    return
+  }
+  
+  const vectorToTarget = Vector3FromObject(position).subtract(Vector3FromObject(targetEntity.position))
   const distanceToTarget = vectorToTarget.length()
-  if (distanceToTarget < 100 && !blackboard["backoff"]) {
+  if (distanceToTarget < 250 && !blackboard["backoff"]) {
     blackboard["backoff"] = true
     console.log("[AI] Backing Off")
   }
   // TODO: this should be where the enemy would intercept the player with guns, not where the player is currently
-  let targetPosition = Vector3FromObject(playerEntity.position)
+  let targetPosition = Vector3FromObject(targetEntity.position)
   if (blackboard["backoff"]) {
     // too close break off to behind the player
     const forward = Vector3.Forward(true)
-    forward.applyRotationQuaternionInPlace(QuaternionFromObj(playerEntity.rotationQuaternion))
+    forward.applyRotationQuaternionInPlace(QuaternionFromObj(targetEntity.rotationQuaternion))
     const playerDirection = forward.normalizeToNew()
     const behindPlayerDirection = playerDirection.multiplyByFloats(-1, -1, -1)
     const behindPlayerTarget = behindPlayerDirection.multiplyByFloats(1000, 1000, 1000)
@@ -188,22 +209,26 @@ function basicCombatAI(entity: Entity, dt: number) {
   }
   // TODO: if we are being chased we should after burner away before trying to turn back towards the player
   // TODO: if we need to do large turns we should apply brakes while turning
-  let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardNormalizeClamp)
+  let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardTurnClamp) //SteeringHardNormalizeClamp)
   // console.log(`[AI] steering`, input)
   let cinamaticRoll = 0
-  if (Math.abs(input.pitch) < 0.1 && Math.abs(input.roll) < 0.1 && distanceToTarget < 1400) {
+  if (blackboard["backoff"] == false && Math.abs(input.pitch) < 0.1 && Math.abs(input.yaw) < 0.1 && distanceToTarget < 1600) {
     const command = {
       gun: 1
     } as FireCommand
     if (entity.targeting.locked == false) {
       command.lock = true
     }
-    if (entity.targeting.missileLocked == true) {
+    if (entity.weapons.mounts[0].count > 0 && rand(0, 1) < (0.3 * (dt / 1000))) { // 30% per second
       command.weapon = 1
     }
     world.update(entity, "fireCommand", command)
   }
   const brake = Math.abs(input.pitch) > 0.9 || Math.abs(input.yaw) > 0.9 ? 1 : 0
+  let afterburner = 0
+  if (!brake && blackboard["backoff"] && distanceToTarget > 500) {
+    afterburner = 1
+  }
   const shipTemplateName = entity.planeTemplate
   const shipTemplate: { cruiseSpeed: number } = Ships[shipTemplateName] ?? Ships.EnemyLight
   world.update(entity, "rotationalVelocity", input)
@@ -213,7 +238,7 @@ function basicCombatAI(entity: Entity, dt: number) {
     yaw: input.yaw,
     roll: cinamaticRoll,
     deltaSpeed: 0,
-    afterburner: 0,
+    afterburner: afterburner,
     brake: brake,
     drift: 0,
   })

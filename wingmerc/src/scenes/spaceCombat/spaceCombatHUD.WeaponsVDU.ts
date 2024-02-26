@@ -19,14 +19,16 @@ export class WeaponsVDU {
     this.weaponsPanel.dispose()
   }
   setupComponents() {
-    const weaponsPanel = new GUI.StackPanel()
+    const weaponsPanel = new GUI.StackPanel("Weapons Panel")
     weaponsPanel.isVertical = true
     weaponsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-    weaponsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+    weaponsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
     weaponsPanel.width = "240px"
+    weaponsPanel.height = "240px"
     this.weaponsPanel = weaponsPanel
     const title = this.WeaponText("title", "-=WEAPONS=-")
     this.title = title
+    this.title.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
   }
 
   update() {
@@ -36,6 +38,9 @@ export class WeaponsVDU {
       if (this.weapons[mount.type] == undefined) {
         let typeTextBoxes: TextBlock[] = []
         this.weapons[mount.type] = typeTextBoxes
+      }
+      if (this.weapons[mount.type].length < mount.count) {
+        let typeTextBoxes: TextBlock[] = this.weapons[mount.type]
         for (let i = 0; i < mount.count; i += 1) {
           typeTextBoxes.push(this.WeaponText(mount.type, mount.type))
         }

@@ -88,7 +88,7 @@ export function createShip(ship: ShipDetails, x: number, y: number, z: number) {
     bodyType: "animated",
     trail: true,
     trailOptions: ship.modelDetails.trails.map((trail) => { return { start: { ...trail.start }, color: { ...trail.color }}}),
-    planeTemplate: "ship",
+    planeTemplate: ship.class,
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},
     setSpeed: 0, //ship.cruiseSpeed / 2,

@@ -18,13 +18,12 @@ import { SoundEffects } from '../utils/sounds/soundEffects';
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
 export type ParticleEntity = Pick<Entity, "damage" | "originatorId">
-export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, hitPointWorld: Vector3) {
+
+export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, hitPointWorld: Vector3, damage: number = 1) {
   const shooterStats = world.entity(parseInt(particleEntity.originatorId))?.nerdStats
   const victimStats = hitEntity.nerdStats
   
   AppContainer.instance.pipeline.process("registerHit", { shooter: parseInt(particleEntity.originatorId), victim: world.id(hitEntity) })
-  const scene = AppContainer.instance.scene
-  let damage = particleEntity.damage ?? 1
   if (hitEntity.position == undefined) { return }
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
     // determine if we were hit in the front of back shields

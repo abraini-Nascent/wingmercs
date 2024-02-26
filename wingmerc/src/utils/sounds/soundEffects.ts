@@ -68,6 +68,13 @@ const SelectFiles = [
 const AfterburnerFiles = [
   "assets/sounds/Afterburner01.wav",
 ]
+const DriftFiles = [
+  "assets/sounds/Drift01.wav",
+]
+
+const BrakeFiles = [
+  "assets/sounds/Brake01.wav",
+]
 export namespace SoundEffects {
   let _idx = 0
   function idx() {
@@ -76,13 +83,13 @@ export namespace SoundEffects {
   export function Laser(): Sound {
     return new Sound(`Laser-${idx()}`, randomItem(LaserFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
     })
   }
   export function ShieldHit(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`ShieldHit-${idx()}`, randomItem(ShieldHitFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
     })
     if (position) {
       sound.spatialSound = true
@@ -95,7 +102,7 @@ export namespace SoundEffects {
   export function ArmorHit(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`ArmorHit-${idx()}`, randomItem(ArmorHitFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
       autoplay: true
     })
     if (position) {
@@ -109,7 +116,7 @@ export namespace SoundEffects {
   export function SystemHit(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`SystemHit-${idx()}`, randomItem(SystemHitFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
       autoplay: true
     })
     if (position) {
@@ -123,7 +130,7 @@ export namespace SoundEffects {
   export function Explosion(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`Explosion-${idx()}`, randomItem(ExplosionFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 6000,
       autoplay: true
     })
     if (position) {
@@ -197,7 +204,7 @@ export namespace SoundEffects {
   export function MissileLaunch(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`MissileLaunch-${idx()}`, randomItem(MissileLaunchFiles), undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
       autoplay: true
     })
     if (position) {
@@ -211,7 +218,7 @@ export namespace SoundEffects {
   export function MissileEngine(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`MissileEngine-${idx()}`, randomItem(MissileEngineFiles), undefined, undefined,
     {
-      maxDistance: 4000,
+      maxDistance: 6000,
       autoplay: true
     })
     if (position) {
@@ -225,7 +232,35 @@ export namespace SoundEffects {
   export function AfterburnerEngine(position?: Vector3 | undefined): Sound {
     let sound = new Sound(`AfterburnerEngine-${idx()}`, AfterburnerFiles[0], undefined, undefined,
     {
-      maxDistance: 2000,
+      maxDistance: 4000,
+      autoplay: true
+    })
+    if (position) {
+      sound.spatialSound = true
+      sound.setPosition(position)
+    }
+    sound.autoplay = true
+    sound.play()
+    return sound
+  }
+  export function DriftMode(position?: Vector3 | undefined): Sound {
+    let sound = new Sound(`DriftMode-${idx()}`, DriftFiles[0], undefined, undefined,
+    {
+      maxDistance: 4000,
+      autoplay: true
+    })
+    if (position) {
+      sound.spatialSound = true
+      sound.setPosition(position)
+    }
+    sound.autoplay = true
+    sound.play()
+    return sound
+  }
+  export function BrakeMode(position?: Vector3 | undefined): Sound {
+    let sound = new Sound(`BrakeMode-${idx()}`, BrakeFiles[0], undefined, undefined,
+    {
+      maxDistance: 4000,
       autoplay: true
     })
     if (position) {

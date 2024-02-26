@@ -1,3 +1,5 @@
+import { Weapon } from './../../data/weapons/weapon';
+import * as Weapons from './../../data/weapons';
 import * as Guns from './../../data/guns';
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
@@ -9,15 +11,6 @@ const TARGET_LOCK_SPEED = 120 // degrees per second
 export function missileTargetingSystem(dt: number) {
   for (const entity of queries.targeting) {
     const { targeting, direction, position, rotationQuaternion } = entity
-
-    if (targeting.target == -1) {
-      // move to the front of the plane
-      targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
-      targeting.targetingTime = 0
-      targeting.gunInterceptPosition = undefined
-      world.update(entity, "targeting", targeting)
-      continue
-    }
     const targetEntity = world.entity(targeting.target)
     if (targetEntity == undefined) {
       targeting.target = -1
@@ -28,6 +21,36 @@ export function missileTargetingSystem(dt: number) {
       world.update(entity, "targeting", targeting)
       continue
     }
+
+    // calculate time to intercept
+    // TODO this should be it's own system
+    const gunInterceptPosition = firstOrderIntercept(
+      Vector3FromObj(entity.position),
+      Vector3FromObj(entity.velocity),
+      Vector3FromObj(targetEntity.position),
+      Vector3FromObj(targetEntity.velocity),
+      (Guns[entity.guns[0].class] as Gun).speed)
+    targeting.gunInterceptPosition = gunInterceptPosition
+
+    // is entity's weapon a tracking weapon
+    const mounts = entity.weapons.mounts
+    const selectedWeapon = mounts[entity.weapons.selected]
+    if (selectedWeapon == undefined || selectedWeapon.count == 0) {
+      continue
+    }
+    const weaponClass = Weapons[selectedWeapon.type] as Weapon
+    if (weaponClass.type == "dumbfire") {
+      continue
+    }
+    if (targeting.target == -1) {
+      // move to the front of the plane
+      targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
+      targeting.targetingTime = 0
+      targeting.gunInterceptPosition = undefined
+      world.update(entity, "targeting", targeting)
+      continue
+    }
+    
     const targetPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
     // check if target is within locking cone
     const entityPosition = new Vector3(position.x, position.y, position.z)
@@ -47,15 +70,6 @@ export function missileTargetingSystem(dt: number) {
     targeting.targetingTime += dt
     const missileLocked = targeting.targetingTime > 3000 // three seconds to lock, this should come from the selected weapon
     targeting.missileLocked = missileLocked
-
-    // calculate time to intercept
-    const gunInterceptPosition = firstOrderIntercept(
-      Vector3FromObj(entity.position),
-      Vector3FromObj(entity.velocity),
-      Vector3FromObj(targetEntity.position),
-      Vector3FromObj(targetEntity.velocity),
-      (Guns[entity.guns[0].class] as Gun).speed)
-    targeting.gunInterceptPosition = gunInterceptPosition
     
     //// old radar tracking code to move from current targetingDirection towards target
     // let targetingDirection = Vector3FromObj(targeting.targetingDirection)

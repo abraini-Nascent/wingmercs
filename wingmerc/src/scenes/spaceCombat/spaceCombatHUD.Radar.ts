@@ -1,10 +1,11 @@
 import * as GUI from "@babylonjs/gui"
-import { Color4, DynamicTexture, Quaternion, Sound, Vector2, Vector3 } from "@babylonjs/core";
+import { Color3, Color4, DynamicTexture, Quaternion, Sound, TmpVectors, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { Entity, queries, world } from "../../world/world";
 import { QuaternionFromObj, ToDegree, ToDegree360, Vector3FromObj } from "../../utils/math";
 import { DynamicTextureImage, TextSizeAnimationComponent, TintedImage } from '../../utils/guiHelpers';
 import { SoundEffects } from "../../utils/sounds/soundEffects";
+import { Color } from "../../utils/color";
 
 export class RadarDisplay {
 
@@ -20,6 +21,7 @@ export class RadarDisplay {
   radarImageDamageTop: GUI.Image
   radarImageDamageRight: GUI.Image
   radarImageDamageBottom: GUI.Image
+  lockFlash: number = 0
   get mainComponent(): GUI.Control { return this.panel }
   constructor() {
     this.setupMain()
@@ -117,10 +119,14 @@ export class RadarDisplay {
         continue
       }
       const targetPosition = new Vector3(target.position.x, target.position.y, target.position.z)
-
+      const distance = Vector3FromObj(position, TmpVectors.Vector3[3]).subtractInPlace(targetPosition).length()
+      let targetType: "enemy" | "missile" | "dead" = target.isTargetable
+      if (target.deathRattle) {
+        targetType = "dead"
+      }
       const radarPosition = mapToRadar(targetPosition, Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), QuaternionFromObj(rotationQuaternion))
       // const radarPosition = mapToFlatCircle(Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), targetPosition, 512)
-      this.drawPointOnDynamicTexture(target.isTargetable, radarPosition, this.radarTexture, playerLock && world.id(target) ==lockedId, false)
+      this.drawPointOnDynamicTexture(targetType, distance, radarPosition, this.radarTexture, playerLock && world.id(target) == lockedId, false)
 
       // update lock warning
       if (target.targeting?.locked && target.targeting?.target == playerId && target.targeting?.missileLocked) {
@@ -162,10 +168,8 @@ export class RadarDisplay {
             leftHit = true
             break
         }
-        
       }
     }
-
     if (frontHit) {
       this.radarImageDamageFront.isVisible = true
       this.radarImageDamageFront.alpha = Math.max(this.radarImageDamageFront.alpha + 0.2, 1)
@@ -202,12 +206,30 @@ export class RadarDisplay {
     } else {
       this.radarImageDamageBottom.alpha = Math.max(0, this.radarImageDamageBottom.alpha - (1 * (dt / 1000)))
     }
+    if (locked) {
+      this.missileLock.color = "yellow"
+    } else {
+      this.missileLock.color = "grey"
+    }
+    if (missileIncoming) {
+      this.lockFlash += dt
+      if (this.lockFlash > 600) {
+        this.lockFlash = 0
+      }
+      if (this.lockFlash > 300) {
+        this.missileLock.color = "yellow"
+      } else {
+        this.missileLock.color = "red"
+      }
+    } else {
+      this.missileLock.color = "grey"
+    }
     hitPlayer.clear()
     this.radarTexture.update()
     this.radarImage.markAsDirty()
   }
 
-  drawPointOnDynamicTexture(targetType: string, point: {x: number, y: number}, dynamicTexture: DynamicTexture, locked: boolean, update: boolean = false): void {
+  drawPointOnDynamicTexture(targetType: string, distance: number, point: {x: number, y: number}, dynamicTexture: DynamicTexture, locked: boolean, update: boolean = false): void {
     // Calculate pixel coordinates on the DynamicTexture
     const textureWidth = dynamicTexture.getSize().width;
     const textureHeight = dynamicTexture.getSize().height;
@@ -219,20 +241,31 @@ export class RadarDisplay {
     // Draw a point on the DynamicTexture
     const context = dynamicTexture.getContext();
     // TODO: this should come from the entity which should come from the radar unit type and capabilities
+    let colorClose: Vector3 = TmpVectors.Vector3[0]
+    let colorFar: Vector3 = TmpVectors.Vector3[1]
     switch (targetType) {
       case "enemy":
-        context.strokeStyle = "red";
-        context.fillStyle = "red";
+        colorClose.set(255, 0, 0);
+        colorFar.set(55, 0, 0);
         break;
       case "missile":
-        context.strokeStyle = "yellow";
-        context.fillStyle = "yellow";
+        colorClose.set(255, 255, 0);
+        colorFar.set(55, 55, 0);
+        break;
+      case "dead":
+        colorClose.set(200, 200, 200);
+        colorFar.set(100, 100, 100);
         break;
       default:
-        context.strokeStyle = "red";
-        context.fillStyle = "red";
+        colorClose.set(255, 0, 0);
+        colorFar.set(255, 0, 0);
         break;
     }
+    const distanceAlpha = this.normalizeDistance(distance) / 100
+    const color = Vector3.LerpToRef(colorFar, colorClose, distanceAlpha, TmpVectors.Vector3[2])
+    const rgbaColor = Color.rgb(color.x, color.y, color.z)
+    context.strokeStyle = rgbaColor
+    context.fillStyle = rgbaColor
     if (locked) {
       context.lineWidth = 1
       context.beginPath()
@@ -253,6 +286,15 @@ export class RadarDisplay {
     }
   }
 
+  normalizeDistance(distance: number): number {
+    if (distance <= 1000) {
+        return 100;
+    } else if (distance <= 10000) {
+        return 100 - ((distance - 1000) / 9000) * 90;
+    } else {
+        return 10;
+    }
+}
   radarPositionToQuadrant(point: { x: number, y:number }): "front" | "back" | "left" | "top" | "right" | "bottom" {
     const pixelX = (2 * (1 - (point.x + 1) * 0.5)) - 1 // normalize to -1 to 1
     const pixelY = ( 2 * (1 - (point.y + 1) * 0.5)) - 1 // normalize to -1 to 1

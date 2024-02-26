@@ -133,7 +133,7 @@ export class PlayerAgent {
         gunInterceptPosition: undefined
       },
       vduState: {
-        left: "armor",
+        left: "weapons",
         right: "target"
       } ,
       isTargetable: "player",

@@ -269,4 +269,54 @@ export class MercParticles {
     }
     return mps
   }
+
+  static missileExplosion(name: string, scene: Scene, emitter: MercParticlesEmitter, autoStart: boolean = true, disposeOnDone: boolean = true): MercParticleSystem {
+    let mps = new MercParticleSystem(name, scene)
+    mps.SPS.isAlwaysVisible = true;
+    let flatMat = new StandardMaterial("testSPS");
+    flatMat.specularColor = new Color3(0,0,0);
+    mps.SPS.mesh.material = flatMat
+    mps.emitRate = 3000
+    mps.emitCount = 300
+    mps.lifeTimeGradients = [
+      new FactorGradient(1, 1, 3)
+    ]
+    mps.colorGradients = [
+      new ColorGradient(0, new Color4(0.75, 0.75, 0, 1)),
+      new ColorGradient(0.1, new Color4(0.80, 0.80, 0, 1)),
+      new ColorGradient(0.5, new Color4(0.80, 0.80, 0.80, 1)),
+      new ColorGradient(0.75, new Color4(1, 1, 1, 1)),
+      new ColorGradient(1, new Color4(0.2, 0.2, 0.2, 0.0))
+    ]
+    mps.velocityGradients = [
+      // new FactorGradient(0, 10),
+      // new FactorGradient(0.5, 5),
+      new FactorGradient(1, 5, 50)
+    ]
+    mps.sizeGradients = [
+      new FactorGradient(0, 1, 3),
+      new FactorGradient(0.1, 1.5, 3),
+      new FactorGradient(0.75, 3),
+      new FactorGradient(1, 3)
+    ]
+    mps.rotationGradients = [
+      new Vector3Gradient(1, new Vector3(-Math.PI, -Math.PI, -Math.PI), new Vector3(Math.PI, Math.PI, Math.PI))
+    ]
+    mps.angularSpeedGradients = [
+      new Vector3Gradient(1, new Vector3(Scalar.RandomRange(-Math.PI, Math.PI), Scalar.RandomRange(-Math.PI, Math.PI), Scalar.RandomRange(-Math.PI, Math.PI)))
+    ]
+    mps.initialPositionFunction = emitter.initialPositionFunction;
+    mps.initialDirectionFunction = emitter.initialDirectionFunction;
+    if (disposeOnDone) {
+      mps.onDone = () => {
+        mps.dispose()
+        mps.onDone = undefined
+        mps = undefined
+      }
+    }
+    if (autoStart) {
+      mps.begin()
+    }
+    return mps
+  }
 }

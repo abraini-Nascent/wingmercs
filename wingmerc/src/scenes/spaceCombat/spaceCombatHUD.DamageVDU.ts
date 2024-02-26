@@ -1,10 +1,12 @@
 import { TextBlock } from "@babylonjs/gui";
 import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../app.container";
+import { IDisposable } from "@babylonjs/core";
 
-export class DamageVDU {
+export class DamageVDU implements IDisposable {
 
   systemsPanel: GUI.StackPanel
+  title: TextBlock
   afterburners: TextBlock
   battery: TextBlock
   engines: TextBlock
@@ -21,6 +23,7 @@ export class DamageVDU {
     this.setupComponents()
   }
   dispose() {
+    this.title.dispose()
     this.afterburners.dispose()
     this.battery.dispose()
     this.engines.dispose()
@@ -47,10 +50,14 @@ export class DamageVDU {
     const systemsPanel = new GUI.StackPanel()
     systemsPanel.isVertical = true
     systemsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-    systemsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+    systemsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
     systemsPanel.width = "240px"
+    systemsPanel.height = "240px"
     this.systemsPanel = systemsPanel
 
+    this.title = systemText("title", "-=DAMAGE=-")
+    this.title.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+    this.systemsPanel.addControl(this.title)
     this.afterburners = systemText("afterburners", this.padName("Afterburners"))
     this.systemsPanel.addControl(this.afterburners)
     this.battery = systemText("battery", this.padName("Battery"))

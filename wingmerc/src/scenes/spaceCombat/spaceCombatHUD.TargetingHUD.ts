@@ -1,3 +1,5 @@
+import { Weapon } from './../../data/weapons/weapon';
+import * as Weapons from './../../data/weapons';
 import * as GUI from "@babylonjs/gui"
 import { Color4, Frustum, Matrix, Sound, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
@@ -33,8 +35,12 @@ export class TargetingHUD {
 
   setupMain() {
     this.hud = new GUI.Container("TargingHUD")
+    this.hud.left = -24
+    this.hud.top = -24
 
     const crosshair = new GUI.Image("but", "assets/crosshairs/crosshairs_29.png")
+    crosshair.left = 24
+    crosshair.top = 24
     crosshair.height = "64px"
     crosshair.width = "64px"
     crosshair.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
@@ -74,7 +80,7 @@ export class TargetingHUD {
     this.hud.addControl(targetBox)
     this.targetBox = targetBox
 
-    const leadtarget = new TintedImage("lockTarget", "assets/crosshairs/crosshairs_03.png")
+    const leadtarget = new TintedImage("lockTarget", "assets/crosshairs/crosshairs_02.png")
     leadtarget.height = "64px"
     leadtarget.width = "64px"
     leadtarget.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -105,9 +111,14 @@ export class TargetingHUD {
     this.missileLockTarget = missileLockTarget
   }
 
-  update(playerEntity: Entity) {
+  update(playerEntity: Entity, dt: number) {
     
+    let canLock = false
+    const mount = playerEntity.weapons.mounts[playerEntity.weapons.selected]
+    const weapon = Weapons[mount.type] as Weapon
+    canLock = mount.count > 0 && weapon.type == "heatseeking"
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == -1) {
+      this.missileLockTarget.rotation = 0
       this.lockBox.isVisible = false
       this.targetBox.isVisible = false
       this.leadTarget.isVisible = false
@@ -148,7 +159,7 @@ export class TargetingHUD {
       this.targetBox.isVisible = false
     }
 
-    if (lockPosition && playerEntity.targeting?.missileLocked) {
+    if (lockPosition && canLock && playerEntity.targeting?.missileLocked) {
       if (this.missileLockSound == undefined) {
         this.missileLockSound = SoundEffects.MissileTone()
         this.missileLockSound.loop = true
@@ -164,7 +175,8 @@ export class TargetingHUD {
       this.missileLockTarget.paddingTopInPixels = -52
       this.missileLockTarget.paddingLeftInPixels = -52
       this.missileLockTarget.isVisible = true
-    } else if (lockPosition && playerEntity.targeting?.targetingTime > 0) {
+      this.missileLockTarget.rotation += (Math.PI/2) * dt / 1000
+    } else if (lockPosition && canLock && playerEntity.targeting?.targetingTime > 0) {
       if (this.missileLockingSound == undefined) {
         this.missileLockingSound = SoundEffects.MissileLock()
         this.missileLockingSound.loop = true

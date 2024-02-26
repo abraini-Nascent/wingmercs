@@ -40,7 +40,7 @@ export class StatsVDU {
     this.shieldsFore = shieldsFore
     shieldsFore.fontFamily = "monospace"
     shieldsFore.text = "↑)▉▉▉"
-    shieldsFore.color = "white"
+    shieldsFore.color = "blue"
     shieldsFore.fontSize = 24
     shieldsFore.height = "24px"
     shieldsFore.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -51,7 +51,7 @@ export class StatsVDU {
     this.shieldsAft = shieldsAft
     shieldsAft.fontFamily = "monospace"
     shieldsAft.text = "↓)▉▉▉"
-    shieldsAft.color = "white"
+    shieldsAft.color = "blue"
     shieldsAft.fontSize = 24
     shieldsAft.height = "24px"
     shieldsAft.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -62,7 +62,7 @@ export class StatsVDU {
     this.armorFront = armorFront
     armorFront.fontFamily = "monospace"
     armorFront.text = "↓║▉▉▉"
-    armorFront.color = "white"
+    armorFront.color = "orange"
     armorFront.fontSize = 24
     armorFront.height = "24px"
     armorFront.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -73,7 +73,7 @@ export class StatsVDU {
     this.armorBack = armorBack
     armorBack.fontFamily = "monospace"
     armorBack.text = "↑║▉▉▉"
-    armorBack.color = "white"
+    armorBack.color = "orange"
     armorBack.fontSize = 24
     armorBack.height = "24px"
     armorBack.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -84,7 +84,7 @@ export class StatsVDU {
     this.armorLeft = armorLeft
     armorLeft.fontFamily = "monospace"
     armorLeft.text = "←║▉▉▉"
-    armorLeft.color = "white"
+    armorLeft.color = "orange"
     armorLeft.fontSize = 24
     armorLeft.height = "24px"
     armorLeft.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -95,7 +95,7 @@ export class StatsVDU {
     this.armorRight = armorLeft
     armorRight.fontFamily = "monospace"
     armorRight.text = "→║▉▉▉"
-    armorRight.color = "white"
+    armorRight.color = "orange"
     armorRight.fontSize = 24
     armorRight.height = "24px"
     armorRight.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
