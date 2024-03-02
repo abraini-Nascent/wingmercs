@@ -99,7 +99,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] auto target enemy in front of player
   - [x] display player time to lock in hud
 - [x] space debris particle system for movement detection
-- [ ] ai vs ai dogfighting demo mode
+- [x] ai vs ai dogfighting demo mode
   - https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud

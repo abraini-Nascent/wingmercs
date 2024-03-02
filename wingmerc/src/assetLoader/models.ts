@@ -1,4 +1,7 @@
+// [game name, node name in file, file url]
 export const Models: [string, string, string][] = [
+  ["craftMiner", "craft_miner", "/assets/craft_miner_scaled.glb"],
+  ["craftMinerHull", "craft_miner", "/assets/craft_miner_hull.glb"],
   ["craftSpeederA", "craft_speederA", "/assets/craft_speederA_scaled.glb"],
   ["craftSpeederAHull", "craft_speederA", "/assets/craft_speederA_hull.glb"],
   ["craftSpeederB", "craft_speederB", "/assets/craft_speederB_scaled.glb"],

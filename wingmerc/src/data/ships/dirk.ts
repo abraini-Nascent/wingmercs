@@ -4,9 +4,9 @@ export const Dirk: ShipDetails = Object.seal({
   name: "Dirk",
   class: "Dirk",
   modelDetails: {
-    base: "craftSpeederA",
-    physics: "craftSpeederAHull",
-    shield: "craftSpeederAHull",
+    base: "craftMiner",
+    physics: "craftMinerHull",
+    shield: "craftMinerHull",
     trails: [
       {
         start: {
