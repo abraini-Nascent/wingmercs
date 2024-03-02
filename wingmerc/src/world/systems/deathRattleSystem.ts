@@ -19,18 +19,19 @@ queries.deathComes.onEntityAdded.subscribe(
   (() => {
     let i = 0
     return (entity) => {
-      if (entity == AppContainer.instance.player?.playerEntity) {
-        let sam = new SamJs({phonetic: false})
-        let buffer = sam.buf32("wompwompwomp ee jekt ee jekt ee jekt -", false)
-        let audioBuffer = CreatAudioSource(buffer)
-        let sound = new Sound("eject damnit", audioBuffer)
-        sound.loop = true
-        sound.play()
-        setTimeout(() => {
-          sound.stop()
-        }, 10000)
-        return
-      }
+      console.log("[DeathRattle] entity died", entity)
+      // if (entity == AppContainer.instance.player?.playerEntity) {
+      //   let sam = new SamJs({phonetic: false})
+      //   let buffer = sam.buf32("wompwompwomp ee jekt ee jekt ee jekt -", false)
+      //   let audioBuffer = CreatAudioSource(buffer)
+      //   let sound = new Sound("eject damnit", audioBuffer)
+      //   sound.loop = true
+      //   sound.play()
+      //   setTimeout(() => {
+      //     sound.stop()
+      //   }, 10000)
+      //   return
+      // }
       // simulating a spiral
       if (entity.ai != undefined) {
         // dead don't think

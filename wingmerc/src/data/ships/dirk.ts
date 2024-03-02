@@ -11,14 +11,14 @@ export const Dirk: ShipDetails = Object.seal({
       {
         start: {
           x: 5,
-          y: 0,
+          y: -5,
           z: -5
         },
         color: { r: 1, g: 0, b: 0 }
       }, {
         start: {
           x: -5,
-          y: 0,
+          y: -5,
           z: -5
         },
         color: { r: 1, g: 0, b: 0 }

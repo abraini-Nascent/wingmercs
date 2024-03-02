@@ -1,11 +1,11 @@
 import { LatchMulti, LatchOn, LatchToggle } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
-import { GamepadManager, Xbox360Pad } from "@babylonjs/core";
+import { GamepadManager, Scalar, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
 import { Debounce, DebounceTimedMulti } from '../../../../utils/debounce';
 
 const DriftThreshold = 1000
-const SlowThreshold = 333
+const FastThreshold = 333
 
 const Drift = 0
 const Camera = 1
@@ -23,6 +23,7 @@ export class CombatControllerInput {
   fastDebounce: number
   inputDebounce: DebounceTimedMulti = new DebounceTimedMulti()
   latchingDebounce: LatchMulti = new LatchMulti()
+  ramp: number = 0
 
   constructor() {
     const gamepadManager = new GamepadManager();
@@ -89,8 +90,20 @@ export class CombatControllerInput {
     }
 
     // pitch yaw roll
-    movementCommand.pitch = gamepad.leftStick.y
-    movementCommand.yaw = gamepad.leftStick.x
+    if (gamepad.leftStick.y || gamepad.leftStick.y) {
+      this.ramp += dt
+    }
+    if (gamepad.leftStick.y) {
+      let pitch = Scalar.Lerp(0, gamepad.leftStick.y, Math.min(1, this.ramp / FastThreshold))
+      movementCommand.pitch = pitch
+    }
+    if (gamepad.leftStick.x) {
+      let yaw = Scalar.Lerp(0, gamepad.leftStick.x, Math.min(1, this.ramp / FastThreshold))
+      movementCommand.yaw = yaw
+    }
+    if (!gamepad.leftStick.y && !gamepad.leftStick.x) {
+      this.ramp = 0
+    }
     movementCommand.roll = gamepad.rightStick.x * -1
 
     /// AFTERBURNER - ACCELERATE

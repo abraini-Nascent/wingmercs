@@ -1,8 +1,8 @@
 import { ShipDetails } from "./shipDetails";
 
-export const EnemyLight: ShipDetails = Object.seal({
+export const EnemyLight01: ShipDetails = Object.seal({
   name: "Fire Ant",
-  class: "EnemyLight",
+  class: "EnemyLight01",
   modelDetails: {
     base: "craftSpeederA",
     physics: "craftSpeederAHull",
@@ -36,6 +36,47 @@ export const EnemyLight: ShipDetails = Object.seal({
     back: 20,
     left: 15,
     right: 15,
+  },
+  health: 25,
+  pitch: 120,
+  roll: 120,
+  yaw: 140,
+  accelleration: 30,
+  afterburnerAccelleration: 60,
+  breakingForce: 30,
+  breakingLimit: 100,
+  cruiseSpeed: 400,
+  maxSpeed: 1200,
+  guns: [
+    {
+      type: "laser",
+      position: {
+        x: -2.5,
+        y: -0.5,
+        z: -0.5
+      },
+    },
+    {
+      type: "laser",
+      position: {
+        x: 2.5,
+        y: -0.5,
+        z: -0.5
+      },
+    }
+  ],
+  // todo:
+  //  position on model
+  weapons: [
+    {
+      type: "enemyDumbfire",
+      count: 1
+    }
+  ],
+  // TODO: this should also act like guns and weapons where we pull in a type
+  engine: {
+    rate: 20,
+    maxCapacity: 200
   },
   systems: {
     quadrant: {
@@ -101,46 +142,5 @@ export const EnemyLight: ShipDetails = Object.seal({
       guns: 25,
       weapons: 50,
     }
-  },
-  health: 50,
-  pitch: 120,
-  roll: 120,
-  yaw: 140,
-  accelleration: 30,
-  afterburnerAccelleration: 60,
-  breakingForce: 30,
-  breakingLimit: 100,
-  cruiseSpeed: 400,
-  maxSpeed: 1200,
-  guns: [
-    {
-      type: "laser",
-      position: {
-        x: -2.5,
-        y: -0.5,
-        z: -0.5
-      },
-    },
-    {
-      type: "laser",
-      position: {
-        x: 2.5,
-        y: -0.5,
-        z: -0.5
-      },
-    }
-  ],
-  // todo:
-  //  position on model
-  weapons: [
-    {
-      type: "enemyDumbfire",
-      count: 1
-    }
-  ],
-  // TODO: this should also act like guns and weapons where we pull in a type
-  engine: {
-    rate: 20,
-    maxCapacity: 200
   }
 })

@@ -1,4 +1,4 @@
-import { DeviceSourceManager, DeviceType, TransformNode } from "@babylonjs/core"
+import { DeviceSourceManager, DeviceType, Scalar, TransformNode } from "@babylonjs/core"
 import { Display, FireCommand, MovementCommand, world } from "../../../world"
 import { KeyboardMap } from "../../../../utils/keyboard"
 import { Dirk } from "../../../../data/ships"
@@ -9,8 +9,10 @@ import { DebounceTimed } from "../../../../utils/debounce"
 const LeftDisplays: Display[] = ["damage", "guns", "weapons"]
 const RightDisplays: Display[] = ["target"]
 
+const FastThreshold = 333
 let dsm: DeviceSourceManager
 let vduDebounce = new DebounceTimed()
+let ramp = 0
 /**
  *
  * @param dt delta time in milliseconds
@@ -51,25 +53,31 @@ export function combatKeyboardInput(dt: number) {
   if (drift) {
     movementCommand.drift = 1
   }
-
+  const keyboard = dsm.getDeviceSource(DeviceType.Keyboard)
+  if (keyboard?.getInput(KeyboardMap.UP) || keyboard?.getInput(KeyboardMap.DOWN) ||
+    keyboard?.getInput(KeyboardMap.LEFT) || keyboard?.getInput(KeyboardMap.RIGHT)) {
+    ramp += dt
+  } else {
+    ramp = 0
+  }
   // "UP" [38]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.UP)) {
-    up = 1
-    movementCommand.pitch = 1
+  if (keyboard?.getInput(KeyboardMap.UP)) {
+    up = Scalar.Lerp(0, 1, Math.min(1, ramp / FastThreshold))
+    movementCommand.pitch = up
   }
   // "DOWN" [40]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.DOWN)) {
-    down = 1
-    movementCommand.pitch = -1
+  if (keyboard?.getInput(KeyboardMap.DOWN)) {
+    down = Scalar.Lerp(0, -1, Math.min(1, ramp / FastThreshold))
+    movementCommand.pitch = down
   }
   // "RIGHT" [39]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.RIGHT)) {
+  if (keyboard?.getInput(KeyboardMap.RIGHT)) {
     if (mod) {
       rollRight = 1
       movementCommand.roll = 1
     } else {
-      right = 1
-      movementCommand.yaw = 1
+      right = Scalar.Lerp(0, 1, Math.min(1, ramp / FastThreshold))
+      movementCommand.yaw = right
     }
   }
   // "LEFT" [37]
@@ -78,8 +86,8 @@ export function combatKeyboardInput(dt: number) {
       rollLeft = 1
       movementCommand.roll = -1
     } else {
-      left = 1
-      movementCommand.yaw = -1
+      left = Scalar.Lerp(0, -1, Math.min(1, ramp / FastThreshold))
+      movementCommand.yaw = left
     }
   }
   // "OPEN_BRACKET", // [219]

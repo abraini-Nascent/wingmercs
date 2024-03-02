@@ -1,18 +1,18 @@
 import { Gun } from "./gun";
 
-export const laser: Gun = Object.seal({
+export const neutron: Gun = Object.seal({
   /** id */
-  class: "laser",
+  class: "neutron",
   /** display name */
-  name: "Laser Cannon",
+  name: "Neutron",
   /** range before dissipating */
-  range: 4800,
+  range: 2500,
   /** damage done on contact */
-  damage: 18,
+  damage: 45,
   /** energy consumer per shot */
-  energy: 10,
+  energy: 20,
   /** delay in milliseconds */
-  delay: 250,
+  delay: 350,
   /** travel speed in mps */
   speed: 2000,
   /** how much damage it can take before being destroyed */

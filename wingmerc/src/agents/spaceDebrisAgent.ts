@@ -1,18 +1,17 @@
-import { DeviceSourceManager, DeviceType, Engine, ParticleSystem, Quaternion, Scene, Texture, TransformNode, Vector3 } from "@babylonjs/core";
+import { DeviceSourceManager, DeviceType, Engine, IDisposable, ParticleSystem, Quaternion, Scene, Texture, TransformNode, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../app.container";
 
 const CAPACITY = 300
 const EMIT_RATE = 10000
 const SPAWN_RADIUS = 200
 const DESPAWN_DISTANCE = 300
-export class SpaceDebrisAgent {
+export class SpaceDebrisAgent implements IDisposable {
   particleSystem: ParticleSystem
 
   constructor(scene: Scene) {
     const myParticleSystem = new ParticleSystem("space_debris", CAPACITY, scene)
     myParticleSystem.particleTexture = new Texture("assets/space_debris.png", scene, null, null, Texture.NEAREST_SAMPLINGMODE)
 
-    myParticleSystem.emitter = Vector3.Zero()
     myParticleSystem.gravity = Vector3.Zero()
     myParticleSystem.emitRate = EMIT_RATE
     this.particleSystem = myParticleSystem
@@ -42,6 +41,12 @@ export class SpaceDebrisAgent {
             }
         }
     };
+  }
+  dispose(): void {
+    this.particleSystem.dispose()
+    this.particleSystem.updateFunction = undefined
+    this.particleSystem.startPositionFunction = undefined
+    this.particleSystem = undefined
   }
   /**
    * 

@@ -104,6 +104,7 @@ export class PlayerAgent {
       visible: false,
       hullName: Dirk.hullModel,
       trail: true,
+      trailOptions: Dirk.modelDetails.trails.map((trail) => { return { start: { ...trail.start }, color: { ...trail.color }}}),
       planeTemplate: planeTemplate,
       position: {x: 0, y: 0, z: 0},
       velocity: {x: 0, y: 0, z: 0},

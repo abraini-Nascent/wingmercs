@@ -63,7 +63,7 @@ class App {
     skybox.material = skyboxMaterial;
     const skycube = new CubeTexture("assets/skybox", scene, null, true, 
       //px, py, pz, nx, ny, nz
-      ["assets/skybox/skybox_right.png", "assets/skybox/skybox_top.png", "assets/skybox/skybox_front.png", "assets/skybox/skybox_left.png", "assets/skybox/skybox_bottom.png", "assets/skybox/skybox_back.png"],
+      ["assets/skybox/nebula/skybox_right.png", "assets/skybox/nebula/skybox_top.png", "assets/skybox/nebula/skybox_front.png", "assets/skybox/nebula/skybox_left.png", "assets/skybox/nebula/skybox_bottom.png", "assets/skybox/nebula/skybox_back.png"],
       () => {
         skycube.updateSamplingMode(Texture.NEAREST_NEAREST);
       }
@@ -88,6 +88,25 @@ class App {
         }
       }
     })
+    // handle window resize
+    window.addEventListener("resize", () => {
+      const scale = window.devicePixelRatio
+      canvas.height = window.innerHeight * Math.round(scale)
+      canvas.width = window.innerWidth * Math.round(scale)
+      console.log(`[APP] resize window resize: ${window.innerHeight}, ${window.innerWidth}`)
+      console.log(`[APP] resize canvas resize: ${canvas.width}, ${canvas.height}`)
+      engine.resize()
+    })
+    // handle orientation change
+    // window.addEventListener("orientationchange", () => {
+    //   const scale = window.devicePixelRatio
+    //   canvas.height = window.innerHeight * Math.round(scale)
+    //   canvas.width = window.innerWidth * Math.round(scale)
+    //   console.log(`[APP] orientation change window resize: ${window.innerHeight}, ${window.innerWidth}`)
+    //   console.log(`[APP] orientation change canvas resize: ${canvas.width}, ${canvas.height}`)
+    //   engine.resize()
+    // });
+
 
     // load the assets and physics engine
     const onFinishedLoading = () => {

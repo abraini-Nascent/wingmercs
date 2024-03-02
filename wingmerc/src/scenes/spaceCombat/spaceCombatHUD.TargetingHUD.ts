@@ -31,6 +31,14 @@ export class TargetingHUD {
     this.lockBox.dispose()
     this.leadTarget.dispose()
     this.hud.dispose()
+    if (this.missileLockSound) {
+      SoundEffects.Silience(this.missileLockSound)
+      this.missileLockSound = undefined
+    }
+    if (this.missileLockingSound) {
+      SoundEffects.Silience(this.missileLockingSound)
+      this.missileLockingSound = undefined
+    }
   }
 
   setupMain() {

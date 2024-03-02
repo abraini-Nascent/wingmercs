@@ -1,18 +1,18 @@
 import { Gun } from "./gun";
 
-export const laser: Gun = Object.seal({
+export const massdriver: Gun = Object.seal({
   /** id */
-  class: "laser",
+  class: "massdriver",
   /** display name */
-  name: "Laser Cannon",
+  name: "Mass Driver",
   /** range before dissipating */
-  range: 4800,
+  range: 3000,
   /** damage done on contact */
-  damage: 18,
+  damage: 30,
   /** energy consumer per shot */
-  energy: 10,
+  energy: 12,
   /** delay in milliseconds */
-  delay: 250,
+  delay: 300,
   /** travel speed in mps */
   speed: 2000,
   /** how much damage it can take before being destroyed */

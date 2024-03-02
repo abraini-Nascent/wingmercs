@@ -13,7 +13,7 @@ export class StatsScreen {
   title: TextBlock
   scorePanel: GUI.StackPanel
 
-  constructor() {
+  constructor(private score: Score, private stats: NerdStats) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Stats");
     this.gui = advancedTexture
     this.setupMain()
@@ -25,8 +25,10 @@ export class StatsScreen {
   }
 
   setupMain() {
-    const stats = AppContainer.instance.player.playerEntity.nerdStats
-    const score = AppContainer.instance.player.playerEntity.score
+    const stats = this.stats
+    const score = this.score
+    // const stats = AppContainer.instance.player.playerEntity.nerdStats
+    // const score = AppContainer.instance.player.playerEntity.score
     
     this.screen = new GUI.Container("screen")
     this.gui.addControl(this.screen)
@@ -119,10 +121,18 @@ export class StatsScreen {
       nerdStatsLabel.addControl(this.createLabel(label))
       nerdStatsValue.addControl(this.createLabel(value))
     }
+    let shotsAccuracy = 0
+    if (stats.roundsMissed > 0) {
+      shotsAccuracy = Math.round(stats.roundsHit / (stats.roundsHit + stats.roundsMissed) * 100)
+    }
+    let missileAccuracy = 0
+    if (stats.missilesLaunched > 0) {
+      missileAccuracy = Math.round(stats.missilesHit / (stats.missilesLaunched) * 100)
+    }
     createStatsRow("Total Shots:", `${stats.roundsHit + stats.roundsMissed}`)
-    createStatsRow("Shot Accuracy:", `${Math.round(stats.roundsHit / (stats.roundsHit + stats.roundsMissed + 0.1) * 100)}%`)
+    createStatsRow("Shot Accuracy:", `${shotsAccuracy}%`)
     createStatsRow("Missiles Fired:", `${Math.round(stats.missilesLaunched)}`)
-    createStatsRow("Missiles Accuracy:", `${Math.round(stats.missilesHit / (stats.missilesLaunched + 0.1) * 100)}%`)
+    createStatsRow("Missiles Accuracy:", `${missileAccuracy}%`)
     // createStatsRow("Missiles Dodged:", `${stats.missilesDodged}`)
     createStatsRow("Missiles Eaten:", `${stats.missilesEaten}`)
     createStatsRow("Afterburner time:", `${Math.round(stats.afterburnerFuelSpent)}`)

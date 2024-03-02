@@ -2,7 +2,7 @@ import { Color3, Color4, ColorGradient, FactorGradient, MeshBuilder, PhysicsBody
 import { rand, random, RouletteSelectionStochastic } from "../utils/random";
 import { Entity, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { ObjModels } from "../assetLoader/objModels";
-import { EnemyLight } from "../data/ships";
+import { EnemyLight01 } from "../data/ships";
 import { net } from "../net";
 import { Gun } from "../data/guns/gun";
 import * as Guns from "../data/guns";
@@ -161,7 +161,7 @@ export function explodeAsteroid(asteroid: Partial<Entity>) {
 }
 
 export function createEnemyShip(x, y, z) {
-  const guns = EnemyLight.guns.reduce((guns, gun, index) => {
+  const guns = EnemyLight01.guns.reduce((guns, gun, index) => {
     const gunClass = Guns[gun.type] as Gun
     guns[index] = {
       class: gun.type,
@@ -171,7 +171,7 @@ export function createEnemyShip(x, y, z) {
     }
     return guns
   }, {})
-  const weapons = EnemyLight.weapons.reduce((weapons, weapon) => {
+  const weapons = EnemyLight01.weapons.reduce((weapons, weapon) => {
     weapons.mounts.push({
       type: weapon.type,
       count: weapon.count
@@ -179,71 +179,71 @@ export function createEnemyShip(x, y, z) {
     return weapons
   }, { selected: 0, mounts: [], delta: 0 })
   const shipEngine = {
-    currentCapacity: EnemyLight.engine.maxCapacity,
-    maxCapacity: EnemyLight.engine.maxCapacity,
-    rate: EnemyLight.engine.rate,
+    currentCapacity: EnemyLight01.engine.maxCapacity,
+    maxCapacity: EnemyLight01.engine.maxCapacity,
+    rate: EnemyLight01.engine.rate,
   }
   const shipShields: ShipShields = {
-    maxFore: EnemyLight.shields.fore,
-    currentFore: EnemyLight.shields.fore,
-    maxAft: EnemyLight.shields.aft,
-    currentAft: EnemyLight.shields.aft,
-    energyDrain: EnemyLight.shields.energyDrain,
-    rechargeRate: EnemyLight.shields.rechargeRate,
+    maxFore: EnemyLight01.shields.fore,
+    currentFore: EnemyLight01.shields.fore,
+    maxAft: EnemyLight01.shields.aft,
+    currentAft: EnemyLight01.shields.aft,
+    energyDrain: EnemyLight01.shields.energyDrain,
+    rechargeRate: EnemyLight01.shields.rechargeRate,
   }
   const shipArmor: ShipArmor = {
-    back: EnemyLight.armor.back,
-    front: EnemyLight.armor.front,
-    left: EnemyLight.armor.left,
-    right: EnemyLight.armor.right,
+    back: EnemyLight01.armor.back,
+    front: EnemyLight01.armor.front,
+    left: EnemyLight01.armor.left,
+    right: EnemyLight01.armor.right,
   }
   const shipSystems: ShipSystems = {
     quadrant: {
-      fore: JSON.parse(JSON.stringify(EnemyLight.systems.quadrant.fore)) as {
+      fore: JSON.parse(JSON.stringify(EnemyLight01.systems.quadrant.fore)) as {
         system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
         weight: number
       }[], // :\
-      aft: JSON.parse(JSON.stringify(EnemyLight.systems.quadrant.fore)) as {
+      aft: JSON.parse(JSON.stringify(EnemyLight01.systems.quadrant.fore)) as {
         system: "guns"|"radar"|"thrusters"|"targeting"|"weapons"|"engines"|"battery"|"shield"|"power",
         weight: number
       }[] // why you gotta be to awkward there bud :\
     },
     state: {
-      afterburners: EnemyLight.systems.base.thrusters,
-      thrusters: EnemyLight.systems.base.thrusters,
-      engines: EnemyLight.systems.base.engines,
-      power: EnemyLight.systems.base.power,
-      battery: EnemyLight.systems.base.battery,
-      shield: EnemyLight.systems.base.shield,
-      radar: EnemyLight.systems.base.radar,
-      targeting: EnemyLight.systems.base.targeting,
-      guns: EnemyLight.systems.base.guns,
-      weapons: EnemyLight.systems.base.weapons,
+      afterburners: EnemyLight01.systems.base.thrusters,
+      thrusters: EnemyLight01.systems.base.thrusters,
+      engines: EnemyLight01.systems.base.engines,
+      power: EnemyLight01.systems.base.power,
+      battery: EnemyLight01.systems.base.battery,
+      shield: EnemyLight01.systems.base.shield,
+      radar: EnemyLight01.systems.base.radar,
+      targeting: EnemyLight01.systems.base.targeting,
+      guns: EnemyLight01.systems.base.guns,
+      weapons: EnemyLight01.systems.base.weapons,
     },
     base: {
-      afterburners: EnemyLight.systems.base.thrusters,
-      thrusters: EnemyLight.systems.base.thrusters,
-      engines: EnemyLight.systems.base.engines,
-      power: EnemyLight.systems.base.power,
-      battery: EnemyLight.systems.base.battery,
-      shield: EnemyLight.systems.base.shield,
-      radar: EnemyLight.systems.base.radar,
-      targeting: EnemyLight.systems.base.targeting,
-      guns: EnemyLight.systems.base.guns,
-      weapons: EnemyLight.systems.base.weapons,
+      afterburners: EnemyLight01.systems.base.thrusters,
+      thrusters: EnemyLight01.systems.base.thrusters,
+      engines: EnemyLight01.systems.base.engines,
+      power: EnemyLight01.systems.base.power,
+      battery: EnemyLight01.systems.base.battery,
+      shield: EnemyLight01.systems.base.shield,
+      radar: EnemyLight01.systems.base.radar,
+      targeting: EnemyLight01.systems.base.targeting,
+      guns: EnemyLight01.systems.base.guns,
+      weapons: EnemyLight01.systems.base.weapons,
     }
   }
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
     ai: { type: "basicCombat", blackboard: {} },
-    meshName: EnemyLight.modelDetails.base,
-    shieldMeshName: EnemyLight.modelDetails.shield,
-    physicsMeshName: EnemyLight.modelDetails.physics,
-    targetName: EnemyLight.name,
+    meshName: EnemyLight01.modelDetails.base,
+    shieldMeshName: EnemyLight01.modelDetails.shield,
+    physicsMeshName: EnemyLight01.modelDetails.physics,
+    targetName: EnemyLight01.name,
     bodyType: "animated",
     trail: true,
-    trailOptions: EnemyLight.modelDetails.trails.map((trail) => { return { start: {...trail.start }}}),
+    trailOptions: EnemyLight01.modelDetails.trails.map((trail) => { return { start: {...trail.start }}}),
     planeTemplate: "EnemyLight",
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},

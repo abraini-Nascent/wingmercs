@@ -3,6 +3,7 @@ import { AppContainer } from "../../app.container";
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
 import { AsteroidScene, createEnemyShip } from '../../map/asteroidScene';
 import { StatsScreen } from './statsScreen';
+import { NerdStats, Score } from '../../world/world';
 
 const divFps = document.getElementById("fps");
 const radius = 5000;
@@ -10,9 +11,9 @@ export class StatsScene implements GameScene {
 
   screen: StatsScreen
 
-  constructor() {
+  constructor(score: Score, stats: NerdStats) {
     const appContainer = AppContainer.instance
-    this.screen = new StatsScreen()
+    this.screen = new StatsScreen(score, stats)
   }
 
   runLoop = (delta: number) => {

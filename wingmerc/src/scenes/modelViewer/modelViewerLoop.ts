@@ -9,7 +9,7 @@ import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
 import { random } from '../../utils/random';
 import { MercParticlePointEmitter, MercParticleSphereEmitter } from '../../utils/particles/mercParticleEmitters';
 import { MercParticles } from '../../utils/particles/mercParticles';
-import { EnemyLight } from '../../data/ships';
+import { EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
 import * as Guns from '../../data/guns';
 import { Gun } from '../../data/guns/gun';
 import { net } from '../../net';
@@ -82,10 +82,23 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   setup() {
 
-    let model = createShip(EnemyLight, 0, 0, 0);
+    let model = createShip(EnemyLight01, -100, 0, 0);
     world.update(model, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
     this.ship = model
     this.ship.ai.type = undefined
+
+    let model2 = createShip(EnemyMedium01, -50, 0, 0);
+    world.update(model2, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
+    model2.ai.type = undefined
+
+    let model3 = createShip(EnemyMedium02, 50, 0, 0);
+    world.update(model3, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
+    model3.ai.type = undefined
+
+    let model4 = createShip(EnemyHeavy01, 100, 0, 0);
+    world.update(model4, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
+    model4.ai.type = undefined
+
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(10)
     

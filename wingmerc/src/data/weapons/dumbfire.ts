@@ -8,15 +8,21 @@ export const dumbfire: Weapon = Object.seal({
   /** display name */
   name: "Dumbfire",
   /** range before dissipating */
-  range: 5000,
+  range: 10000,
   /** damage done on contact */
   damage: 500,
   /** explosive force */
-  force: 10000,
+  force: 11000,
   /** delay in milliseconds */
   delay: 250,
   /** time to lock in milliseconds */
   timeToLock: 0,
   /** travel speed in mps */
-  speed: 1000,
+  speed: 900,
+  /** the yaw turn rate in degrees per second */
+  yaw: 0,
+  /** the pitch turn rate in degrees per second */
+  pitch: 0,
+  /** the roll turn rate in degrees per second */
+  roll: 0
 })

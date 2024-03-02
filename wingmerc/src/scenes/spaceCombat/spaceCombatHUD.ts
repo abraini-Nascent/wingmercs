@@ -78,7 +78,6 @@ export class CombatHud {
     this.statsContainer.dispose()
     this.targetingHUD.dispose()
     this.speedHUD.dispose()
-    this.shipStats.dispose()
     this.damageDisplay.dispose()
     this.weapons.dispose()
     this.gui.removeControl(this.hud)

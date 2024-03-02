@@ -1,26 +1,28 @@
-export type Weapon = {
+import { Weapon } from "./weapon";
+
+export const imagerecognition: Weapon = Object.seal({
   /** id */
-  class: string,
+  class: "imagerecognition",
   /** type */
-  type: "heatseeking" | "dumbfire" | "imagerecognition" | "friendorfoe", 
+  type: "imagerecognition",
   /** display name */
-  name: string,
+  name: "Image Recognition",
   /** range before dissipating */
-  range: number,
+  range: 8000,
   /** damage done on contact */
-  damage: number,
+  damage: 350,
   /** explosive force */
-  force: number,
+  force: 9500,
   /** delay in milliseconds */
-  delay: number,
+  delay: 250,
   /** time to lock in milliseconds */
-  timeToLock: number,
+  timeToLock: 3000,
   /** travel speed in mps */
-  speed: number,
+  speed: 800,
   /** the yaw turn rate in degrees per second */
-  yaw: number,
+  yaw: 100,
   /** the pitch turn rate in degrees per second */
-  pitch: number,
+  pitch: 100,
   /** the roll turn rate in degrees per second */
-  roll: number,
-}
+  roll: 100
+})

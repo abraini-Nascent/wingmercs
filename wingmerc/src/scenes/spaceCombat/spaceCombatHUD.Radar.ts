@@ -6,6 +6,7 @@ import { QuaternionFromObj, ToDegree, ToDegree360, Vector3FromObj } from "../../
 import { DynamicTextureImage, TextSizeAnimationComponent, TintedImage } from '../../utils/guiHelpers';
 import { SoundEffects } from "../../utils/sounds/soundEffects";
 import { Color } from "../../utils/color";
+import { rand, random } from "../../utils/random";
 
 export class RadarDisplay {
 
@@ -31,6 +32,10 @@ export class RadarDisplay {
     this.radarImage.dispose()
     this.radarImageBackground.dispose()
     this.missileLock.dispose()
+    if (this.missileLockWarning != undefined) {
+      SoundEffects.Silience(this.missileLockWarning)
+      this.missileLockWarning = undefined
+    }
   }
   setupMain() {
     const radarPanel = new GUI.StackPanel("radar panel")
@@ -126,7 +131,12 @@ export class RadarDisplay {
       }
       const radarPosition = mapToRadar(targetPosition, Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), QuaternionFromObj(rotationQuaternion))
       // const radarPosition = mapToFlatCircle(Vector3FromObj(position), Vector3FromObj(direction), Vector3FromObj(up), targetPosition, 512)
-      this.drawPointOnDynamicTexture(targetType, distance, radarPosition, this.radarTexture, playerLock && world.id(target) == lockedId, false)
+      const playerSystems = AppContainer.instance.player.playerEntity.systems
+      const playerRadarQuality = playerSystems.state.radar / playerSystems.base.radar
+      if (random() <= playerRadarQuality) {
+        // flicker radar is radar damaged
+        this.drawPointOnDynamicTexture(targetType, distance, radarPosition, this.radarTexture, playerLock && world.id(target) == lockedId, false)
+      }
 
       // update lock warning
       if (target.targeting?.locked && target.targeting?.target == playerId && target.targeting?.missileLocked) {

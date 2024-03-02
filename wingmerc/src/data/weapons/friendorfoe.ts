@@ -1,26 +1,28 @@
-export type Weapon = {
+import { Weapon } from "./weapon";
+
+export const friendorfoe: Weapon = Object.seal({
   /** id */
-  class: string,
+  class: "friendorfoe",
   /** type */
-  type: "heatseeking" | "dumbfire" | "imagerecognition" | "friendorfoe", 
+  type: "friendorfoe",
   /** display name */
-  name: string,
+  name: "Friend or For",
   /** range before dissipating */
-  range: number,
+  range: 12000,
   /** damage done on contact */
-  damage: number,
+  damage: 400,
   /** explosive force */
-  force: number,
+  force: 9500,
   /** delay in milliseconds */
-  delay: number,
+  delay: 250,
   /** time to lock in milliseconds */
-  timeToLock: number,
+  timeToLock: 3000,
   /** travel speed in mps */
-  speed: number,
+  speed: 800,
   /** the yaw turn rate in degrees per second */
-  yaw: number,
+  yaw: 200,
   /** the pitch turn rate in degrees per second */
-  pitch: number,
+  pitch: 200,
   /** the roll turn rate in degrees per second */
-  roll: number,
-}
+  roll: 200
+})

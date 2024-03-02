@@ -221,7 +221,7 @@ queries.fireCommands.onEntityAdded.subscribe((entity) => {
     }
     targeting.target = closestTarget
     targeting.locked = true
-    if (entity == AppContainer.instance.player.playerEntity) {
+    if (entity == AppContainer.instance.player?.playerEntity) {
       let sound = SoundEffects.Select()
       sound.play()
       sound.onended = () => {

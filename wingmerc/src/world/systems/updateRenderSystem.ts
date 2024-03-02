@@ -181,13 +181,19 @@ queries.trailers.onEntityAdded.subscribe(
           const newTrail = new TrailMesh(`trail-${i}`, trailNode, scene, width, length, false)
           disposables.push(newTrail)
           setTimeout(() => { newTrail.start() }, 16)
-          newTrail.material = ColorMaterialCache(color)
+          const entityMaterial = new StandardMaterial(`trailMat-${i}`)
+          entityMaterial.emissiveColor = color.clone()
+          entityMaterial.diffuseColor = color.clone()
+          entityMaterial.specularColor = Color3.Black()
+          newTrail.material = entityMaterial
+          disposables.push(entityMaterial)
           trails.push(newTrail)
         }
         world.update(entity, {
           trailMeshs: {trails, disposables},
           node
         })
+        i += 1
       }, 1)
     }
   })()
@@ -197,7 +203,9 @@ queries.trailers.onEntityRemoved.subscribe((entity) => {
     for (const disposable of entity.trailMeshs.disposables) {
         disposable.dispose()
     }
-    world.removeComponent(entity, "trailMeshs")
+    queueMicrotask(() => {
+      world.removeComponent(entity, "trailMeshs")
+    })
   }
 })
 
@@ -225,7 +233,7 @@ queries.meshed.onEntityRemoved.subscribe(
 
 const AfterburnerSounds = new Map<Entity, Sound>()
 queries.afterburner.onEntityAdded.subscribe((entity) => {
-  console.log("afterburner on")
+  // console.log("afterburner on")
   if (AfterburnerSounds.has(entity) == false) {
     let sound = SoundEffects.AfterburnerEngine(Vector3FromObj(entity.position))
     sound.attachToMesh(entity.node)
@@ -237,7 +245,7 @@ queries.afterburner.onEntityAdded.subscribe((entity) => {
   }
 })
 queries.afterburner.onEntityRemoved.subscribe((entity) => {
-  console.log("afterburner off")
+  // console.log("afterburner off")
     if (AfterburnerSounds.has(entity)) {
       let sound = AfterburnerSounds.get(entity)
       SoundEffects.Silience(sound)
@@ -246,7 +254,7 @@ queries.afterburner.onEntityRemoved.subscribe((entity) => {
 })
 const DriftSounds = new Map<Entity, Sound>()
 queries.drift.onEntityAdded.subscribe((entity) => {
-  console.log("drift on")
+  // console.log("drift on")
   if (DriftSounds.has(entity) == false) {
     let sound = SoundEffects.DriftMode(Vector3FromObj(entity.position))
     sound.attachToMesh(entity.node)
@@ -258,7 +266,7 @@ queries.drift.onEntityAdded.subscribe((entity) => {
   }
 })
 queries.drift.onEntityRemoved.subscribe((entity) => {
-  console.log("drift off")
+  // console.log("drift off")
     if (DriftSounds.has(entity)) {
       let sound = DriftSounds.get(entity)
       SoundEffects.Silience(sound)
@@ -267,7 +275,7 @@ queries.drift.onEntityRemoved.subscribe((entity) => {
 })
 const BrakeSounds = new Map<Entity, Sound>()
 queries.brake.onEntityAdded.subscribe((entity) => {
-  console.log("brake on")
+  // console.log("brake on")
   if (BrakeSounds.has(entity) == false) {
     let sound = SoundEffects.BrakeMode(Vector3FromObj(entity.position))
     sound.attachToMesh(entity.node)
@@ -279,7 +287,7 @@ queries.brake.onEntityAdded.subscribe((entity) => {
   }
 })
 queries.brake.onEntityRemoved.subscribe((entity) => {
-  console.log("brake off")
+  // console.log("brake off")
     if (BrakeSounds.has(entity)) {
       let sound = BrakeSounds.get(entity)
       SoundEffects.Silience(sound)
@@ -411,16 +419,18 @@ queries.systemsDamaged.onEntityAdded.subscribe((entity) => {
       return particle
     }
   )
-  console.log(`[SystemsDamaged] \\${world.id(entity)}\\ added damaged systems spray`)
-  let system = damagedSystemsSprayParticlePool.getSystem(world.id(entity), emitter)
+  let entityId = world.id(entity)
+  console.log(`[SystemsDamaged] \\${entityId}\\ added damaged systems spray`)
+  let system = damagedSystemsSprayParticlePool.getSystem(entityId, emitter)
   system.begin()
   let timeout: number
   let spark: () => void
   spark = () => {
     let delay = Scalar.RandomRange(2000, 2500)
     timeout = setTimeout(() => {
-      if (world.has(entity) == false) {
+      if (world.has(entity) == false || entity.deathRattle) {
         clearTimeout(timeout)
+        damagedSystemsSprayParticlePool.release(entityId)
         return
       }
       system.begin()

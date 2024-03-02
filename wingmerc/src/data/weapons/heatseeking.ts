@@ -8,7 +8,7 @@ export const heatseeking: Weapon = Object.seal({
   /** display name */
   name: "Heat Seeking",
   /** range before dissipating */
-  range: 5000,
+  range: 9000,
   /** damage done on contact */
   damage: 200,
   /** explosive force */
@@ -18,5 +18,11 @@ export const heatseeking: Weapon = Object.seal({
   /** time to lock in milliseconds */
   timeToLock: 3000,
   /** travel speed in mps */
-  speed: 1200,
+  speed: 800,
+  /** the yaw turn rate in degrees per second */
+  yaw: 100,
+  /** the pitch turn rate in degrees per second */
+  pitch: 100,
+  /** the roll turn rate in degrees per second */
+  roll: 100
 })

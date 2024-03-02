@@ -4,14 +4,22 @@ import { AppContainer } from '../../app.container';
 import { PlayerAgent } from '../../agents/playerAgent';
 import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop';
 import { ModelViewerScene } from '../modelViewer/modelViewerLoop';
+import { SoundEffects } from '../../utils/sounds/soundEffects';
+import { Observer } from '@babylonjs/core';
 
 export class MainMenuScreen extends MercScreen {
+  fullscreen: Observer<GUI.Vector2WithInfo>
+
   constructor() {
     super("MainMenuScreen")
     this.setupMain()
   }
   dispose() {
     super.dispose()
+    if (this.fullscreen) {
+      this.fullscreen.remove()
+      this.fullscreen = undefined
+    }
   }
   setupMain(): void {
     super.setupMain()
@@ -47,24 +55,41 @@ export class MainMenuScreen extends MercScreen {
     startButton.widthInPixels = 280
     startButton.onPointerClickObservable.addOnce(() => {
       setTimeout(() => {
+        SoundEffects.Select()
         const appContainer = AppContainer.instance
-      appContainer.server = true
-      appContainer.player = new PlayerAgent()
-      appContainer.gameScene = new SpaceCombatScene()
-      this.dispose()
+        appContainer.server = true
+        appContainer.gameScene.dispose()
+        appContainer.gameScene = new SpaceCombatScene()
+        this.dispose()
       }, 333)
     })
     mainPanel.addControl(startButton)
 
-    const debugButton = GUI.Button.CreateSimpleButton("start", "[Model Viewer]");
+    const fullscreenButton = GUI.Button.CreateSimpleButton("fullscreen", "[Fullscreen]");
+    fullscreenButton.textBlock.fontFamily = "monospace"
+    fullscreenButton.textBlock.color = "gold"
+    fullscreenButton.textBlock.fontSizeInPixels = 24
+    fullscreenButton.heightInPixels = 28
+    fullscreenButton.widthInPixels = 280
+    let observer = fullscreenButton.onPointerClickObservable.add(() => {
+      setTimeout(() => {
+        window.document.body.requestFullscreen()
+      }, 333)
+    })
+    this.fullscreen = observer
+    mainPanel.addControl(fullscreenButton)
+
+    const debugButton = GUI.Button.CreateSimpleButton("model viewer", "[Model Viewer]");
     debugButton.textBlock.fontFamily = "monospace"
     debugButton.textBlock.color = "gold"
     debugButton.textBlock.fontSizeInPixels = 24
     debugButton.heightInPixels = 28
     debugButton.widthInPixels = 280
     debugButton.onPointerClickObservable.addOnce(() => {
+      SoundEffects.Select()
       const appContainer = AppContainer.instance
       appContainer.server = true
+      appContainer.gameScene.dispose()
       appContainer.gameScene = new ModelViewerScene()
       this.dispose()
     })
