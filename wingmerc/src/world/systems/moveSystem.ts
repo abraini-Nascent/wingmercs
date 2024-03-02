@@ -125,15 +125,18 @@ export function moveCommandSystem(dt: number) {
       world.update(entity, "breakingVelocity", breakingMovement)
 
       //// base speed
+      if (movementCommand.drift && entity.driftActive == undefined) {
+        console.log("adding drift")
+        world.addComponent(entity, "driftActive", true)
+      } else if (!movementCommand.drift && entity.driftActive) {
+        console.log("removing drift")
+        world.removeComponent(entity, "driftActive")
+      }
       if (movementCommand.drift && driftVelocity == undefined) {
         let newDriftVelocity = new Vector3(velocity.x, velocity.y, velocity.z)
         world.update(entity, "driftVelocity", newDriftVelocity)
-        world.addComponent(entity, "driftActive", true)
       }
       if (!movementCommand.drift) {
-        if (entity.driftActive == true) {
-          world.removeComponent(entity, "driftActive")
-        }
         if (driftVelocity != undefined) {
           let newDriftVelocity = new Vector3(driftVelocity.x, driftVelocity.y, driftVelocity.z)
           let oldLength = newDriftVelocity.length()

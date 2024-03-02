@@ -14,7 +14,7 @@ let targetingBox: Mesh
  * applies the entity's component details to the babylonjs transform node
  */
 export function updateRenderSystem() {
-  for (const { position, node, rotationQuaternion, rotation, scale, targeting, visible } of queries.updateRender) {
+  for (const { position, node, rotationQuaternion, rotation, scale, targeting, visible, ...entity } of queries.updateRender) {
 
     let transform = node as TransformNode
     transform.position.x = position.x
@@ -38,6 +38,11 @@ export function updateRenderSystem() {
     if (visible != undefined) {
       for (const mesh of transform.getChildMeshes()) {
         mesh.isVisible = visible
+      }
+      if (entity.trailMeshs) {
+        for (const mesh of entity.trailMeshs.trails) {
+          mesh.isVisible = visible
+        }
       }
     }
 
@@ -254,19 +259,22 @@ queries.afterburner.onEntityRemoved.subscribe((entity) => {
 })
 const DriftSounds = new Map<Entity, Sound>()
 queries.drift.onEntityAdded.subscribe((entity) => {
-  // console.log("drift on")
-  if (DriftSounds.has(entity) == false) {
-    let sound = SoundEffects.DriftMode(Vector3FromObj(entity.position))
-    sound.attachToMesh(entity.node)
-    sound.loop = true
-    sound.play()
-    sound.setVolume(0)
-    sound.setVolume(1, 1)
-    DriftSounds.set(entity, sound)
+  console.log("drift on")
+  if (DriftSounds.has(entity)) {
+    let sound = DriftSounds.get(entity)
+    SoundEffects.Silience(sound)
+    DriftSounds.delete(entity)
   }
+  let sound = SoundEffects.DriftMode(Vector3FromObj(entity.position))
+  sound.attachToMesh(entity.node)
+  sound.loop = true
+  sound.play()
+  sound.setVolume(0)
+  sound.setVolume(1, 1)
+  DriftSounds.set(entity, sound)
 })
 queries.drift.onEntityRemoved.subscribe((entity) => {
-  // console.log("drift off")
+  console.log("drift off")
     if (DriftSounds.has(entity)) {
       let sound = DriftSounds.get(entity)
       SoundEffects.Silience(sound)

@@ -1,8 +1,9 @@
 import { LatchMulti, LatchOn, LatchToggle } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
-import { GamepadManager, Scalar, Xbox360Pad } from "@babylonjs/core";
+import { GamepadManager, Scalar, Xbox360Button, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
 import { Debounce, DebounceTimedMulti } from '../../../../utils/debounce';
+import { Dirk } from '../../../../data/ships';
 
 const DriftThreshold = 1000
 const FastThreshold = 333
@@ -24,6 +25,9 @@ export class CombatControllerInput {
   inputDebounce: DebounceTimedMulti = new DebounceTimedMulti()
   latchingDebounce: LatchMulti = new LatchMulti()
   ramp: number = 0
+
+  previous = new Map<number, number>()
+  wasDrift = false
 
   constructor() {
     const gamepadManager = new GamepadManager();
@@ -53,14 +57,18 @@ export class CombatControllerInput {
     // SPEED DOWN / DRIFT
     if (gamepad.buttonA) {
       let driftLatch = this.latchingDebounce.tryNow(Drift)
-      if (driftLatch == LatchToggle) {
-        movementCommand.deltaSpeed = -25
-      } else if (driftLatch == LatchOn) {
+      if (driftLatch == LatchOn) {
         movementCommand.drift = 1
+        this.wasDrift = true
       }
     } else {
+      if (this.previous.get(Xbox360Button.A) && this.wasDrift == false) {
+        movementCommand.deltaSpeed = -25
+      }
+      this.wasDrift = false
       this.latchingDebounce.clear(Drift)
     }
+    this.previous.set(Xbox360Button.A, gamepad.buttonA)
 
     if (gamepad.buttonB && this.inputDebounce.tryNow(SpeedUp)) {
       movementCommand.deltaSpeed = +25
@@ -72,16 +80,25 @@ export class CombatControllerInput {
       movementCommand.brake = 1
     }
     if (gamepad.dPadUp && this.inputDebounce.tryNow(Camera)) {
+      let follow = false
       if (AppContainer.instance.player.playerEntity.camera == "follow") {
         world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
       } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
         world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
+        follow = true
       } else {
         world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
+        follow = true
+      }
+      if (follow) {
+        world.update(AppContainer.instance.player.playerEntity, "visible", true)
+      } else {
+        world.update(AppContainer.instance.player.playerEntity, "visible", false)
       }
     }
     if (gamepad.dPadLeft && this.inputDebounce.tryNow(WeaponSelect)) {
       const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "weapons"
       player.weapons.selected += 1
       let weaponCount = player.weapons.mounts.length
       if (player.weapons.selected >= weaponCount) {

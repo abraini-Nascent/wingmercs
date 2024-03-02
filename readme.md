@@ -60,6 +60,7 @@ We will build out the same space flight and combat features as classic WC
 - [x] ai aren't shooting missiles
 - [x] game over isn't moving to score scene
 - [x] dead ships are undead after loosing one round and starting a new game
+- [x] drift doesn't always stick, speed down should be on button up if not drifting
 ## TODO:
 ### initial publish of demo
 - [x] flight model
