@@ -1,0 +1,18 @@
+{
+  "appId": "game.wingmercs",
+  "appName": "wingmercs",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "signing": {
+      "release": {
+        "keystore": "wingmercs-release.keystore",
+        "alias": "wingmercs",
+        "password": "${KEYSTORE_PASSWORD}",
+        "keyPassword": "${KEY_PASSWORD}"
+      }
+    }
+  }
+}

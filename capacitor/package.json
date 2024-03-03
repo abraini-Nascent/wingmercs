@@ -1,0 +1,16 @@
+{
+  "name": "wingmercs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "copy-assets": "cp -R ../wingmerc/dist dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^5.7.1",
+    "@capacitor/cli": "^5.7.1",
+    "@capacitor/core": "^5.7.1"
+  }
+}

@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Node
 node_modules
 dist
 dist-ssr
@@ -16,6 +17,9 @@ dist-ssr
 wingmercs-darwin-arm64
 wingmercs-darwin-x64
 wingmercs-win32-x64
+
+# Ionic builds
+*.keystore
 
 # Editor directories and files
 .vscode/*

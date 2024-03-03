@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">wingmercs</string>
+    <string name="title_activity_main">wingmercs</string>
+    <string name="package_name">game.wingmercs</string>
+    <string name="custom_url_scheme">game.wingmercs</string>
+</resources>
