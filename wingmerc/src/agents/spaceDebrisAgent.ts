@@ -10,7 +10,7 @@ export class SpaceDebrisAgent implements IDisposable {
 
   constructor(scene: Scene) {
     const myParticleSystem = new ParticleSystem("space_debris", CAPACITY, scene)
-    myParticleSystem.particleTexture = new Texture("assets/particles/space_debris.png", scene, null, null, Texture.NEAREST_SAMPLINGMODE)
+    myParticleSystem.particleTexture = new Texture("./assets/particles/space_debris.png", scene, null, null, Texture.NEAREST_SAMPLINGMODE)
 
     myParticleSystem.gravity = Vector3.Zero()
     myParticleSystem.emitRate = EMIT_RATE

@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Electron builds
+wingmercs-darwin-arm64
+wingmercs-darwin-x64
+wingmercs-win32-x64
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
