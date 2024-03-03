@@ -36,7 +36,7 @@ export class MainMenuScreen extends MercScreen {
     const title = new GUI.TextBlock()
     title.name = "title"
     title.fontFamily = "monospace"
-    title.text = "-=Wing Mercs=-"
+    title.text = "-=Squadron: Mercenaries=-"
     title.color = "gold"
     // title.fontSize = 64
     title.fontSizeInPixels = 64
