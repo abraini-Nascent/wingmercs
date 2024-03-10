@@ -8,6 +8,7 @@ export class MercScreen {
 
   constructor(name: string) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI(name);
+    advancedTexture.idealWidth = 1920
     this.gui = advancedTexture
     this.setupMain()
   }

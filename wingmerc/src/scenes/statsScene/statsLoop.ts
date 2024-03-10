@@ -1,7 +1,5 @@
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
-import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
-import { AsteroidScene, createEnemyShip } from '../../map/asteroidScene';
 import { StatsScreen } from './statsScreen';
 import { NerdStats, Score } from '../../world/world';
 
@@ -14,6 +12,10 @@ export class StatsScene implements GameScene {
   constructor(score: Score, stats: NerdStats) {
     const appContainer = AppContainer.instance
     this.screen = new StatsScreen(score, stats)
+  }
+
+  dispose() {
+    this.screen.dispose()
   }
 
   runLoop = (delta: number) => {

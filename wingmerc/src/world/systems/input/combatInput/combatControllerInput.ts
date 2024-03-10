@@ -1,9 +1,10 @@
 import { LatchMulti, LatchOn, LatchToggle } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
-import { GamepadManager, Scalar, Xbox360Button, Xbox360Pad } from "@babylonjs/core";
+import { DualShockButton, DualShockPad, GamepadManager, GenericPad, Gamepad, Scalar, Xbox360Button, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
 import { Debounce, DebounceTimedMulti } from '../../../../utils/debounce';
 import { Dirk } from '../../../../data/ships';
+import { GenericButtons, inputConfiguration } from './combatInputConfiguration';
 
 const DriftThreshold = 1000
 const FastThreshold = 333
@@ -18,7 +19,8 @@ const Target = 6
 
 export class CombatControllerInput {
   gamepadManager: GamepadManager
-  playerGamepad: number
+  playerGamepad: Gamepad[] = []
+  genericGamepad: GenericPad
   driftTime: number
   slowDebounce: number
   fastDebounce: number
@@ -29,57 +31,89 @@ export class CombatControllerInput {
   previous = new Map<number, number>()
   wasDrift = false
 
+  genericGamepadId: string = undefined
+  genericButtons = new Map<number, number>()
+
   constructor() {
     const gamepadManager = new GamepadManager();
     this.gamepadManager = gamepadManager
   }
 
   checkInput(dt: number) {
+    for (let index = 0; index < this.gamepadManager.gamepads.length; index += 1) {
+      const gamepad = this.gamepadManager.gamepads[index]
+      if (this.playerGamepad[index] == undefined || this.playerGamepad[index] != gamepad) {
+        this.playerGamepad[index] = gamepad
+        if (this.genericGamepad != undefined) {
+          this.genericGamepad.dispose()
+          this.genericGamepad = undefined
+        }
+        if (gamepad instanceof Xbox360Pad) {
+          this.genericGamepad = new GenericPad(gamepad.id, gamepad.index, gamepad.browserGamepad)
+        }
+        if (gamepad instanceof GenericPad) {
+          this.genericGamepad = gamepad
+        }
+        if (gamepad instanceof DualShockPad) {
+          this.genericGamepad = new GenericPad(gamepad.id, gamepad.index, gamepad.browserGamepad)
+        }
+      } else {
+        // we need to update the browser gamepad because chrome doesn't update the object
+        this.genericGamepad.browserGamepad = gamepad.browserGamepad
+      }
+      this.handleGeneric(dt, this.genericGamepad)
+    }
     for (const gamepad of this.gamepadManager.gamepads) {
-      if (this.playerGamepad != undefined && this.playerGamepad != gamepad.index) {
-        continue
-      }
-      this.playerGamepad = gamepad.index
-      if (gamepad instanceof Xbox360Pad) {
-        this.handle360(dt, gamepad)
-      }
+      
     }
   }
 
-  handle360(dt: number, gamepad: Xbox360Pad) {
+  handleGeneric(dt: number, gamepad: GenericPad) {
+    const ic = inputConfiguration
+    if (this.genericGamepadId == undefined || this.genericGamepadId != gamepad.id) {
+      gamepad.onbuttondown((button) => {
+        this.genericButtons.set(button, 1)
+      })
+      gamepad.onbuttonup((button) => {
+        this.genericButtons.delete(button)
+
+      })
+      this.genericGamepadId = gamepad.id
+    }
+
+    gamepad.update()
+
     // get movement command from player
     let movementCommand = AppContainer.instance.player.playerEntity.movementCommand ?? {} as MovementCommand
-    /// STEER / ROLL PITCH YAW
-    let up = 0, down = 0, left = 0, right = 0, rollLeft = 0, rollRight  = 0;
-    // "Z" [90]
-    const drift = 0
     
     // SPEED DOWN / DRIFT
-    if (gamepad.buttonA) {
+    if (this.genericButtons.has(ic.SpeedDown)) {
       let driftLatch = this.latchingDebounce.tryNow(Drift)
       if (driftLatch == LatchOn) {
         movementCommand.drift = 1
         this.wasDrift = true
       }
     } else {
-      if (this.previous.get(Xbox360Button.A) && this.wasDrift == false) {
+      if (this.previous.get(ic.SpeedDown) && this.wasDrift == false) {
         movementCommand.deltaSpeed = -25
       }
       this.wasDrift = false
       this.latchingDebounce.clear(Drift)
     }
-    this.previous.set(Xbox360Button.A, gamepad.buttonA)
+    this.previous.set(ic.SpeedDown, this.genericButtons.get(ic.SpeedDown) ?? 0)
 
-    if (gamepad.buttonB && this.inputDebounce.tryNow(SpeedUp)) {
+    // SPEED UP
+    if (this.genericButtons.has(ic.SpeedUp) && this.inputDebounce.tryNow(SpeedUp)) {
       movementCommand.deltaSpeed = +25
-    } else if (gamepad.buttonB == 0) {
+    } else if (this.genericButtons.has(ic.SpeedUp) == false) {
       this.inputDebounce.clear(SpeedUp)
     }
     // BRAKE
-    if (gamepad.buttonLB) {
+    if (this.genericButtons.has(ic.Brake)) {
       movementCommand.brake = 1
     }
-    if (gamepad.dPadUp && this.inputDebounce.tryNow(Camera)) {
+    // CAMERA
+    if (this.genericButtons.has(ic.Camera) && this.inputDebounce.tryNow(Camera)) {
       let follow = false
       if (AppContainer.instance.player.playerEntity.camera == "follow") {
         world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
@@ -96,7 +130,8 @@ export class CombatControllerInput {
         world.update(AppContainer.instance.player.playerEntity, "visible", false)
       }
     }
-    if (gamepad.dPadLeft && this.inputDebounce.tryNow(WeaponSelect)) {
+    // WEAPONS SELECT
+    if (this.genericButtons.has(ic.WeaponSelect) && this.inputDebounce.tryNow(WeaponSelect)) {
       const player = AppContainer.instance.player.playerEntity
       player.vduState.left = "weapons"
       player.weapons.selected += 1
@@ -106,8 +141,8 @@ export class CombatControllerInput {
       }
     }
 
-    // pitch yaw roll
-    if (gamepad.leftStick.y || gamepad.leftStick.y) {
+    // PITCH YAW ROLL
+    if (gamepad.leftStick.y || gamepad.leftStick.x) {
       this.ramp += dt
     }
     if (gamepad.leftStick.y) {
@@ -124,20 +159,21 @@ export class CombatControllerInput {
     movementCommand.roll = gamepad.rightStick.x * -1
 
     /// AFTERBURNER - ACCELERATE
-    if (gamepad.buttonLeftStick) {
+    if (this.genericButtons.has(ic.Afterburner)) {
       movementCommand.afterburner = 1
     }
 
     world.update(AppContainer.instance.player.playerEntity, "movementCommand", movementCommand)
+    console.log("[combat input]", movementCommand)
 
     const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0, lock: false }
-    if (gamepad.rightTrigger > 0.2) {
+    if (this.genericButtons.get(ic.GunFire) > 0.2) {
       fireCommand.gun = 1
     }
-    if (gamepad.buttonX && this.inputDebounce.tryNow(WeaponFire)) {
+    if (this.genericButtons.has(ic.WeaponFire) && this.inputDebounce.tryNow(WeaponFire)) {
       fireCommand.weapon = 1
     }
-    if (gamepad.buttonY && this.inputDebounce.tryNow(Target)) {
+    if (this.genericButtons.has(ic.Target) && this.inputDebounce.tryNow(Target)) {
       fireCommand.lock = true
     }
     world.update(AppContainer.instance.player.playerEntity, "fireCommand", fireCommand)

@@ -2,7 +2,6 @@ import { HavokPlugin, InstancedMesh, Mesh, PhysicsBody, PhysicsMotionType, Physi
 import { queries, world } from "../world"
 import { ObjModels } from "../../assetLoader/objModels"
 import { AppContainer } from "../../app.container"
-import { explodeAsteroid } from "../../map/asteroidScene";
 import { ToRadians } from "../../utils/math";
 
 declare module '@babylonjs/core' {
@@ -74,53 +73,3 @@ queries.physics.onEntityAdded.subscribe(
     }
   })()
 )
-const handleThing = (plugin: HavokPlugin) => {
-  plugin.onCollisionObservable.add((collision) => {
-    // console.log("[Collision]")
-    return
-    // what are we going to do with collisions? this is like, every collision in the game
-    const colliderEntity = world.entity(collision.collider.entityId)
-    const collidedAgainstEntity = world.entity(collision.collidedAgainst.entityId)
-    if (colliderEntity == undefined || collidedAgainstEntity == undefined) {
-      return
-    }
-    setTimeout(() => {
-      // damage
-      if (colliderEntity.health && collidedAgainstEntity.damage) {
-        colliderEntity.health -= collidedAgainstEntity.damage
-        world.update(collidedAgainstEntity, "damage", 0)
-        console.log("Bang")
-      }
-      if (colliderEntity.damage && collidedAgainstEntity.health) {
-        collidedAgainstEntity.health -= colliderEntity.damage
-        world.update(colliderEntity, "damage", 0)
-        console.log("Bang")
-      }
-      if (collidedAgainstEntity?.health <= 0) {
-        console.log("BOOM")
-        explodeAsteroid(collidedAgainstEntity)
-        world.remove(collidedAgainstEntity)
-      }
-      if (colliderEntity?.health <= 0) {
-        console.log("BOOM")
-        explodeAsteroid(colliderEntity)
-        world.remove(colliderEntity)
-      }
-      // remove spent bullets
-      if (colliderEntity.damage) {
-        world.remove(colliderEntity)
-        // we removed the entity but the mesh and physics still exist and can warp through things...
-      }
-      if (collidedAgainstEntity.damage) {
-        world.remove(collidedAgainstEntity)
-      }
-    }, 1)
-  })
-}
-if (AppContainer.instance.havokPlugin != undefined) {
-  handleThing(AppContainer.instance.havokPlugin)
-}
-AppContainer.instance.onHavokPlugin.add((plugin) => {
-  handleThing(plugin)
-})
-

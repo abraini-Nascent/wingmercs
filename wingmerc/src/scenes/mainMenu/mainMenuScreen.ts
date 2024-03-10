@@ -31,6 +31,7 @@ export class MainMenuScreen extends MercScreen {
     mainPanel.paddingBottomInPixels = 24
     mainPanel.paddingLeftInPixels = 24
     mainPanel.paddingTopInPixels = 128
+    mainPanel.spacing = 24
     this.gui.addControl(mainPanel)
     
     const title = new GUI.TextBlock()
@@ -47,12 +48,25 @@ export class MainMenuScreen extends MercScreen {
     title.paddingTopInPixels = 24
     this.gui.addControl(title)
 
-    const startButton = GUI.Button.CreateSimpleButton("start", "[Start]");
+    const careerButton = GUI.Button.CreateSimpleButton("career", "[New Career]");
+    careerButton.textBlock.fontFamily = "monospace"
+    careerButton.textBlock.color = "grey"
+    careerButton.textBlock.disabledColor = "grey"
+    careerButton.disabledColor = "grey"
+    careerButton.textBlock.fontSizeInPixels = 24
+    careerButton.heightInPixels = 28
+    careerButton.widthInPixels = 280
+    careerButton.background = "black"
+    careerButton.isEnabled = false
+    mainPanel.addControl(careerButton)
+
+    const startButton = GUI.Button.CreateSimpleButton("start", "Train Sim");
     startButton.textBlock.fontFamily = "monospace"
     startButton.textBlock.color = "gold"
-    startButton.textBlock.fontSizeInPixels = 24
-    startButton.heightInPixels = 28
+    startButton.textBlock.fontSizeInPixels = 28
+    startButton.heightInPixels = 40
     startButton.widthInPixels = 280
+    startButton.background = "blue"
     startButton.onPointerClickObservable.addOnce(() => {
       setTimeout(() => {
         SoundEffects.Select()

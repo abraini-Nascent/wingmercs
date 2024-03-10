@@ -132,7 +132,7 @@ export type Entity = {
   nerdStats?: NerdStats
   fireCommand?: FireCommand
   trail?: true
-  trailOptions?: { width?: number, length?: number, color?: { r: number, g: number, b: number, a: number }, start?: {x: number; y: number; z: number;} }[]
+  trailOptions?: { width?: number, length?: number, color?: { r: number, g: number, b: number }, start?: {x: number; y: number; z: number;} }[]
   trailMeshs?: {
     trails: TrailMesh[],
     disposables: IDisposable[]
