@@ -1,11 +1,12 @@
 import { Weapon } from './../../data/weapons/weapon';
 import * as Weapons from './../../data/weapons';
 import * as Guns from './../../data/guns';
-import { Matrix, Quaternion, Vector3 } from "@babylonjs/core"
+import { Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
-import { AngleBetweenVectors, firstOrderIntercept } from "../../utils/math"
+import { AngleBetweenVectors, QuaternionFromObj, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../utils/math"
 import { Gun } from '../../data/guns/gun';
 
+// TODO update to use TmpVectors
 
 const TARGET_LOCK_SPEED = 120 // degrees per second
 export function missileTargetingSystem(dt: number) {
@@ -88,20 +89,4 @@ export function missileTargetingSystem(dt: number) {
     }
     world.update(entity, "targeting", targeting)
   }
-}
-
-function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
-  return new Quaternion(obj.x, obj.y, obj.z, obj.w);
-}
-
-function Vector3FromObj(obj: {x: number, y: number, z: number}): Vector3 {
-  return new Vector3(obj.x, obj.y, obj.z)
-}
-
-function ToDegree(radians: number): number {
-  return radians * 180 / Math.PI
-}
-
-function ToRadians(degrees: number): number {
-  return degrees * (Math.PI / 180)
 }

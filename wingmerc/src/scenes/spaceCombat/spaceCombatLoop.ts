@@ -3,11 +3,10 @@ import { AppContainer } from "../../app.container";
 import { aiSystem } from "../../world/systems/aiSystem";
 import { cameraSystem } from "../../world/systems/cameraSystem";
 import { engineRechargeSystem } from "../../world/systems/engineRechargeSystem";
-import { gameInputSystem } from "../../world/systems/gameInputSystem";
 import { gunCooldownSystem } from "../../world/systems/gunCooldownSystem";
 import { missileSteeringSystem } from "../../world/systems/missileSteeringSystem";
 import { missileTargetingSystem } from "../../world/systems/missileTargetingSystem";
-import { moveCommandSystem, moveSystem } from "../../world/systems/moveSystem";
+import { moveSystem } from "../../world/systems/moveSystem";
 import { netSyncClientSystem } from "../../world/systems/netClientSystem";
 import { netSyncServerSystem } from "../../world/systems/netServerSystem";
 import { particleSystem } from "../../world/systems/particleSystem";
@@ -28,6 +27,11 @@ import { combatKeyboardInput } from '../../world/systems/input/combatInput/comba
 import { createShip } from '../../world/factories';
 import { PlayerAgent } from '../../agents/playerAgent';
 import { fuelConsumptionSystem } from '../../world/systems/fuelConsumptionSystem';
+import { MissileEngineSoundSystem } from '../../world/systems/missileEngineSoundSystem';
+import { moveCommandSystem } from '../../world/systems/moveCommandSystem';
+import { DeathRattleSystem } from '../../world/systems/deathRattleSystem';
+import { UpdatePhysicsSystem } from '../../world/systems/updatePhysicsSystem';
+import { WeaponCommandSystem } from '../../world/systems/weaponCommandSystem';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -48,6 +52,12 @@ export class SpaceCombatScene implements GameScene {
   gameoverTimer = 0
   score: Score
   stats: NerdStats
+
+  // systems
+  missileEngineSoundSystem = new MissileEngineSoundSystem()
+  deathRattleSystem = new DeathRattleSystem()
+  updatePhysicsSystem = new UpdatePhysicsSystem()
+  weaponCommandSystem = new WeaponCommandSystem()
 
   combatEntities = new Set<Entity>()
 
@@ -83,6 +93,12 @@ export class SpaceCombatScene implements GameScene {
       world.remove(entity)
     }
     this.combatEntities.clear()
+
+    // systems
+    this.missileEngineSoundSystem.dispose()
+    this.deathRattleSystem.dispose()
+    this.updatePhysicsSystem.dispose()
+    this.weaponCommandSystem.dispose()
   }
 
   deinit() {
@@ -218,7 +234,6 @@ export class SpaceCombatScene implements GameScene {
     particleSystem()
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
-    warpSystem()
     if (appContainer.server) {
       netSyncServerSystem(delta)
     } else {

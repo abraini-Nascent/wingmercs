@@ -1,9 +1,5 @@
-import * as Guns from '../../data/guns';
-import { Matrix, Quaternion, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AngleBetweenVectors, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../utils/math"
-import { Gun } from '../../data/guns/gun';
-
 
 // const TARGET_LOCK_SPEED = 120 // degrees per second
 export function radarTargetingSystem(dt: number) {

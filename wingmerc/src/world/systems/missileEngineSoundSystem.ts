@@ -1,22 +1,39 @@
-import { Sound, Vector3 } from "@babylonjs/core"
+import { IDisposable, Sound, Vector3 } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { SoundEffects } from "../../utils/sounds/soundEffects"
 import { Vector3FromObj } from "../../utils/math"
 
-export const EngineSounds = new Map<Entity, Sound>()
+export class MissileEngineSoundSystem implements IDisposable {
 
-queries.missileEngine.onEntityAdded.subscribe((entity) => {
-  if (!EngineSounds.has(entity)) {
-    let sound = SoundEffects.MissileEngine(Vector3FromObj(entity.position))
-    sound.attachToMesh(entity.node)
-    EngineSounds.set(entity, sound)
-  }
-})
+  engineSounds = new Map<Entity, Sound>()
 
-queries.missileEngine.onEntityRemoved.subscribe((entity) => {
-  if (EngineSounds.has(entity)) {
-    let sound = EngineSounds.get(entity)
-    SoundEffects.Silience(sound)
-    EngineSounds.delete(entity)
+  constructor() {
+    queries.missileEngine.onEntityAdded.subscribe(this.onEntityAdded)
+    queries.missileEngine.onEntityRemoved.subscribe(this.onEntityRemoved)
   }
-})
+
+  private onEntityAdded = (entity) => {
+    if (!this.engineSounds.has(entity)) {
+      let sound = SoundEffects.MissileEngine(Vector3FromObj(entity.position))
+      sound.attachToMesh(entity.node)
+      this.engineSounds.set(entity, sound)
+    }
+  }
+
+  private onEntityRemoved = (entity) => {
+    if (this.engineSounds.has(entity)) {
+      let sound = this.engineSounds.get(entity)
+      SoundEffects.Silience(sound)
+      this.engineSounds.delete(entity)
+    }
+  }
+
+  dispose(): void {
+    queries.missileEngine.onEntityAdded.unsubscribe(this.onEntityAdded)
+    queries.missileEngine.onEntityRemoved.unsubscribe(this.onEntityRemoved)
+    this.engineSounds.forEach((sound) => {
+      SoundEffects.Silience(sound)
+    })
+    this.engineSounds.clear()
+  }
+}

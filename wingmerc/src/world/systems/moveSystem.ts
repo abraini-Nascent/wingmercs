@@ -1,7 +1,6 @@
 import { TmpVectors } from "@babylonjs/core"
 import { queries, world } from "../world"
 
-
 /**
  * 
  * @param dt delta time in milliseconds

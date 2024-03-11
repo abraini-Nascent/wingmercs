@@ -4,6 +4,7 @@ import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import * as Ships from '../../data/ships';
 import { rand, random, randomItem } from '../../utils/random';
+import { QuaternionFromObj, Vector3FromObj } from '../../utils/math';
 
 /**
  * 
@@ -121,7 +122,7 @@ function demoLoopAI(entity: Entity, dt: number) {
       // let velocity: Vector3 = blackboard.targetBoxVelovity
       // let box = blackboard.targetBox as Mesh
       // box.position.addInPlace(velocity.scale(dt / 1000))
-      let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), blackboard.target, SteeringHardNormalizeClamp) //SteeringHardTurnClamp)
+      let input = calculateSteering(dt, Vector3FromObj(position), QuaternionFromObj(rotationQuaternion), blackboard.target, SteeringHardNormalizeClamp) //SteeringHardTurnClamp)
       console.log(`[AI] steering:`, input)
       movementCommand.pitch = input.pitch
       movementCommand.yaw = input.yaw
@@ -184,17 +185,17 @@ function basicCombatAI(entity: Entity, dt: number) {
     return
   }
   
-  const vectorToTarget = Vector3FromObject(position).subtract(Vector3FromObject(targetEntity.position))
+  const vectorToTarget = Vector3FromObj(position).subtract(Vector3FromObj(targetEntity.position))
   const distanceToTarget = vectorToTarget.length()
   if (distanceToTarget < 250 && !blackboard["backoff"]) {
     blackboard["backoff"] = true
     console.log("[AI] Backing Off")
   }
   // TODO: this should be where the enemy would intercept the player with guns, not where the player is currently
-  let targetPosition = Vector3FromObject(targetEntity.position)
+  let targetPosition = Vector3FromObj(targetEntity.position)
   if (blackboard["backoff"] && blackboard["backoffTarget"]) {
     const backoffTarget = blackboard["backoffTarget"]
-    const distanceToBackoff = Vector3FromObject(position).subtract(backoffTarget).length()
+    const distanceToBackoff = Vector3FromObj(position).subtract(backoffTarget).length()
     if (distanceToBackoff < 200 || distanceToTarget > 1500) {
       blackboard["backoff"] = false
       blackboard["backoffTarget"] = undefined
@@ -210,12 +211,12 @@ function basicCombatAI(entity: Entity, dt: number) {
     const behindPlayerDirection = playerDirection.multiplyByFloats(-1, -1, -1)
     const behindPlayerTarget = behindPlayerDirection.multiplyByFloats(1000, 1000, 1000)
     
-    targetPosition = Vector3FromObject(behindPlayerTarget)
+    targetPosition = Vector3FromObj(behindPlayerTarget)
     blackboard["backoffTarget"] = targetPosition
   }
   // TODO: if we are being chased we should after burner away before trying to turn back towards the player
   // TODO: if we need to do large turns we should apply brakes while turning
-  let input = calculateSteering(dt, Vector3FromObject(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardTurnClamp) //SteeringHardNormalizeClamp)
+  let input = calculateSteering(dt, Vector3FromObj(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardTurnClamp) //SteeringHardNormalizeClamp)
   // console.log(`[AI] steering`, input)
   let cinamaticRoll = 0
   if (blackboard["backoff"] == false && Math.abs(input.pitch) < 0.1 && Math.abs(input.yaw) < 0.1) {
@@ -339,13 +340,6 @@ function calculateSteering(dt: number, currentPosition: Vector3, currentRotation
   return { pitch, roll, yaw }
 }
 
-function QuaternionFromObj(obj: {x: number, y: number, z: number, w: number}): Quaternion {
-  return new Quaternion(obj.x, obj.y, obj.z, obj.w);
-}
-
-function Vector3FromObject(obj: {x: number, y: number, z: number}): Vector3 {
-  return new Vector3(obj.x, obj.y, obj.z);
-}
 
 /** Will convert from -180/180 degrees in radians to -1/1 */
 function clampInput(angle: number) {
@@ -358,19 +352,6 @@ function clamp(value: number, min: number, max: number): number {
 
 function signedAngle(from: Vector3, to: Vector3, axis: Vector3): number {
   return Vector3.GetAngleBetweenVectors(from, to, axis);
-  // let unsignedAngle = Vector3.GetAngleBetweenVectors(from, to, axis);
-
-  // // Calculate the cross product between 'from' and 'to'
-  // let cross = Vector3.Cross(from, to);
-
-  // // Check the direction of the cross product to determine the sign of the angle
-  // let dot = Vector3.Dot(axis, cross);
-  // let sign = dot < 0 ? -1 : 1;
-
-  // // Apply the sign to the unsigned angle
-  // let signedAngle = unsignedAngle * sign;
-
-  // return signedAngle;
 }
 
 /* 

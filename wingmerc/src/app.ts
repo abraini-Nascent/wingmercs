@@ -15,7 +15,7 @@ import {
   Texture,
   FreeCamera,
 } from "@babylonjs/core"
-import "./world/systems/weaponsSystem";
+import "./world/systems/weaponCommandSystem";
 import { AppContainer } from "./app.container";
 import "./world/systems/updatePhysicsSystem";
 import "./world/systems/deathRattleSystem";

@@ -1,4 +1,3 @@
-import { Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 
 export function shieldRechargeSystem(dt: number) {

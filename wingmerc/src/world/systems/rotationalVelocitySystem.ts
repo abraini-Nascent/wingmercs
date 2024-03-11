@@ -1,6 +1,6 @@
 import { Quaternion, Vector3 } from "@babylonjs/core";
 import { queries, world } from "../world";
-
+import { ToRadians } from "../../utils/math";
 
 /**
  * applies the entity's component details to the babylonjs transform node
@@ -19,13 +19,13 @@ export function rotationalVelocitySystem() {
     var axis = new Vector3(0, 0, -1);
     var partRotQuat  = new Quaternion();
 
-    Quaternion.RotationAxisToRef(axis, toRadians(roll), partRotQuat);
+    Quaternion.RotationAxisToRef(axis, ToRadians(roll), partRotQuat);
     (rotationQuaternionB as Quaternion).multiplyInPlace(partRotQuat);
 
-    Quaternion.RotationAxisToRef(axis.set(-1, 0, 0), toRadians(pitch), partRotQuat);
+    Quaternion.RotationAxisToRef(axis.set(-1, 0, 0), ToRadians(pitch), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
 
-    Quaternion.RotationAxisToRef(axis.set(0, 1, 0), toRadians(yaw), partRotQuat);
+    Quaternion.RotationAxisToRef(axis.set(0, 1, 0), ToRadians(yaw), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
     
     rotationQuaternionB.toEulerAnglesToRef(rotationVec);
@@ -53,8 +53,4 @@ export function rotationalVelocitySystem() {
       up.z = newUp.z
     }
   }
-}
-
-function toRadians(degrees) {
-  return degrees * (Math.PI / 180)
 }
