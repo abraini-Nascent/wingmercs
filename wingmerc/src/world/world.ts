@@ -12,6 +12,11 @@ export type ShipEngine = {
   maxCapacity: number,
   currentCapacity: number,
 }
+export type FuelTank = {
+  currentCapacity: number,
+  /** unit is number or seconds of afterburner on a standard afterburner */
+  maxCapacity: number,
+}
 export type ShipShields = {
   maxFore: number,
   maxAft: number,
@@ -172,6 +177,7 @@ export type Entity = {
   engine?: ShipEngine
   shields?: ShipShields
   systems?: ShipSystems
+  fuel?: FuelTank
   systemsDamaged?: boolean
   score?: Score
   armor?: ShipArmor
@@ -206,6 +212,7 @@ export const queries = {
   guns: world.with("guns"),
   weapons: world.with("weapons"),
   engines: world.with("engine"),
+  fuel: world.with("fuel"),
   afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   afterburner: world.with("afterburnerActive"),
   drift: world.with("driftActive"),

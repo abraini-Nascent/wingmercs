@@ -27,6 +27,7 @@ import { CombatControllerInput } from '../../world/systems/input/combatInput/com
 import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
 import { createShip } from '../../world/factories';
 import { PlayerAgent } from '../../agents/playerAgent';
+import { fuelConsumptionSystem } from '../../world/systems/fuelConsumptionSystem';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -206,6 +207,7 @@ export class SpaceCombatScene implements GameScene {
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
     engineRechargeSystem(delta)
+    fuelConsumptionSystem(delta)
     combatKeyboardInput(delta)
     this.controllerInput.checkInput(delta)
     aiSystem(delta)

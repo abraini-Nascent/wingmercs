@@ -10,7 +10,7 @@ import * as Ships from '../../data/ships';
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moveCommanded) {
-    const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed } = entity;
+    const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel } = entity;
     let { setSpeed } = entity;
     const { movementCommand } = entity;
     const shipTemplateName = entity.planeTemplate
@@ -56,7 +56,8 @@ export function moveCommandSystem(dt: number) {
       const cruiseAcceleration = (shipTemplate.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       const afterburnerAcceleration = (shipTemplate.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
       const breakAcceleration = (shipTemplate.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
-      if (movementCommand.afterburner) {
+      const canAfterburner = fuel == undefined ? true : fuel.currentCapacity > (dt / 1000) // TODO burn rate should scale, there should be enough fuel to match afterburner's burn rate
+      if (movementCommand.afterburner && canAfterburner) {
 
         let maxAfterburner = maxDamagedSpeed - setSpeed
         let afterburner = afterburnerVelocity ? new Vector3(afterburnerVelocity.x, afterburnerVelocity.y, afterburnerVelocity.z) : Vector3.Zero();

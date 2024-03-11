@@ -9,6 +9,10 @@ export function shieldRechargeSystem(dt: number) {
         continue;
       }
     }
+    if (shields.currentAft == shields.maxAft && shields.currentFore == shields.maxFore) {
+      // shields are full
+      continue;
+    }
     // recharge rate is scaled based on damage, min 20% charge rate
     // I think in WC that the max shield amounts were also scaled by damage, maybe even individually by quadrant
     // for now we will leave the max values alone
