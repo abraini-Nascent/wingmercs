@@ -7,7 +7,7 @@ import { gameInputSystem } from "../../world/systems/gameInputSystem";
 import { gunCooldownSystem } from "../../world/systems/gunCooldownSystem";
 import { missileSteeringSystem } from "../../world/systems/missileSteeringSystem";
 import { missileTargetingSystem } from "../../world/systems/missileTargetingSystem";
-import { ArenaRadius, moveCommandSystem, moveSystem, warpSystem } from "../../world/systems/moveSystem";
+import { moveCommandSystem, moveSystem } from "../../world/systems/moveSystem";
 import { netSyncClientSystem } from "../../world/systems/netClientSystem";
 import { netSyncServerSystem } from "../../world/systems/netServerSystem";
 import { particleSystem } from "../../world/systems/particleSystem";

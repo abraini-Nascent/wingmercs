@@ -1,4 +1,4 @@
-import { FreeCamera, Quaternion, TargetCamera } from "@babylonjs/core";
+import { Camera, FreeCamera, Quaternion, TargetCamera } from "@babylonjs/core";
 import { RubberbandCameraController } from "../../camera/rubberbandCameraController";
 import { PlayerAgent } from "../../agents/playerAgent";
 import { Entity, queries } from "../world";
@@ -15,7 +15,7 @@ export function cameraFollowSystem(player: Entity, camera: TargetCamera) {
   }
 }
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
-export function cameraSystem(player: PlayerAgent, camera: FreeCamera) {
+export function cameraSystem(player: PlayerAgent, camera: Camera) {
   if (player?.playerEntity == undefined) { return }
   let { rotationQuaternion, position } = player.playerEntity
   const cameraOverride = queries.cameras.first
@@ -23,21 +23,23 @@ export function cameraSystem(player: PlayerAgent, camera: FreeCamera) {
     rotationQuaternion = cameraOverride.rotationQuaternion
     position = cameraOverride.position
   } else if (cameraOverride != undefined && cameraOverride.camera == "follow") {
-    cameraFollowSystem(cameraOverride, camera)
+    cameraFollowSystem(cameraOverride, camera as TargetCamera)
     return
   } else if (cameraOverride != undefined && cameraOverride.camera == "debug") {
     return
   }
-  if (camera.rotationQuaternion == undefined) {
-    camera.rotationQuaternion = new Quaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w)
+  if (camera instanceof FreeCamera) {
+    if (camera.rotationQuaternion == undefined) {
+      camera.rotationQuaternion = new Quaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w)
+    }
+    camera.position.x = position.x
+    camera.position.y = position.y
+    camera.position.z = position.z
+    camera.rotationQuaternion.x = rotationQuaternion.x
+    camera.rotationQuaternion.y = rotationQuaternion.y
+    camera.rotationQuaternion.z = rotationQuaternion.z
+    camera.rotationQuaternion.w = rotationQuaternion.w
+    // for some reason we look backwards?
+    camera.rotationQuaternion.multiplyInPlace(TURN)
   }
-  camera.position.x = position.x
-  camera.position.y = position.y
-  camera.position.z = position.z
-  camera.rotationQuaternion.x = rotationQuaternion.x
-  camera.rotationQuaternion.y = rotationQuaternion.y
-  camera.rotationQuaternion.z = rotationQuaternion.z
-  camera.rotationQuaternion.w = rotationQuaternion.w
-  // for some reason we look backwards?
-  camera.rotationQuaternion.multiplyInPlace(TURN)
 }
