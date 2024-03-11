@@ -1,4 +1,4 @@
-import { Entity, NerdStats, Score, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
+import { Entity, FuelTank, NerdStats, Score, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
@@ -44,6 +44,10 @@ export class PlayerAgent {
       front: Dirk.armor.front,
       left: Dirk.armor.left,
       right: Dirk.armor.right,
+    }
+    const fuel: FuelTank = {
+      maxCapacity: Dirk.fuel.maxCapacity,
+      currentCapacity: Dirk.fuel.maxCapacity,
     }
     const stats: NerdStats = {
       afterburnerFuelSpent: 0, 
@@ -125,6 +129,7 @@ export class PlayerAgent {
       armor: shipArmor,
       nerdStats: stats,
       systems: shipSystems,
+      fuel: fuel,
       targeting: {
         missileLocked: false,
         targetingDirection: { x: 0, y: 0, z: -1 },

@@ -146,5 +146,8 @@ export const Dirk: ShipDetails = Object.seal({
   engine: {
     rate: 20,
     maxCapacity: 200
+  },
+  fuel: {
+    maxCapacity: 90
   }
 })

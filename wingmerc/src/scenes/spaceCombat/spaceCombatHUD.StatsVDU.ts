@@ -12,6 +12,7 @@ export class StatsVDU {
   armorBack: TextBlock
   armorRight: TextBlock
   armorLeft: TextBlock
+  fuel: TextBlock
 
   get mainComponent(): GUI.Control {
     return this.statsPanel
@@ -26,6 +27,7 @@ export class StatsVDU {
     this.armorBack.dispose()
     this.armorRight.dispose()
     this.armorLeft.dispose()
+    this.fuel.dispose()
   }
   setupComponents() {
 
@@ -101,6 +103,17 @@ export class StatsVDU {
     armorRight.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
     armorRight.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
     statsPanel.addControl(armorRight)
+
+    const fuel = new GUI.TextBlock("Fuel")
+    this.fuel = fuel
+    fuel.fontFamily = "monospace"
+    fuel.text = "→║▉▉▉"
+    fuel.color = "orange"
+    fuel.fontSize = 24
+    fuel.height = "24px"
+    fuel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
+    fuel.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
+    statsPanel.addControl(fuel)
   }
 
   update() {
@@ -110,6 +123,7 @@ export class StatsVDU {
     this.armorBack.text = `↓║${this.backArmorBar()}`
     this.armorLeft.text = `←║${this.leftArmorBar()}`
     this.armorRight.text = `→║${this.rightArmorBar()}`
+    this.fuel.text = `F ${this.fuelBar()}`
   }
 
   foreShieldBar() {
@@ -145,6 +159,13 @@ export class StatsVDU {
   rightArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.armor.right / playerEntity.armor.right
+    f = Math.round(f * 100)
+    return barPercent(f)
+  }
+
+  fuelBar() {
+    const playerEntity = AppContainer.instance.player.playerEntity
+    let f = playerEntity.fuel.currentCapacity / playerEntity.fuel.maxCapacity
     f = Math.round(f * 100)
     return barPercent(f)
   }

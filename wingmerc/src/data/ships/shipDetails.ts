@@ -80,4 +80,7 @@ export interface ShipDetails {
     rate: number;
     maxCapacity: number;
   };
+  fuel: {
+    maxCapacity: number;
+  }
 }
