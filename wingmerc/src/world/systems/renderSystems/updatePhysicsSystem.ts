@@ -1,8 +1,8 @@
 import { IDisposable, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShapeContainer, PhysicsShapeConvexHull, PhysicsShapeMesh, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
-import { ObjModels } from "../../assetLoader/objModels"
-import { AppContainer } from "../../app.container"
-import { ToRadians } from "../../utils/math";
+import { queries, world } from "../../world"
+import { ObjModels } from "../../../assetLoader/objModels"
+import { AppContainer } from "../../../app.container"
+import { ToRadians } from "../../../utils/math";
 
 declare module '@babylonjs/core' {
   interface PhysicsBody {

@@ -1,7 +1,7 @@
 // Adapted from https://playground.babylonjs.com/#GLZ1PX#9
 // Added gradients from BaseParticleSystem
 
-import { Color3, Color4, ColorGradient, FactorGradient, GradientHelper, IValueGradient, Mesh, MeshBuilder, Nullable, Observer, Scalar, Scene, SolidParticle, SolidParticleSystem, StandardMaterial, TmpVectors, Vector3 } from "@babylonjs/core";
+import { Color4, ColorGradient, FactorGradient, GradientHelper, IValueGradient, Mesh, MeshBuilder, Nullable, Observer, Scalar, Scene, SolidParticle, SolidParticleSystem, Vector3 } from "@babylonjs/core";
 import { MercParticlePointEmitter, MercParticlesEmitter } from "./mercParticleEmitters";
 
 export class MercParticleSystem {

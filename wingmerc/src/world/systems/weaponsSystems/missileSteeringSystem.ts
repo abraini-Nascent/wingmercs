@@ -1,11 +1,11 @@
-import * as Weapons from "./../../data/weapons"
-import { Weapon } from './../../data/weapons/weapon';
+import * as Weapons from "../../../data/weapons"
+import { Weapon } from '../../../data/weapons/weapon';
 import { Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
-import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../utils/math";
-import { SoundEffects } from "../../utils/sounds/soundEffects";
-import { registerHit } from "../damage";
-import { missileExplosionFrom } from "../../visuals/missileExplosionParticles";
+import { queries, world } from "../../world"
+import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../../utils/math";
+import { SoundEffects } from "../../../utils/sounds/soundEffects";
+import { registerHit } from "../../damage";
+import { missileExplosionFrom } from "../../../visuals/missileExplosionParticles";
 
 export function missileSteeringSystem(dt: number) {
   missiles:

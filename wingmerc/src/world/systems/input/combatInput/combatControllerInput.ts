@@ -1,10 +1,9 @@
-import { LatchMulti, LatchOn, LatchToggle } from './../../../../utils/debounce';
+import { LatchMulti, LatchOn } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
-import { DualShockButton, DualShockPad, GamepadManager, GenericPad, Gamepad, Scalar, Xbox360Button, Xbox360Pad } from "@babylonjs/core";
+import { DualShockPad, GamepadManager, GenericPad, Gamepad, Scalar, Xbox360Pad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
-import { Debounce, DebounceTimedMulti } from '../../../../utils/debounce';
-import { Dirk } from '../../../../data/ships';
-import { GenericButtons, inputConfiguration } from './combatInputConfiguration';
+import { DebounceTimedMulti } from '../../../../utils/debounce';
+import { inputConfiguration } from './combatInputConfiguration';
 
 const DriftThreshold = 1000
 const FastThreshold = 333

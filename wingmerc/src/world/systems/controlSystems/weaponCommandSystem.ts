@@ -1,12 +1,12 @@
 import { IDisposable, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../world"
-import * as Guns from "../../data/guns"
-import * as Weapons from "../../data/weapons"
-import { Gun } from "../../data/guns/gun";
-import { Weapon } from '../../data/weapons/weapon';
-import { SoundEffects } from "../../utils/sounds/soundEffects";
-import { AppContainer } from '../../app.container';
-import { QuaternionFromObj, ToDegree, Vector3FromObj } from '../../utils/math';
+import { Entity, queries, world } from "../../world"
+import * as Guns from "../../../data/guns"
+import * as Weapons from "../../../data/weapons"
+import { Gun } from "../../../data/guns/gun";
+import { Weapon } from '../../../data/weapons/weapon';
+import { SoundEffects } from "../../../utils/sounds/soundEffects";
+import { AppContainer } from '../../../app.container';
+import { QuaternionFromObj, ToDegree, Vector3FromObj } from '../../../utils/math';
 
 export class WeaponCommandSystem implements IDisposable {
   

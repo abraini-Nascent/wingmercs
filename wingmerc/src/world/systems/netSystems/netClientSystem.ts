@@ -1,6 +1,6 @@
 import { decode, encode } from "@msgpack/msgpack"
-import { Entity, GFrame, world } from "../world"
-import { net } from "../../net"
+import { Entity, GFrame, world } from "../../world"
+import { net } from "../../../net"
 /**
  * client receives the world state from the server and sends the state of the local entities
  * it's not true client/server since we don't send commands, we send state.  the server is not authoritative of client objects

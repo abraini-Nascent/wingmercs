@@ -1,7 +1,7 @@
-import { ParticleSystem, PhysicsRaycastResult, Quaternion, Scene, Texture, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../world"
-import { AppContainer } from "../../app.container"
-import { registerHit } from "../damage"
+import { PhysicsEngineV2, PhysicsRaycastResult, Vector3 } from "@babylonjs/core"
+import { queries, world } from "../../world"
+import { AppContainer } from "../../../app.container"
+import { registerHit } from "../../damage"
 
 export function particleSystem() {
   for (const entity of queries.particle) {
@@ -21,7 +21,7 @@ export function particleSystem() {
     var raycastResult = new PhysicsRaycastResult()
     var start = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)
     var end = new Vector3(position.x, position.y, position.z)
-    const physicsEngine = AppContainer.instance.scene.getPhysicsEngine()
+    const physicsEngine = AppContainer.instance.scene.getPhysicsEngine() as PhysicsEngineV2
     physicsEngine.raycastToRef(start, end, raycastResult);
     if (raycastResult.hasHit && entity.originatorId != ""+raycastResult.body.entityId) {
       const hitEntity = world.entity(raycastResult.body.entityId)

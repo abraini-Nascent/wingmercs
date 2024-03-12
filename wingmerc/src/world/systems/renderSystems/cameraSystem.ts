@@ -1,7 +1,7 @@
 import { Camera, FreeCamera, Quaternion, TargetCamera } from "@babylonjs/core";
-import { RubberbandCameraController } from "../../camera/rubberbandCameraController";
-import { PlayerAgent } from "../../agents/playerAgent";
-import { Entity, queries } from "../world";
+import { RubberbandCameraController } from "../../../camera/rubberbandCameraController";
+import { PlayerAgent } from "../../../agents/playerAgent";
+import { Entity, queries } from "../../world";
 
 let playerFollowCamera: RubberbandCameraController = undefined;
 export function cameraFollowSystem(player: Entity, camera: TargetCamera) {
@@ -28,7 +28,7 @@ export function cameraSystem(player: PlayerAgent, camera: Camera) {
   } else if (cameraOverride != undefined && cameraOverride.camera == "debug") {
     return
   }
-  if (camera instanceof FreeCamera) {
+  if (camera instanceof TargetCamera || camera instanceof FreeCamera) {
     if (camera.rotationQuaternion == undefined) {
       camera.rotationQuaternion = new Quaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w)
     }

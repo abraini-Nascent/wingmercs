@@ -1,6 +1,5 @@
 import SamJs from 'sam-js';
 import { Engine, Sound } from '@babylonjs/core';
-import { AppContainer } from './../app.container';
 import { translateIPA } from '../data/IAP';
 /**
    * Test if a bit is set.

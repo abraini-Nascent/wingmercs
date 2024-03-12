@@ -1,5 +1,4 @@
-import { Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
+import { queries } from "../../world"
 
 export function engineRechargeSystem(dt: number) {
   for (const entity of queries.engines) {

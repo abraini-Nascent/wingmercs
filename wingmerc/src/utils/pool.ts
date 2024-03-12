@@ -1,5 +1,3 @@
-import { Vector3 } from "@babylonjs/core"
-
 export class Pool<T> {
   private objects: T[] = []
   ctor: ()=> T
@@ -18,4 +16,3 @@ export class Pool<T> {
     this.objects.push(object);
   }
 }
-export const Vector3Pool = new Pool<Vector3>(() => { return new Vector3() })

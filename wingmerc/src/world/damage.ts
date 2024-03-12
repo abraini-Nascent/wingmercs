@@ -1,4 +1,4 @@
-import { Observer, Scalar, Scene, Sound, TmpVectors, Vector3 } from '@babylonjs/core';
+import { Observer, Scalar, Scene, TmpVectors, Vector3 } from '@babylonjs/core';
 /**
  * TODO: 
  * Audio cue on hitting shield or armor or health

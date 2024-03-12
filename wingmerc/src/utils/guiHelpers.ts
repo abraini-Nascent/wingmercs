@@ -29,24 +29,24 @@ export class TintedImage extends GUI.Image {
     // fill offscreen buffer with the tint color
     cutoutContext.fillStyle = this._tint.toHexString();
     cutoutContext.fillRect(0,0,cutoutCanvas.width,cutoutCanvas.height);
-    console.log(`--- color ${this._tint.toHexString()} background ---`)
-    console.log(cutoutCanvas.toDataURL())
-    console.log("--- color background ---")
+    // console.log(`--- color ${this._tint.toHexString()} background ---`)
+    // console.log(cutoutCanvas.toDataURL())
+    // console.log("--- color background ---")
     // now we have a context filled with the tint color 
     cutoutContext.globalCompositeOperation='destination-atop';
     cutoutContext.drawImage(this.domImage as CanvasImageSource, 0, 0);
-    console.log("--- color cutout ---")
-    console.log(cutoutCanvas.toDataURL())
-    console.log("--- color cutout ---")
+    // console.log("--- color cutout ---")
+    // console.log(cutoutCanvas.toDataURL())
+    // console.log("--- color cutout ---")
     // now we cut out the greyscale image and have just the cutout left
     let imageCanvas = document.createElement("canvas")
     let imageCanvasContext = imageCanvas.getContext('2d');
     imageCanvas.width = this.imageWidth;
     imageCanvas.height = this.imageHeight;
     imageCanvasContext.drawImage(this.domImage as CanvasImageSource, 0, 0);
-    console.log("--- greyscale ---")
-    console.log(imageCanvas.toDataURL())
-    console.log("--- greyscale ---")
+    // console.log("--- greyscale ---")
+    // console.log(imageCanvas.toDataURL())
+    // console.log("--- greyscale ---")
     // now we have the greyscale on the image canvas
     imageCanvasContext.globalCompositeOperation="multiply";
     // imageCanvasContext.fillStyle = this._tint.toHexString();
@@ -54,10 +54,10 @@ export class TintedImage extends GUI.Image {
     imageCanvasContext.drawImage(cutoutCanvas, 0, 0);
     // now we have a tinted image on the image canvas
     // is there no faster way than this?
-    console.log("--- tinted image ---")
+    // console.log("--- tinted image ---")
     this.domImage.src = imageCanvas.toDataURL()
-    console.log("--- tinted image ---")
-    console.log(imageCanvas.toDataURL())
+    // console.log("--- tinted image ---")
+    // console.log(imageCanvas.toDataURL())
   }
 }
 

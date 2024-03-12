@@ -1,9 +1,6 @@
-import { IDisposable, InstancedMesh, Mesh, Node, PhysicsBody, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core";
+import { IDisposable, InstancedMesh, Mesh, PhysicsBody, TrailMesh, TransformNode } from "@babylonjs/core";
 import { World } from "miniplex"
-import { encode, decode } from "@msgpack/msgpack";
 import { net } from "../net";
-import { rotationalVelocitySystem } from "./systems/rotationalVelocitySystem";
-import { ShapeType } from "@babylonjs/havok";
 
 export type MovementCommand = { pitch: number, roll: number, yaw: number, afterburner: number, drift: number, brake: number, deltaSpeed: number }
 export type FireCommand = { gun: number, weapon: number, lock: boolean }
@@ -253,6 +250,7 @@ export class GFrame {
         }
         if (entity.local !== true) { continue; }
       }
+      // todo we should have a better way to manage what is sent over the wire
       const payload = {
         _id: id,
         owner: entity.owner,
@@ -292,15 +290,6 @@ export class GFrame {
         
         originatorId: entity.originatorId,
         totalScore: entity.totalScore,
-      }
-      if (entity.gun) {
-        payload['gun'] = {
-          delay: entity.gun.delay,
-          delta: entity.gun.delta,
-        }
-      }
-      if (entity.range) {
-        payload['range'] = entity.range
       }
       toSerialize.push(payload)
     }

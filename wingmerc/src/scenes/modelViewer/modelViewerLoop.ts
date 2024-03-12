@@ -1,37 +1,42 @@
-import { Debounce, DebounceTimedMulti } from './../../utils/debounce';
+import { DebounceTimedMulti } from './../../utils/debounce';
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
 import { ModelViewerScreen } from './modelViewerScreen';
-import { ArcFollowCamera, ArcRotateCamera, Color3, Color4, ColorGradient, DeviceSourceManager, DeviceType, FactorGradient, IDisposable, Mesh, MeshBuilder, Ray, RayHelper, Scalar, Sound, StandardMaterial, TmpVectors, Vector3 } from '@babylonjs/core';
+import { ArcRotateCamera, DeviceSourceManager, DeviceType, IDisposable, Mesh, Ray, Sound,  Vector3 } from '@babylonjs/core';
 import { ToRadians } from '../../utils/math';
-import { AIType, Entity, ShipArmor, ShipShields, ShipSystems, world } from '../../world/world';
+import { Entity, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
-import { random } from '../../utils/random';
-import { MercParticlePointEmitter, MercParticleSphereEmitter } from '../../utils/particles/mercParticleEmitters';
-import { MercParticles } from '../../utils/particles/mercParticles';
 import { EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
-import * as Guns from '../../data/guns';
-import { Gun } from '../../data/guns/gun';
-import { net } from '../../net';
-import { gunCooldownSystem } from '../../world/systems/gunCooldownSystem';
-import { shieldRechargeSystem } from '../../world/systems/shieldRechargeSystem';
-import { engineRechargeSystem } from '../../world/systems/engineRechargeSystem';
-import { gameInputSystem } from '../../world/systems/gameInputSystem';
+import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
+import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
+import { engineRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
 import { aiSystem } from '../../world/systems/aiSystem';
-import { moveCommandSystem, moveSystem, warpSystem } from '../../world/systems/moveSystem';
+import { moveSystem} from '../../world/systems/moveSystem';
 import { rotationalVelocitySystem } from '../../world/systems/rotationalVelocitySystem';
-import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
-import { particleSystem } from '../../world/systems/particleSystem';
-import { missileSteeringSystem } from '../../world/systems/missileSteeringSystem';
-import { missileTargetingSystem } from '../../world/systems/missileTargetingSystem';
-import { damagedSystemsSprayParticlePool, updateRenderSystem } from '../../world/systems/updateRenderSystem';
+import { radarTargetingSystem } from '../../world/systems/shipSystems/radarTargetingSystem';
+import { particleSystem } from '../../world/systems/weaponsSystems/particleSystem';
+import { missileSteeringSystem } from '../../world/systems/weaponsSystems/missileSteeringSystem';
+import { missileTargetingSystem } from '../../world/systems/weaponsSystems/missileTargetingSystem';
+import { updateRenderSystem } from '../../world/systems/renderSystems/updateRenderSystem';
 import { createShip } from '../../world/factories';
 import { KeyboardMap } from '../../utils/keyboard';
 import { damageSprayParticlePool, registerHit, shieldPulserSystem } from '../../world/damage';
 import SamJs from 'sam-js';
 import { translateIPA } from '../../data/IAP';
 import { barks } from '../../data/barks';
-import { CreatAudioSource, RenderAudioBuffer } from '../../utils/speaking';
+import { CreatAudioSource } from '../../utils/speaking';
+import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
+import { moveCommandSystem } from '../../world/systems/controlSystems/moveCommandSystem';
+import { MissileEngineSoundSystem } from '../../world/systems/soundSystems/missileEngineSoundSystem';
+import { DeathRattleSystem } from '../../world/systems/deathRattleSystem';
+import { UpdatePhysicsSystem } from '../../world/systems/renderSystems/updatePhysicsSystem';
+import { WeaponCommandSystem } from '../../world/systems/controlSystems/weaponCommandSystem';
+import { MeshedSystem } from '../../world/systems/renderSystems/meshedSystem';
+import { TrailersSystem } from '../../world/systems/renderSystems/trailersSystem';
+import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterburnerSoundSystem';
+import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSystem';
+import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
+import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 
 const divFps = document.getElementById("fps");
 const Radius = 500;
@@ -45,6 +50,18 @@ export class ModelViewerScene implements GameScene, IDisposable {
   debouncer = new DebounceTimedMulti()
 
   testSPS: MercParticleSystem
+
+    // systems
+    missileEngineSoundSystem = new MissileEngineSoundSystem()
+    deathRattleSystem = new DeathRattleSystem()
+    updatePhysicsSystem = new UpdatePhysicsSystem()
+    weaponCommandSystem = new WeaponCommandSystem()
+    meshedSystem = new MeshedSystem()
+    trailersSystem = new TrailersSystem()
+    afterburnerSoundsSystem = new AfterburnerSoundSystem()
+    driftSoundSystem = new DriftSoundSystem()
+    afterburnerTrailsSystem = new AfterburnerTrailsSystem()
+    systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
   constructor() {
     const appContainer = AppContainer.instance
@@ -72,6 +89,18 @@ export class ModelViewerScene implements GameScene, IDisposable {
   }
 
   dispose() {
+    // systems
+    this.missileEngineSoundSystem.dispose()
+    this.deathRattleSystem.dispose()
+    this.updatePhysicsSystem.dispose()
+    this.weaponCommandSystem.dispose()
+    this.meshedSystem.dispose()
+    this.trailersSystem.dispose()
+    this.afterburnerSoundsSystem.dispose()
+    this.driftSoundSystem.dispose()
+    this.afterburnerTrailsSystem.dispose()
+    this.systemsDamagedSpraySystem.dispose()
+
     world.remove(this.cameraEntity)
     this.cameraEntity = undefined
     // this.scaleBox.dispose()
@@ -231,7 +260,6 @@ export class ModelViewerScene implements GameScene, IDisposable {
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
     aiSystem(delta)
-    warpSystem()
     shieldPulserSystem.update(delta)
     updateRenderSystem()
 

@@ -1,37 +1,44 @@
+import { DriftSoundSystem } from './../../world/systems/soundSystems/driftSoundSystem';
 import { GameScene } from './../gameScene';
 import { AppContainer } from "../../app.container";
 import { aiSystem } from "../../world/systems/aiSystem";
-import { cameraSystem } from "../../world/systems/cameraSystem";
-import { engineRechargeSystem } from "../../world/systems/engineRechargeSystem";
-import { gunCooldownSystem } from "../../world/systems/gunCooldownSystem";
-import { missileSteeringSystem } from "../../world/systems/missileSteeringSystem";
-import { missileTargetingSystem } from "../../world/systems/missileTargetingSystem";
+import { cameraSystem } from "../../world/systems/renderSystems/cameraSystem";
+import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
+import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
+import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missileSteeringSystem";
+import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem";
 import { moveSystem } from "../../world/systems/moveSystem";
-import { netSyncClientSystem } from "../../world/systems/netClientSystem";
-import { netSyncServerSystem } from "../../world/systems/netServerSystem";
-import { particleSystem } from "../../world/systems/particleSystem";
+import { netSyncClientSystem } from "../../world/systems/netSystems/netClientSystem";
+import { netSyncServerSystem } from "../../world/systems/netSystems/netServerSystem";
+import { particleSystem } from "../../world/systems/weaponsSystems/particleSystem";
 import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
-import { shieldRechargeSystem } from "../../world/systems/shieldRechargeSystem";
-import { damagedSystemsSprayParticlePool, updateRenderSystem } from "../../world/systems/updateRenderSystem";
+import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
+import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem";
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
 import { Entity, NerdStats, Score, queries, world } from '../../world/world';
 import * as Ships from '../../data/ships';
 import { random } from '../../utils/random';
 import { CombatHud } from './spaceCombatHUD';
-import { radarTargetingSystem } from '../../world/systems/radarTargetingSystem';
+import { radarTargetingSystem } from '../../world/systems/shipSystems/radarTargetingSystem';
 import { StatsScene } from '../statsScene/statsLoop';
 import { damageSprayParticlePool, shieldPulserSystem } from '../../world/damage';
-import '../../world/systems/missileEngineSoundSystem';
+import '../../world/systems/soundSystems/missileEngineSoundSystem';
 import { CombatControllerInput } from '../../world/systems/input/combatInput/combatControllerInput';
 import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
 import { createShip } from '../../world/factories';
 import { PlayerAgent } from '../../agents/playerAgent';
-import { fuelConsumptionSystem } from '../../world/systems/fuelConsumptionSystem';
-import { MissileEngineSoundSystem } from '../../world/systems/missileEngineSoundSystem';
-import { moveCommandSystem } from '../../world/systems/moveCommandSystem';
+import { fuelConsumptionSystem } from '../../world/systems/shipSystems/fuelConsumptionSystem';
+import { MissileEngineSoundSystem } from '../../world/systems/soundSystems/missileEngineSoundSystem';
+import { moveCommandSystem } from '../../world/systems/controlSystems/moveCommandSystem';
 import { DeathRattleSystem } from '../../world/systems/deathRattleSystem';
-import { UpdatePhysicsSystem } from '../../world/systems/updatePhysicsSystem';
-import { WeaponCommandSystem } from '../../world/systems/weaponCommandSystem';
+import { UpdatePhysicsSystem } from '../../world/systems/renderSystems/updatePhysicsSystem';
+import { WeaponCommandSystem } from '../../world/systems/controlSystems/weaponCommandSystem';
+import { MeshedSystem } from '../../world/systems/renderSystems/meshedSystem';
+import { TrailersSystem } from '../../world/systems/renderSystems/trailersSystem';
+import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterburnerSoundSystem';
+import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
+import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
+import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -58,6 +65,12 @@ export class SpaceCombatScene implements GameScene {
   deathRattleSystem = new DeathRattleSystem()
   updatePhysicsSystem = new UpdatePhysicsSystem()
   weaponCommandSystem = new WeaponCommandSystem()
+  meshedSystem = new MeshedSystem()
+  trailersSystem = new TrailersSystem()
+  afterburnerSoundsSystem = new AfterburnerSoundSystem()
+  driftSoundSystem = new DriftSoundSystem()
+  afterburnerTrailsSystem = new AfterburnerTrailsSystem()
+  systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
   combatEntities = new Set<Entity>()
 
@@ -99,6 +112,12 @@ export class SpaceCombatScene implements GameScene {
     this.deathRattleSystem.dispose()
     this.updatePhysicsSystem.dispose()
     this.weaponCommandSystem.dispose()
+    this.meshedSystem.dispose()
+    this.trailersSystem.dispose()
+    this.afterburnerSoundsSystem.dispose()
+    this.driftSoundSystem.dispose()
+    this.afterburnerTrailsSystem.dispose()
+    this.systemsDamagedSpraySystem.dispose()
   }
 
   deinit() {

@@ -1,4 +1,4 @@
-import { queries } from "../world"
+import { queries } from "../../world"
 
 export function fuelConsumptionSystem(dt: number) {
   for (const entity of queries.fuel) {

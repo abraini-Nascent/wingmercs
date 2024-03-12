@@ -48,25 +48,19 @@ export class MainMenuScreen extends MercScreen {
     title.paddingTopInPixels = 24
     this.gui.addControl(title)
 
-    const careerButton = GUI.Button.CreateSimpleButton("career", "[New Career]");
+    const careerButton = GUI.Button.CreateSimpleButton("career", "New Career");
     careerButton.textBlock.fontFamily = "monospace"
-    careerButton.textBlock.color = "grey"
+    careerButton.textBlock.color = "black"
     careerButton.textBlock.disabledColor = "grey"
     careerButton.disabledColor = "grey"
     careerButton.textBlock.fontSizeInPixels = 24
-    careerButton.heightInPixels = 28
+    careerButton.heightInPixels = 40
     careerButton.widthInPixels = 280
-    careerButton.background = "black"
+    careerButton.background = "grey"
     careerButton.isEnabled = false
     mainPanel.addControl(careerButton)
 
-    const startButton = GUI.Button.CreateSimpleButton("start", "Train Sim");
-    startButton.textBlock.fontFamily = "monospace"
-    startButton.textBlock.color = "gold"
-    startButton.textBlock.fontSizeInPixels = 28
-    startButton.heightInPixels = 40
-    startButton.widthInPixels = 280
-    startButton.background = "blue"
+    const startButton = this.createMainMenuButton("start", "Train Sim");
     startButton.onPointerClickObservable.addOnce(() => {
       setTimeout(() => {
         SoundEffects.Select()
@@ -79,12 +73,7 @@ export class MainMenuScreen extends MercScreen {
     })
     mainPanel.addControl(startButton)
 
-    const fullscreenButton = GUI.Button.CreateSimpleButton("fullscreen", "[Fullscreen]");
-    fullscreenButton.textBlock.fontFamily = "monospace"
-    fullscreenButton.textBlock.color = "gold"
-    fullscreenButton.textBlock.fontSizeInPixels = 24
-    fullscreenButton.heightInPixels = 28
-    fullscreenButton.widthInPixels = 280
+    const fullscreenButton = this.createMainMenuButton("fullscreen", "Fullscreen");
     let observer = fullscreenButton.onPointerClickObservable.add(() => {
       setTimeout(() => {
         window.document.body.requestFullscreen()
@@ -93,12 +82,7 @@ export class MainMenuScreen extends MercScreen {
     this.fullscreen = observer
     mainPanel.addControl(fullscreenButton)
 
-    const debugButton = GUI.Button.CreateSimpleButton("model viewer", "[Model Viewer]");
-    debugButton.textBlock.fontFamily = "monospace"
-    debugButton.textBlock.color = "gold"
-    debugButton.textBlock.fontSizeInPixels = 24
-    debugButton.heightInPixels = 28
-    debugButton.widthInPixels = 280
+    const debugButton = this.createMainMenuButton("model viewer", "Model Viewer");
     debugButton.onPointerClickObservable.addOnce(() => {
       SoundEffects.Select()
       const appContainer = AppContainer.instance
@@ -108,5 +92,16 @@ export class MainMenuScreen extends MercScreen {
       this.dispose()
     })
     mainPanel.addControl(debugButton)
+  }
+
+  private createMainMenuButton(name: string, text: string): GUI.Button {
+    let button = GUI.Button.CreateSimpleButton(name, text);
+    button.textBlock.fontFamily = "monospace"
+    button.textBlock.color = "gold"
+    button.textBlock.fontSizeInPixels = 28
+    button.heightInPixels = 40
+    button.widthInPixels = 280
+    button.background = "dark blue"
+    return button
   }
 }

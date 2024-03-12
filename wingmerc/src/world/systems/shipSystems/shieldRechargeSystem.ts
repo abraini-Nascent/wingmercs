@@ -1,4 +1,4 @@
-import { queries, world } from "../world"
+import { queries } from "../../world"
 
 export function shieldRechargeSystem(dt: number) {
   for (const entity of queries.shields) {

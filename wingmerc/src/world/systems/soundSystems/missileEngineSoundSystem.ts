@@ -1,7 +1,7 @@
 import { IDisposable, Sound, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../world"
-import { SoundEffects } from "../../utils/sounds/soundEffects"
-import { Vector3FromObj } from "../../utils/math"
+import { Entity, queries, world } from "../../world"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { Vector3FromObj } from "../../../utils/math"
 
 export class MissileEngineSoundSystem implements IDisposable {
 

@@ -1,7 +1,7 @@
 import { Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
-import * as Ships from '../../data/ships';
-import { QuaternionFromObj } from '../../utils/math';
+import { queries, world } from "../../world"
+import * as Ships from '../../../data/ships';
+import { QuaternionFromObj } from '../../../utils/math';
 
 // TODO: use tmp vectors to save on object creation
 

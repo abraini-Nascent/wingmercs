@@ -1,5 +1,5 @@
-import { queries, world } from "../world"
-import { AngleBetweenVectors, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../utils/math"
+import { queries, world } from "../../world"
+import { AngleBetweenVectors, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../../utils/math"
 
 // const TARGET_LOCK_SPEED = 120 // degrees per second
 export function radarTargetingSystem(dt: number) {

@@ -1,30 +1,38 @@
 import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
-import { MenuGui } from "../../gui/menuGui";
 import { MainMenuScreen } from "./mainMenuScreen";
 import { Entity, queries, world } from "../../world/world";
-import { gunCooldownSystem } from "../../world/systems/gunCooldownSystem";
-import { shieldRechargeSystem } from "../../world/systems/shieldRechargeSystem";
-import { engineRechargeSystem } from "../../world/systems/engineRechargeSystem";
+import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
+import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
+import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
 import { aiSystem } from "../../world/systems/aiSystem";
-import { moveCommandSystem, moveSystem, warpSystem } from "../../world/systems/moveSystem";
+import {  moveSystem, } from "../../world/systems/moveSystem";
 import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
-import { radarTargetingSystem } from "../../world/systems/radarTargetingSystem";
-import { particleSystem } from "../../world/systems/particleSystem";
-import { missileSteeringSystem } from "../../world/systems/missileSteeringSystem";
-import { missileTargetingSystem } from "../../world/systems/missileTargetingSystem";
+import { radarTargetingSystem } from "../../world/systems/shipSystems/radarTargetingSystem";
+import { particleSystem } from "../../world/systems/weaponsSystems/particleSystem";
+import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missileSteeringSystem";
+import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem";
 import { shieldPulserSystem } from "../../world/damage";
-import { updateRenderSystem } from "../../world/systems/updateRenderSystem";
+import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem";
 import { createShip } from "../../world/factories";
 import { ShipDetails } from "../../data/ships/shipDetails";
 import * as Ships from "../../data/ships";
 import { randomItem } from "../../utils/random";
 import { Vector3FromObj, pointInSphere } from "../../utils/math";
+import { MissileEngineSoundSystem } from "../../world/systems/soundSystems/missileEngineSoundSystem";
+import { DeathRattleSystem } from "../../world/systems/deathRattleSystem";
+import { UpdatePhysicsSystem } from "../../world/systems/renderSystems/updatePhysicsSystem";
+import { WeaponCommandSystem } from "../../world/systems/controlSystems/weaponCommandSystem";
+import { MeshedSystem } from "../../world/systems/renderSystems/meshedSystem";
+import { TrailersSystem } from "../../world/systems/renderSystems/trailersSystem";
+import { AfterburnerSoundSystem } from "../../world/systems/soundSystems/afterburnerSoundSystem";
+import { DriftSoundSystem } from "../../world/systems/soundSystems/driftSoundSystem";
+import { AfterburnerTrailsSystem } from "../../world/systems/renderSystems/afterburnerTrailsSystem";
+import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/systemsDamagedSpraySystem";
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 
 export class MainMenuScene implements IDisposable {
-  gui: MenuGui
   screen: MainMenuScreen
   cameraEntity: Entity
   screenEntities = new Set<Entity>()
@@ -33,6 +41,18 @@ export class MainMenuScene implements IDisposable {
 
   shipFirst: Entity
   shipSecond: Entity
+
+  // systems
+  missileEngineSoundSystem = new MissileEngineSoundSystem()
+  deathRattleSystem = new DeathRattleSystem()
+  updatePhysicsSystem = new UpdatePhysicsSystem()
+  weaponCommandSystem = new WeaponCommandSystem()
+  meshedSystem = new MeshedSystem()
+  trailersSystem = new TrailersSystem()
+  afterburnerSoundsSystem = new AfterburnerSoundSystem()
+  driftSoundSystem = new DriftSoundSystem()
+  afterburnerTrailsSystem = new AfterburnerTrailsSystem()
+  systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
   constructor() {
     this.screen = new MainMenuScreen()
@@ -64,6 +84,19 @@ export class MainMenuScene implements IDisposable {
     world.onEntityRemoved.unsubscribe(this.onScreenEntityRemoved)
     queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
     world.remove(this.cameraEntity)
+
+    // systems
+    this.missileEngineSoundSystem.dispose()
+    this.deathRattleSystem.dispose()
+    this.updatePhysicsSystem.dispose()
+    this.weaponCommandSystem.dispose()
+    this.meshedSystem.dispose()
+    this.trailersSystem.dispose()
+    this.afterburnerSoundsSystem.dispose()
+    this.driftSoundSystem.dispose()
+    this.afterburnerTrailsSystem.dispose()
+    this.systemsDamagedSpraySystem.dispose()
+
     this.cameraEntity = undefined
     this.screen.dispose()
     this.screen = undefined
@@ -114,7 +147,6 @@ export class MainMenuScene implements IDisposable {
     shieldRechargeSystem(delta)
     engineRechargeSystem(delta)
     aiSystem(delta)
-    moveCommandSystem(delta)
     rotationalVelocitySystem()
     moveSystem(delta)
     radarTargetingSystem(delta)

@@ -1,10 +1,10 @@
-import { Weapon } from './../../data/weapons/weapon';
-import * as Weapons from './../../data/weapons';
-import * as Guns from './../../data/guns';
+import { Weapon } from '../../../data/weapons/weapon';
+import * as Weapons from '../../../data/weapons';
+import * as Guns from '../../../data/guns';
 import { Vector3 } from "@babylonjs/core"
-import { queries, world } from "../world"
-import { AngleBetweenVectors, QuaternionFromObj, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../utils/math"
-import { Gun } from '../../data/guns/gun';
+import { queries, world } from "../../world"
+import { AngleBetweenVectors, QuaternionFromObj, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../../utils/math"
+import { Gun } from '../../../data/guns/gun';
 
 // TODO update to use TmpVectors
 

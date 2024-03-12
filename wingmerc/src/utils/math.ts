@@ -137,18 +137,5 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 export function signedAngle(from: Vector3, to: Vector3, axis: Vector3): number {
-  
   return Vector3.GetAngleBetweenVectors(from, to, axis);
-
-  // Calculate the cross product between 'from' and 'to'
-  let cross = Vector3.Cross(from, to);
-
-  // Check the direction of the cross product to determine the sign of the angle
-  let dot = Vector3.Dot(axis, cross);
-  let sign = dot < 0 ? -1 : 1;
-
-  // Apply the sign to the unsigned angle
-  let signedAngle = unsignedAngle * sign;
-
-  return signedAngle;
 }

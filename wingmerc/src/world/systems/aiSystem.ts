@@ -1,5 +1,5 @@
 import { Entity, FireCommand, MovementCommand } from '../world';
-import { Color3, Mesh, MeshBuilder, Quaternion, Scalar, StandardMaterial, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
+import { Color3, Mesh, MeshBuilder, Quaternion, StandardMaterial, TmpVectors, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import * as Ships from '../../data/ships';
