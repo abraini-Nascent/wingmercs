@@ -100,6 +100,7 @@ We will build out the same space flight and combat features as classic WC
   - [x] display player time to lock in hud
 - [x] space debris particle system for movement detection
 - [x] ai vs ai dogfighting demo mode
+- [ ] rebuild ai
   - https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud
@@ -113,7 +114,7 @@ We will build out the same space flight and combat features as classic WC
 - [x] respawn killed ships
 - [x] heal player every three dead ships
 - [x] rebuild main menu
-  - [ ] make buttons more jucy
+  - [x] make buttons more jucy
 - [x] game over screen
   - [x] restart button
   - [x] make sure memory footprint is clear on restarts
@@ -178,13 +179,14 @@ We will build out the same space flight and combat features as classic WC
   - [x] replace laser particle models
   - [x] replace missile models
   - [ ] 3d cockpit frame model
-- [ ] code cleanup and polish
+- [x] code cleanup
 
-### second demo
+### next demo
 - [] joystick controls
 - [] vr controls
 - [] configurable input
-### third demo
+- [] rebuild ai
+### next demo
 - [] fullish weapons list
 - [] fullish guns list
 - [] drop in system types (engines, power plants, shields)
@@ -192,25 +194,25 @@ We will build out the same space flight and combat features as classic WC
 - [] configurable enemies
 - [] ship viewer
 - [] polish and juice
-### fourth demo
+### next demo
 - [] dynamic missions horde mode
 - [] polish and juice
-### fifth demo
+### next demo
 - [] purchase and maintain ships
 - [] purchase and maintain personal
 - [] polish and juice
-### sixth demo
+### next demo
 - [] ai overhaul
 - [] polish and juice
-### seventh demo
+### next demo
 - [] capitol ships
 - [] polish and juice
-### eighth demo
+### next demo
 - [] 3d cockpits
-### ninth demo
+### next demo
 - [] carrier ships
 - [] space stations
-### 10th, v1.0 full release feature complete
+### v1.0 full release feature complete
 - [] configurable missions
 - [] mission selection
 ### v1.1 distribute and profit
