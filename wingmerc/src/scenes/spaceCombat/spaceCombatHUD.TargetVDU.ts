@@ -3,36 +3,57 @@ import * as GUI from "@babylonjs/gui"
 import { Vector3 } from "@babylonjs/core";
 import { Entity, world } from "../../world/world";
 import * as Ships from "../../data/ships";
+import { StaticVDU } from "./spaceCombatHUD.StaticVDU";
+import { rand, random } from "../../utils/random";
 
 export class TargetVDU {
 
+  screen: GUI.Container
+  static: StaticVDU
   lockPanel: GUI.StackPanel
   enemyTarget: TargetBody
   lockType: TextBlock
   lockName: TextBlock
   lockDistance: TextBlock
 
+  staticTimer: number = 0
+
   get mainComponent(): GUI.Control {
-    return this.lockPanel
+    return this.screen
   }
   constructor() {
     this.setupMain()
   }
   dispose() {
+    this.static.dispose()
     this.enemyTarget.dispose()
     this.lockType.dispose()
     this.lockName.dispose()
     this.lockDistance.dispose()
     this.lockPanel.dispose()
+    this.screen.dispose()
   }
   setupMain() {
-    const lockPanel = new GUI.StackPanel("TargetVDU")
+    const container = new GUI.Container("TargetVDU")
+    container.heightInPixels = 240
+    container.widthInPixels = 240
+    container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+    this.screen = container
+
+    const lockPanel = new GUI.StackPanel("TargetVDUPanel")
     this.lockPanel = lockPanel
     lockPanel.isVertical = true
     lockPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
     lockPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
     lockPanel.width = "240px"
     lockPanel.height = "240px"
+    this.screen.addControl(lockPanel)
+
+    const staticScreen = new StaticVDU()
+    staticScreen.isVisible = false
+    this.static = staticScreen
+    this.screen.addControl(staticScreen.mainComponent)
 
     const lockType = new GUI.TextBlock("LockType")
     this.lockType = lockType
@@ -80,7 +101,8 @@ export class TargetVDU {
       this.lockType.color = "white"
     }
   }
-  update(playerEntity: Entity) {
+
+  update(playerEntity: Entity, dt: number) {
     
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == -1) {
       this.updateTargetType(playerEntity)
@@ -99,6 +121,7 @@ export class TargetVDU {
       if (this.lockPanel.containsControl(this.enemyTarget.mainPanel) == true) {
         this.lockPanel.removeControl(this.enemyTarget.mainPanel)
       }
+      return
     }
     const planeClass = Ships[targetEntity.planeTemplate]
     this.lockName.text = `[ ${targetEntity.targetName} ]`
@@ -111,6 +134,27 @@ export class TargetVDU {
       this.lockPanel.addControl(this.enemyTarget.mainPanel)
     }
     this.enemyTarget.update(targetEntity, planeClass)
+
+    if (this.staticTimer > 0) {
+      this.staticTimer = Math.max(this.staticTimer - dt, 0)
+      this.static.update(dt)
+      if (this.staticTimer == 0) {
+        console.log("off")
+        this.static.isVisible = false
+        this.enemyTarget.mainPanel.isVisible = true
+      }
+    } else {
+      if (playerEntity.systems.state.targeting < playerEntity.systems.base.targeting) {
+        // % per second failrate based on damage % of the targeting system
+        const alpha = (1 - (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting)) * (dt / 1000)
+        if (random() < alpha) {
+          this.static.isVisible = true
+          this.staticTimer = rand(50, 1000 * (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting))
+          this.enemyTarget.mainPanel.isVisible = false
+          console.log("on")
+        }
+      }
+    }
   }
 }
 

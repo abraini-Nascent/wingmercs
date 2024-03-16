@@ -1,4 +1,4 @@
-import { Entity, FuelTank, NerdStats, Score, ShipArmor, ShipShields, ShipSystems, world } from "../world/world";
+import { Entity, FuelTank, NerdStats, Score, ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "../world/world";
 import { net } from "../net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
@@ -9,7 +9,7 @@ export class PlayerAgent {
 
   constructor( planeTemplate: string = "Dirk") {
 
-    const guns = Dirk.guns.reduce((guns, gun, index) => {
+    const gunMounts = Dirk.guns.reduce((guns, gun, index) => {
       const gunClass = Guns[gun.type] as Gun
       guns[index] = {
         class: gun.type,
@@ -19,6 +19,15 @@ export class PlayerAgent {
       }
       return guns
     }, {})
+    const guns: ShipGuns = {
+      mounts: gunMounts,
+      selected: 0,
+      groups: [
+        Object.keys(gunMounts).map(key => parseInt(key)),
+        [0],
+        [1]
+      ], // the player should be able to assign their own groups in the future, or we create groups based on same weapon type
+    }
     const weapons = Dirk.weapons.reduce((weapons, weapon) => {
       weapons.mounts.push({
         type: weapon.type,

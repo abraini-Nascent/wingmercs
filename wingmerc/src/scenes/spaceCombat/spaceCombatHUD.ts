@@ -18,6 +18,7 @@ import { SpeedHUD } from './spaceCombatHUD.SpeedHUD';
 import { DamageVDU } from './spaceCombatHUD.DamageVDU';
 import { WeaponsVDU } from './spaceCombatHUD.WeaponsVDU';
 import { SoundEffects } from '../../utils/sounds/soundEffects';
+import { GunsVDU } from './spaceCombatHUD.GunsVDU';
 
 export class CombatHud {
   gui: AdvancedDynamicTexture
@@ -31,8 +32,10 @@ export class CombatHud {
   vdu1Container: GUI.Container
   /** Right */
   vdu2Container: GUI.Container
+  /** Screens */
   statsContainer: GUI.Container
   weapons: WeaponsVDU
+  guns: GunsVDU
   damageDisplay: DamageVDU
   enemyTarget: TargetVDU
   radarDisplay: RadarDisplay
@@ -80,6 +83,7 @@ export class CombatHud {
     this.speedHUD.dispose()
     this.damageDisplay.dispose()
     this.weapons.dispose()
+    this.guns.dispose()
     this.gui.removeControl(this.hud)
     this.power.dispose()
     
@@ -123,6 +127,7 @@ export class CombatHud {
     this.enemyTarget = new TargetVDU()
     this.damageDisplay = new DamageVDU()
     this.weapons = new WeaponsVDU()
+    this.guns = new GunsVDU()
     this.radarDisplay = new RadarDisplay()
     this.statsVDU = new StatsVDU()
 
@@ -261,11 +266,12 @@ export class CombatHud {
     this.score.text = `-=Score: ${Math.round(playerEntity.score.total).toString().padStart(8, "0")}=-`
     this.timeLeft.text = `-=Time Left: ${Math.round(playerEntity.score.timeLeft).toString().padStart(8, "0")}=-`
 
-    this.statsVDU.update()
+    this.statsVDU.update(dt)
     this.speedHUD.update(dt)
     this.damageDisplay.update()
     this.weapons.update()
-    this.enemyTarget.update(playerEntity)
+    this.guns.update()
+    this.enemyTarget.update(playerEntity, dt)
     this.radarDisplay.update(playerEntity, this.hitPlayer, dt)
     this.targetingHUD.update(playerEntity, dt)
   }
@@ -294,6 +300,7 @@ export class CombatHud {
       case "target":
         vdu.addControl(this.enemyTarget.mainComponent)
       case "guns":
+        vdu.addControl(this.guns.mainComponent)
         break;
       case "weapons":
         vdu.addControl(this.weapons.mainComponent)

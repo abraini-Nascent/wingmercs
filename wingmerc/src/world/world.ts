@@ -1,68 +1,115 @@
-import { IDisposable, InstancedMesh, Mesh, PhysicsBody, TrailMesh, TransformNode } from "@babylonjs/core";
+import {
+  IDisposable,
+  InstancedMesh,
+  Mesh,
+  PhysicsBody,
+  TrailMesh,
+  TransformNode,
+} from "@babylonjs/core"
 import { World } from "miniplex"
-import { net } from "../net";
+import { net } from "../net"
 
-export type MovementCommand = { pitch: number, roll: number, yaw: number, afterburner: number, drift: number, brake: number, deltaSpeed: number }
-export type FireCommand = { gun: number, weapon: number, lock: boolean }
+export type MovementCommand = {
+  pitch: number
+  roll: number
+  yaw: number
+  afterburner: number
+  drift: number
+  brake: number
+  deltaSpeed: number
+}
+export type FireCommand = { gun: number; weapon: number; lock: boolean }
 export type ShipEngine = {
-  rate: number,
-  maxCapacity: number,
-  currentCapacity: number,
+  rate: number
+  maxCapacity: number
+  currentCapacity: number
 }
 export type FuelTank = {
-  currentCapacity: number,
+  currentCapacity: number
   /** unit is number or seconds of afterburner on a standard afterburner */
-  maxCapacity: number,
+  maxCapacity: number
 }
 export type ShipShields = {
-  maxFore: number,
-  maxAft: number,
-  currentFore: number,
-  currentAft: number,
-  rechargeRate: number,
-  energyDrain: number,
+  maxFore: number
+  maxAft: number
+  currentFore: number
+  currentAft: number
+  rechargeRate: number
+  energyDrain: number
 }
 export type ShipArmor = {
-  front: number,
-  back: number,
-  left: number,
-  right: number,
+  front: number
+  back: number
+  left: number
+  right: number
+}
+export type ShipGuns = {
+  mounts: {
+    [gunId: number]: {
+      class: string
+      delta: number
+      possition: { x: number; y: number; z: number }
+      currentHealth: number
+    }
+  },
+  selected: number,
+  groups: number[][],
 }
 export type AIType = "basicCombat" | "deathRattle" | "demoLoop"
 export type ShipSystems = {
   quadrant: {
     fore: {
-      system: "afterburners"|"battery"|"engines"|"guns"|"power"|"radar"|"shield"|"targeting"|"thrusters"|"weapons",
-      weight: number
-    }[],
-    aft: {
-      system: "afterburners"|"battery"|"engines"|"guns"|"power"|"radar"|"shield"|"targeting"|"thrusters"|"weapons",
+      system:
+        | "afterburners"
+        | "battery"
+        | "engines"
+        | "guns"
+        | "power"
+        | "radar"
+        | "shield"
+        | "targeting"
+        | "thrusters"
+        | "weapons"
       weight: number
     }[]
-  },
+    aft: {
+      system:
+        | "afterburners"
+        | "battery"
+        | "engines"
+        | "guns"
+        | "power"
+        | "radar"
+        | "shield"
+        | "targeting"
+        | "thrusters"
+        | "weapons"
+      weight: number
+    }[]
+  }
   state: {
-    afterburners: number,
-    battery: number,
-    engines: number,
-    guns: number,
-    power: number,
-    radar: number,
-    shield: number,
-    targeting: number,
-    thrusters: number,
-    weapons: number,
-  },
+    afterburners: number
+    battery: number
+    engines: number
+    guns: number
+    power: number
+    radar: number
+    shield: number
+    targeting: number
+    thrusters: number
+    weapons: number
+  }
   base: {
-    afterburners: number,
-    battery: number,
-    engines: number,
-    guns: number,
-    power: number,
-    radar: number,
-    shield: number,
-    targeting: number,
-    thrusters: number,
-    weapons: number,
+    afterburners: number
+    battery: number
+    engines: number
+    guns: number
+    power: number
+    radar: number
+    shield: number
+    targeting: number
+    thrusters: number
+    weapons: number
   }
 }
 export type Display = "damage" | "target" | "armor" | "weapons" | "guns"
@@ -71,8 +118,8 @@ export type VDUState = {
   right: Display
 }
 export type TargetState = {
-  gunInterceptPosition: { x: number, y: number, z: number }
-  targetingDirection: { x: number, y: number, z: number }
+  gunInterceptPosition: { x: number; y: number; z: number }
+  targetingDirection: { x: number; y: number; z: number }
   targetingTime: number
   target: number
   locked: boolean
@@ -99,7 +146,7 @@ export type Score = {
   livesLeft: number
 }
 export type Entity = {
-  ai?: { type: AIType, blackboard: {[key: string]: any} }
+  ai?: { type: AIType; blackboard: { [key: string]: any } }
   targetName?: string
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
@@ -116,10 +163,10 @@ export type Entity = {
   acceleration?: { x: number; y: number; z: number }
   direction?: { x: number; y: number; z: number }
   up?: { x: number; y: number; z: number }
-  rotationalVelocity?: {roll: number, pitch: number, yaw: number }
-  rotationQuaternion?: {x: number; y: number; z: number; w: number}
-  rotation?: {x: number; y: number; z: number}
-  scale?: {x: number; y: number; z: number}
+  rotationalVelocity?: { roll: number; pitch: number; yaw: number }
+  rotationQuaternion?: { x: number; y: number; z: number; w: number }
+  rotation?: { x: number; y: number; z: number }
+  scale?: { x: number; y: number; z: number }
   asteroidSize?: number
   engineMesh?: Mesh
   shieldMeshName?: string
@@ -128,15 +175,20 @@ export type Entity = {
   physicsMesh?: Mesh
   meshName?: string
   mesh?: Mesh
-  meshColor?: { r: number, g: number, b: number, a: number }
+  meshColor?: { r: number; g: number; b: number; a: number }
   meshInstance?: InstancedMesh
   movementCommand?: MovementCommand
   nerdStats?: NerdStats
   fireCommand?: FireCommand
   trail?: true
-  trailOptions?: { width?: number, length?: number, color?: { r: number, g: number, b: number }, start?: {x: number; y: number; z: number;} }[]
+  trailOptions?: {
+    width?: number
+    length?: number
+    color?: { r: number; g: number; b: number }
+    start?: { x: number; y: number; z: number }
+  }[]
   trailMeshs?: {
-    trails: TrailMesh[],
+    trails: TrailMesh[]
     disposables: IDisposable[]
   }
   bodyType?: "animated" | "static" | "dynamic"
@@ -158,16 +210,9 @@ export type Entity = {
   damage?: number
   targeting?: TargetState
   isTargetable?: "player" | "enemy" | "missile"
-  guns?: {
-    [gunId: number]: {
-      class: string,
-      delta: number,
-      possition: { x: number, y: number, z: number },
-      currentHealth: number
-    }
-  }
+  guns?: ShipGuns
   weapons?: {
-    mounts: { type: string, count: number }[]
+    mounts: { type: string; count: number }[]
     selected: number
     delta: number
   }
@@ -180,15 +225,15 @@ export type Entity = {
   armor?: ShipArmor
   vduState?: VDUState
   deathRattle?: boolean
-  particleRange?: { 
-    max: number,
-    total: number,
-    lastPosition: { x: number; y: number; z: number },
+  particleRange?: {
+    max: number
+    total: number
+    lastPosition: { x: number; y: number; z: number }
   }
-  missileRange?: { 
-    max: number,
-    total: number,
-    lastPosition: { x: number; y: number; z: number },
+  missileRange?: {
+    max: number
+    total: number
+    lastPosition: { x: number; y: number; z: number }
     type: string
     target: number
   }
@@ -202,7 +247,12 @@ export const queries = {
   updateRender: world.with("position", "node"),
   moving: world.with("position", "velocity", "acceleration"),
   moveCommanded: world.with("movementCommand"),
-  rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
+  rotating: world.with(
+    "direction",
+    "rotation",
+    "rotationQuaternion",
+    "rotationalVelocity"
+  ),
   meshed: world.with("meshName"),
   physics: world.with("node", "bodyType"),
   colliders: world.with("body"),
@@ -228,7 +278,7 @@ export const queries = {
   deathComes: world.with("deathRattle"),
   damageable: world.with("health"),
   cameras: world.with("camera"),
-  missileEngine: world.with("missileEngine", "node")
+  missileEngine: world.with("missileEngine", "node"),
 }
 
 /**
@@ -248,7 +298,9 @@ export class GFrame {
           // remove my local flag for it
           delete entity.local
         }
-        if (entity.local !== true) { continue; }
+        if (entity.local !== true) {
+          continue
+        }
       }
       // todo we should have a better way to manage what is sent over the wire
       const payload = {
@@ -267,17 +319,21 @@ export class GFrame {
           y: entity.rotation?.y ?? 0,
           z: entity.rotation?.z ?? 0,
         },
-        rotationQuaternion: entity.rotationQuaternion ? {
-          x: entity.rotationQuaternion?.x ?? 0,
-          y: entity.rotationQuaternion?.y ?? 0,
-          z: entity.rotationQuaternion?.z ?? 0,
-          w: entity.rotationQuaternion?.w ?? 0,
-        } : undefined,
-        rotationalVelocity: entity.rotationalVelocity ? {
-          pitch: entity.rotationalVelocity.pitch,
-          roll: entity.rotationalVelocity.roll,
-          yaw: entity.rotationalVelocity.yaw
-        } : undefined,
+        rotationQuaternion: entity.rotationQuaternion
+          ? {
+              x: entity.rotationQuaternion?.x ?? 0,
+              y: entity.rotationQuaternion?.y ?? 0,
+              z: entity.rotationQuaternion?.z ?? 0,
+              w: entity.rotationQuaternion?.w ?? 0,
+            }
+          : undefined,
+        rotationalVelocity: entity.rotationalVelocity
+          ? {
+              pitch: entity.rotationalVelocity.pitch,
+              roll: entity.rotationalVelocity.roll,
+              yaw: entity.rotationalVelocity.yaw,
+            }
+          : undefined,
         scale: entity.scale,
         asteroidSize: entity.asteroidSize,
         meshName: entity.meshName,
@@ -287,7 +343,7 @@ export class GFrame {
         damage: entity.damage,
         trail: entity.trail,
         planeTemplate: entity.planeTemplate,
-        
+
         originatorId: entity.originatorId,
         totalScore: entity.totalScore,
       }

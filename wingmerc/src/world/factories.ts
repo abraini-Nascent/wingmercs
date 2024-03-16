@@ -1,12 +1,12 @@
 import { ShipDetails } from "../data/ships/shipDetails"
 import * as Guns from "../data/guns"
 import { Gun } from "../data/guns/gun"
-import { ShipArmor, ShipShields, ShipSystems, world } from "./world"
+import { ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "./world"
 import { net } from "../net"
 
 export function createShip(ship: ShipDetails, x: number, y: number, z: number) {
   console.log(`[CreateShip] creating new ship ${ship.name}`)
-  const guns = ship.guns.reduce((guns, gun, index) => {
+  const gunMounts = ship.guns.reduce((guns, gun, index) => {
     const gunClass = Guns[gun.type] as Gun
     guns[index] = {
       class: gun.type,
@@ -16,6 +16,11 @@ export function createShip(ship: ShipDetails, x: number, y: number, z: number) {
     }
     return guns
   }, {})
+  const guns: ShipGuns = {
+    mounts: gunMounts,
+    selected: 0,
+    groups: [Object.keys(gunMounts).map(key => parseInt(key))]
+  }
   const weapons = ship.weapons.reduce((weapons, weapon) => {
     weapons.mounts.push({
       type: weapon.type,

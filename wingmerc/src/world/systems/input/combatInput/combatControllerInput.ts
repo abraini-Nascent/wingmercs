@@ -139,6 +139,16 @@ export class CombatControllerInput {
         player.weapons.selected = 0
       }
     }
+    // GUN SELECT
+    if (this.genericButtons.has(ic.GunSelect) && this.inputDebounce.tryNow(GunSelect)) {
+      const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "guns"
+      player.guns.selected += 1
+      let gunGroupCount = player.guns.groups.length
+      if (player.guns.selected >= gunGroupCount) {
+        player.guns.selected = 0
+      }
+    }
 
     // PITCH YAW ROLL
     if (gamepad.leftStick.y || gamepad.leftStick.x) {

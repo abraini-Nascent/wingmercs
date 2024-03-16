@@ -13,6 +13,9 @@ export class StatsVDU {
   armorRight: TextBlock
   armorLeft: TextBlock
   fuel: TextBlock
+  flash: boolean = false
+  flashAcc: number = 0
+  flashLimit: number = 333
 
   get mainComponent(): GUI.Control {
     return this.statsPanel
@@ -116,57 +119,96 @@ export class StatsVDU {
     statsPanel.addControl(fuel)
   }
 
-  update() {
-    this.shieldsFore.text = `↑)${this.foreShieldBar()}`
-    this.shieldsAft.text = `↓)${this.aftShieldBar()}`
-    this.armorFront.text = `↑║${this.frontArmorBar()}`
-    this.armorBack.text = `↓║${this.backArmorBar()}`
-    this.armorLeft.text = `←║${this.leftArmorBar()}`
-    this.armorRight.text = `→║${this.rightArmorBar()}`
-    this.fuel.text = `F ${this.fuelBar()}`
+  update(dt: number) {
+    this.flashAcc += dt
+    if (this.flashAcc > this.flashLimit) {
+      this.flash = !this.flash
+      this.flashAcc = this.flashAcc % this.flashLimit
+    }
+    this.foreShieldBar()
+    this.aftShieldBar()
+    this.frontArmorBar()
+    this.backArmorBar()
+    this.leftArmorBar()
+    this.rightArmorBar()
+    this.fuelBar()
   }
 
   foreShieldBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.shields.currentFore / playerEntity.shields.maxFore
     f = Math.round(f * 100)
-    return barPercent(f)
+    barPercent(f)
+    this.shieldsFore.text = `↑)${barPercent(f)}`
+    if (f == 0) {
+      this.shieldsFore.isVisible = !this.flash
+    } else {
+      this.shieldsFore.isVisible = true
+    }
   }
   aftShieldBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.shields.currentAft / playerEntity.shields.maxAft
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.shieldsAft.text = `↓)${barPercent(f)}`
+    if (f == 0) {
+      this.shieldsAft.isVisible = !this.flash
+    } else {
+      this.shieldsAft.isVisible = true
+    }
   }
   frontArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.armor.front / playerEntity.armor.front
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.armorFront.text = `↑║${barPercent(f)}`
+    if (f == 0) {
+      this.armorFront.isVisible = !this.flash
+    }
   }
   backArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.armor.back / playerEntity.armor.back
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.armorBack.text = `↓║${barPercent(f)}`
+    if (f == 0) {
+      this.armorBack.isVisible = !this.flash
+    } else {
+      this.armorBack.isVisible = true
+    }
   }
   leftArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.armor.left / playerEntity.armor.left
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.armorLeft.text = `←║${barPercent(f)}`
+    if (f == 0) {
+      this.armorLeft.isVisible = !this.flash
+    } else {
+      this.armorLeft.isVisible = true
+    }
   }
   rightArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.armor.right / playerEntity.armor.right
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.armorRight.text = `→║${barPercent(f)}`
+    if (f == 0) {
+      this.armorRight.isVisible = !this.flash
+    } else {
+      this.armorRight.isVisible = true
+    }
   }
 
   fuelBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
     let f = playerEntity.fuel.currentCapacity / playerEntity.fuel.maxCapacity
     f = Math.round(f * 100)
-    return barPercent(f)
+    this.fuel.text = `F ${barPercent(f)}`
+    if (f == 0) {
+      this.fuel.isVisible = !this.flash
+    } else {
+      this.fuel.isVisible = true
+    }
   }
 }

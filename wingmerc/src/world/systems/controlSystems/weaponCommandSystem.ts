@@ -23,9 +23,15 @@ export class WeaponCommandSystem implements IDisposable {
     // entity wants to fire guns
     const { fireCommand } = entity;
     if (fireCommand.gun) {
-      // TODO which guns are being fired? for now we fire them all
       const guns = entity.guns
-      for (const [gunIndex, gun] of Object.entries(guns)) {
+      // game sure selected is in safe range
+      if (guns.selected >= guns.groups.length) {
+        guns.selected = 0
+      } else if (guns.selected < 0) {
+        guns.selected = 0
+      }
+      for (const gunIndex of guns.groups[guns.selected]) {
+        const gun = guns.mounts[gunIndex]
         const gunClass: Gun = Guns[gun.class]
         if (gun.delta > 0) {
           // gun isn't ready to fire yet

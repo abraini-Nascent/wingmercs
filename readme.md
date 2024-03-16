@@ -47,20 +47,8 @@ We will build out the same space flight and combat features as classic WC
 - Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
   
 ## Bugs:
-- [x] afterburner seems to go on forever
-- [x] static size VDUs, they are all different sizes and are not consistent so don't look good
-- [x] I think the AI can only turn up and right? or down and left? they seem to be stuck making only one direction turns
-- [x] targeting hud stays active after target leaves screen
-- [x] player ship continues to emit particles after death screen and on score screen
-- [x] enemies aren't shooting as much after steering fix
-- [x] each trail shares the same material, so if anyone hits afterburner everyone lights up
 - [ ] trails start from origin when on a sub-node
   - [ ] waiting for pr in babylonjs to merge
-- [x] scene, player, and enemies don't reset on a new game after death
-- [x] ai aren't shooting missiles
-- [x] game over isn't moving to score scene
-- [x] dead ships are undead after loosing one round and starting a new game
-- [x] drift doesn't always stick, speed down should be on button up if not drifting
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -132,16 +120,15 @@ We will build out the same space flight and combat features as classic WC
   - [x] heavy 1
 - [x] increase enemy type level every round
   - [x] add an extra enemy ship per success round of every ship type
-- [ ] HUD Improvements
+- [x] HUD Improvements
   - [x] tint hud elements
   - [x] dynamic hud location
   - [x] weapon selection hud
-  - [ ] gun selection hud
+  - [x] gun selection hud
   - [x] damaged systems hud
   - [x] move player ship stats to the right of the left VDU so it's always visible
     - [x] add color coding to the player ship stats bars
-    - [ ] flash ship stat as it's hit
-    - [ ] quickly flash ship stat red if it's empty
+    - [x] quickly flash ship stat red if it's empty
 - [ ] massive juicing
   - [ ] sounds
     - [x] player shields hit
@@ -165,7 +152,7 @@ We will build out the same space flight and combat features as classic WC
     - [x] menu buttons
   - [ ] music
   - [x] main menu runs demo ai vs ai scene
-  - [ ] damaged systems vdu animations
+  - [x] damaged systems vdu animations
   - [x] replace sprite particles with 3d shapes
     - [x] shields hit
     - [ ] ~shields collapsed~

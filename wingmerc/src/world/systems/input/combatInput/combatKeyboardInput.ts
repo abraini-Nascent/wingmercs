@@ -1,10 +1,10 @@
-import { DeviceSourceManager, DeviceType, Scalar, TransformNode } from "@babylonjs/core"
+import { DeviceSourceManager, DeviceType, PointerInput, Scalar, TransformNode } from "@babylonjs/core"
 import { Display, FireCommand, MovementCommand, world } from "../../../world"
 import { KeyboardMap } from "../../../../utils/keyboard"
 import { Dirk } from "../../../../data/ships"
 import { Inspector } from "@babylonjs/inspector"
 import { AppContainer } from "../../../../app.container"
-import { DebounceTimed } from "../../../../utils/debounce"
+import { DebounceTimed, DebounceTimedMulti } from "../../../../utils/debounce"
 
 const LeftDisplays: Display[] = ["damage", "guns", "weapons"]
 const RightDisplays: Display[] = ["target"]
@@ -12,7 +12,25 @@ const RightDisplays: Display[] = ["target"]
 const FastThreshold = 333
 let dsm: DeviceSourceManager
 let vduDebounce = new DebounceTimed()
+let inputDebounce = new DebounceTimedMulti()
 let ramp = 0
+
+
+function lockPointer() {
+  // Pointer lock
+  const canvas = AppContainer.instance.engine.getRenderingCanvas()
+  console.log('locking pointer')
+  canvas.requestPointerLock = canvas.requestPointerLock ||
+    canvas.msRequestPointerLock ||
+    canvas.mozRequestPointerLock ||
+    canvas.webkitRequestPointerLock;
+
+  if (canvas.requestPointerLock) {
+    canvas.requestPointerLock()
+  }
+}
+
+let captured = false
 /**
  *
  * @param dt delta time in milliseconds
@@ -31,6 +49,11 @@ export function combatKeyboardInput(dt: number) {
     roll: 0,
     yaw: 0,
   } as MovementCommand
+  /// WEAPON COMMANDS
+  let fire = 0
+  let weapon = 0
+  let lock = false
+  let target = 0
   /// STEER / ROLL PITCH YAW
   let up = 0,
     down = 0,
@@ -54,6 +77,43 @@ export function combatKeyboardInput(dt: number) {
     movementCommand.drift = 1
   }
   const keyboard = dsm.getDeviceSource(DeviceType.Keyboard)
+  const mouse = dsm.getDeviceSource(DeviceType.Mouse)
+
+  /// capture mouse?!
+  if (mouse.getInput(PointerInput.LeftClick) && captured == false) {
+    // lockPointer()
+    captured = true
+  }
+  if (captured) {
+    if (mouse.getInput(PointerInput.LeftClick)) {
+      fire = 1
+    }
+    if (mouse.getInput(PointerInput.RightClick)) {
+      weapon = 1
+    }
+    let height = AppContainer.instance.engine.getRenderHeight();
+    let width = AppContainer.instance.engine.getRenderWidth();
+
+    // Calculate 80% of the largest width or height
+    let validRange = Math.min(width, height) * 0.8;
+
+    // Calculate the center of the window
+    let centerX = width / 2;
+    let centerY = height / 2;
+
+    let horizontal = mouse.getInput(PointerInput.Horizontal);
+    let vertical = mouse.getInput(PointerInput.Vertical);
+
+    // Clamp horizontal and vertical inputs within 80% range centered to the middle
+    let clampedHorizontal = Math.max(-1, Math.min(1, (horizontal - centerX) / (validRange / 2)));
+    let clampedVertical = Math.max(-1, Math.min(1, (vertical - centerY) / (validRange / 2)));
+
+    let yaw = clampedHorizontal;
+    let pitch = clampedVertical; // Invert pitch to match typical conventions
+
+    movementCommand.yaw = yaw;
+    movementCommand.pitch = pitch;
+  }
   if (keyboard?.getInput(KeyboardMap.UP) || keyboard?.getInput(KeyboardMap.DOWN) ||
     keyboard?.getInput(KeyboardMap.LEFT) || keyboard?.getInput(KeyboardMap.RIGHT)) {
     ramp += dt
@@ -81,7 +141,7 @@ export function combatKeyboardInput(dt: number) {
     }
   }
   // "LEFT" [37]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.LEFT)) {
+  if (keyboard?.getInput(KeyboardMap.LEFT)) {
     if (mod) {
       rollLeft = 1
       movementCommand.roll = -1
@@ -91,10 +151,8 @@ export function combatKeyboardInput(dt: number) {
     }
   }
   // "OPEN_BRACKET", // [219]
-  if (
-    dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.OPEN_BRACKET)
-  ) {
-    if (vduDebounce.tryNow()) {
+  if (keyboard?.getInput(KeyboardMap.OPEN_BRACKET)) {
+    if (inputDebounce.tryNow(KeyboardMap.OPEN_BRACKET)) {
       let displayIdx =
         LeftDisplays.findIndex((d) => {
           return d == playerEntity.vduState.left
@@ -104,15 +162,12 @@ export function combatKeyboardInput(dt: number) {
       }
       playerEntity.vduState.left = LeftDisplays[displayIdx]
     }
+  } else {
+    inputDebounce.clear(KeyboardMap.OPEN_BRACKET)
   }
-
   // "CLOSE_BRACKET", // [221]
-  if (
-    dsm
-      .getDeviceSource(DeviceType.Keyboard)
-      ?.getInput(KeyboardMap.CLOSE_BRACKET)
-  ) {
-    if (vduDebounce.tryNow()) {
+  if (keyboard?.getInput(KeyboardMap.CLOSE_BRACKET)) {
+    if (inputDebounce.tryNow(KeyboardMap.CLOSE_BRACKET)) {
       let displayIdx =
         RightDisplays.findIndex((d) => {
           return d == playerEntity.vduState.right
@@ -122,54 +177,78 @@ export function combatKeyboardInput(dt: number) {
       }
       playerEntity.vduState.right = RightDisplays[displayIdx]
     }
+  } else {
+    inputDebounce.clear(KeyboardMap.OPEN_BRACKET)
+  }
+
+  // WEAPONS SELECT
+  if (keyboard?.getInput(KeyboardMap.W) && inputDebounce.tryNow(KeyboardMap.W)) {
+    const player = AppContainer.instance.player.playerEntity
+    player.vduState.left = "weapons"
+    player.weapons.selected += 1
+    let weaponCount = player.weapons.mounts.length
+    if (player.weapons.selected >= weaponCount) {
+      player.weapons.selected = 0
+    }
+  }
+  // GUN SELECT
+  if (keyboard?.getInput(KeyboardMap.G) && inputDebounce.tryNow(KeyboardMap.G)) {
+    const player = AppContainer.instance.player.playerEntity
+    player.vduState.left = "guns"
+    player.guns.selected += 1
+    let gunGroupCount = player.guns.groups.length
+    if (player.guns.selected >= gunGroupCount) {
+      player.guns.selected = 0
+    }
   }
 
   /// AFTERBURNER - ACCELERATE
-  // "TAB" [9]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.TAB)) {
+  if (keyboard?.getInput(KeyboardMap.TAB)) {
     movementCommand.afterburner = 1
   }
-  // "ALT" [18]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.ALT)) {
+  /// BRAKE
+  if (keyboard?.getInput(KeyboardMap.ALT)) {
     movementCommand.brake = 1
   }
-  // "9" [57]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap["9"])) {
-    // TODO: debounce?
-    movementCommand.deltaSpeed = -25
-    let newSpeed = Math.max(playerEntity.setSpeed - 25, 0)
-    world.update(playerEntity, "setSpeed", newSpeed)
+  /// SPEED UP
+  if (keyboard?.getInput(KeyboardMap["9"])) {
+    if (inputDebounce.tryNow(KeyboardMap["9"])) {
+      movementCommand.deltaSpeed = -25
+      let newSpeed = Math.max(playerEntity.setSpeed - 25, 0)
+      world.update(playerEntity, "setSpeed", newSpeed)
+    }
+  } else {
+    inputDebounce.clear(KeyboardMap["9"])
   }
-  // "0" [48]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap["0"])) {
-    // TODO: debounce?
-    movementCommand.deltaSpeed = +25
-    let newSpeed = Math.min(playerEntity.setSpeed + 25, Dirk.cruiseSpeed)
-    world.update(playerEntity, "setSpeed", newSpeed)
+  /// SPEED DOWN
+  if (keyboard?.getInput(KeyboardMap["0"])) {
+    if (inputDebounce.tryNow(KeyboardMap["0"])) {
+      movementCommand.deltaSpeed = +25
+      let newSpeed = Math.min(playerEntity.setSpeed + 25, Dirk.cruiseSpeed)
+      world.update(playerEntity, "setSpeed", newSpeed)
+    }
+  } else {
+    inputDebounce.clear(KeyboardMap["0"])
   }
 
   world.update(playerEntity, "movementCommand", movementCommand)
   /// FIRE PROJECTILES
   // "CONTROL" 17
   // "SPACE" [32]
-  let fire = 0
-  let weapon = 0
-  let lock = false
-  let target = 0
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.SPACE)) {
+  if (keyboard?.getInput(KeyboardMap.SPACE)) {
     fire = 1
   }
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.CONTROL)) {
+  if (keyboard?.getInput(KeyboardMap.CONTROL)) {
     fire = 1
   }
   /// FIRE WEAPONS
   // "ENTER" 13
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.ENTER)) {
+  if (keyboard?.getInput(KeyboardMap.ENTER) && inputDebounce.tryNow(KeyboardMap.ENTER)) {
     weapon = 1
   }
   /// LOCK TARGET
   // "L" [76]
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.L)) {
+  if (keyboard?.getInput(KeyboardMap.L) && inputDebounce.tryNow(KeyboardMap.L)) {
     lock = true
   }
   if (fire || weapon || lock || target) {
@@ -179,7 +258,7 @@ export function combatKeyboardInput(dt: number) {
 
   // "TILDE", // [176]
   // ... YOUR SCENE CREATION
-  if (dsm.getDeviceSource(DeviceType.Keyboard)?.getInput(KeyboardMap.TILDE)) {
+  if (keyboard?.getInput(KeyboardMap.TILDE)) {
     Inspector.Show(AppContainer.instance.scene, {})
   }
 }

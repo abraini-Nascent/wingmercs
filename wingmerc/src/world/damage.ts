@@ -167,7 +167,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           switch (damagedSystem) {
             case "guns": {
               // pick a random gun to damage
-              const entityGuns = Object.values(hitEntity.guns).filter(g => g.currentHealth > 0)
+              const entityGuns = Object.values(hitEntity.guns.mounts).filter(g => g.currentHealth > 0)
               if (entityGuns.length > 0) {
                 const damagedGun = randomItem(entityGuns)
                 damagedGun.currentHealth = Math.max(0, damagedGun.currentHealth - randomDamage)

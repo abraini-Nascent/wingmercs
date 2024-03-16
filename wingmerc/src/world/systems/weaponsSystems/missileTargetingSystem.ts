@@ -30,7 +30,7 @@ export function missileTargetingSystem(dt: number) {
       Vector3FromObj(entity.velocity),
       Vector3FromObj(targetEntity.position),
       Vector3FromObj(targetEntity.velocity),
-      (Guns[entity.guns[0].class] as Gun).speed)
+      (Guns[entity.guns.mounts[0].class] as Gun).speed) // TODO this should be the selected gun
     targeting.gunInterceptPosition = gunInterceptPosition
 
     // is entity's weapon a tracking weapon

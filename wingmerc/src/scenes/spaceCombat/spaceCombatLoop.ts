@@ -39,11 +39,12 @@ import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterbu
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
+import { IDisposable } from '@babylonjs/core';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
 const pointsPerSecond = 10;
-export class SpaceCombatScene implements GameScene {
+export class SpaceCombatScene implements GameScene, IDisposable {
 
   controllerInput: CombatControllerInput
   spaceDebris: SpaceDebrisAgent
@@ -88,14 +89,14 @@ export class SpaceCombatScene implements GameScene {
     this.readyTimer = 3000
     appContainer.player = new PlayerAgent()
     const playerEntity = appContainer.player.playerEntity;
-    playerEntity.score = { livesLeft: 1, timeLeft: 3 * 60, total: 1000 }
+    playerEntity.score = { livesLeft: 1, timeLeft: 90, total: 1000 }
     this.score = playerEntity.score
     this.stats = playerEntity.nerdStats
     this.controllerInput = new CombatControllerInput()
   }
 
   /** call to clean up */
-  dispose() {
+  dispose(): void {
     world.onEntityAdded.unsubscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onCombatEntityRemoved)
     queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
@@ -142,7 +143,7 @@ export class SpaceCombatScene implements GameScene {
     }
     const playerScore = AppContainer.instance.player.playerEntity.score
     playerScore.total += 1000 * this.waveCount
-    playerScore.timeLeft += 40
+    playerScore.timeLeft += 20
     this.stats.totalKills += 1
     this.totalKillCount += 1
     this.waveKillCount += 1
@@ -160,7 +161,6 @@ export class SpaceCombatScene implements GameScene {
         this.shipTypeIndex = 0
       }
       // this.extraShipCount += 1
-      playerScore.timeLeft += 20
       playerScore.total += 10000 * this.waveCount // end of wave bonus
       const playerEntity = AppContainer.instance.player.playerEntity
       const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
