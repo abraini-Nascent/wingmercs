@@ -46,7 +46,9 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
     const incomingRadians = Vector3.GetAngleBetweenVectors(FORWARD, flatVector, UP)
     const incomingDegrees = ToDegree(incomingRadians)
     const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
+    const player = AppContainer.instance.player.playerEntity
     if (hitEntity.shields != undefined) {
+      
       let oldShieldDamage = damage
       // console.log("hit from incoming angle", incomingDegrees)
       if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
@@ -60,7 +62,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         console.log("[Damage] hit front shield", hitEntity.shields.currentFore, damage)
         if (damage == 0) {
           shieldSprayFrom(hitEntity, hitPointWorld, directionOfHit)
-          SoundEffects.ShieldHit(hitEntityPosition.clone())
+          SoundEffects.ShieldHit(hitEntityPosition.clone(), hitEntity == player)
         }
       } else if (quadrant == "aft" && hitEntity.shields.currentAft >= 0) {
         let oldDamage = damage
@@ -74,7 +76,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         console.log("[Damage] hit back shield", hitEntity.shields.currentAft, damage)
         if (damage == 0) {
           shieldSprayFrom(hitEntity, hitPointWorld, directionOfHit)
-          SoundEffects.ShieldHit(hitEntityPosition.clone())
+          SoundEffects.ShieldHit(hitEntityPosition.clone(), hitEntity == player)
         }
       }
       if (shooterStats) { shooterStats.shieldDamageGiven += oldShieldDamage - damage }
@@ -116,7 +118,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           console.log("[Damage] hit left armor", hitEntity.armor.left)
         }
         damageSprayFrom(hitEntity, hitPointWorld, directionOfHit)
-        SoundEffects.ArmorHit(hitEntityPosition.clone())
+        SoundEffects.ArmorHit(hitEntityPosition.clone(), hitEntity == player)
         // ConeParticleEmitter("assets/particles/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
         let armorDamageDelt = oldArmorDamage - damage
         if (shooterStats) { shooterStats.armorDamageGiven += armorDamageDelt }

@@ -130,14 +130,13 @@ We will build out the same space flight and combat features as classic WC
   - [x] move player ship stats to the right of the left VDU so it's always visible
     - [x] add color coding to the player ship stats bars
     - [x] quickly flash ship stat red if it's empty
-- [ ] massive juicing
-  - [ ] sounds
+- [x] massive juicing
+  - [x] sounds
     - [x] player shields hit
-      - [ ] make this a player specific zzzt sound
+      - [x] make this a player specific zzzt sound
     - [x] player armor hit
-      - [ ] make this a player specific thonk sound
+      - [x] make this a player specific thonk sound
     - [x] player systems hit
-      - [ ] make this a player specific crunch sound
     - [x] enemy shields hit
     - [x] enemy armor hit
     - [x] enemy systems hit

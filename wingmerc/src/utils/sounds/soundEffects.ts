@@ -25,6 +25,22 @@ const ArmorHitFiles = [
   "assets/sounds/ArmorHit05.wav",
 ]
 
+const PlayerShieldHitFiles = [
+  "assets/sounds/PlayerShieldHit01.wav",
+  "assets/sounds/PlayerShieldHit02.wav",
+  "assets/sounds/PlayerShieldHit03.wav",
+  "assets/sounds/PlayerShieldHit04.wav",
+  "assets/sounds/PlayerShieldHit05.wav",
+]
+
+const PlayerArmorHitFiles = [
+  "assets/sounds/PlayerArmorHit01.wav",
+  "assets/sounds/PlayerArmorHit02.wav",
+  "assets/sounds/PlayerArmorHit03.wav",
+  "assets/sounds/PlayerArmorHit04.wav",
+  "assets/sounds/PlayerArmorHit05.wav",
+]
+
 const SystemHitFiles = [
   "assets/sounds/SystemHit01.wav",
   "assets/sounds/SystemHit02.wav",
@@ -86,8 +102,8 @@ export namespace SoundEffects {
       maxDistance: 4000,
     })
   }
-  export function ShieldHit(position?: Vector3 | undefined): Sound {
-    let sound = new Sound(`ShieldHit-${idx()}`, randomItem(ShieldHitFiles), undefined, undefined,
+  export function ShieldHit(position?: Vector3 | undefined, player: boolean = false): Sound {
+    let sound = new Sound(`ShieldHit-${idx()}`, randomItem(player ? PlayerShieldHitFiles : ShieldHitFiles), undefined, undefined,
     {
       maxDistance: 4000,
     })
@@ -99,8 +115,8 @@ export namespace SoundEffects {
     sound.play()
     return sound
   }
-  export function ArmorHit(position?: Vector3 | undefined): Sound {
-    let sound = new Sound(`ArmorHit-${idx()}`, randomItem(ArmorHitFiles), undefined, undefined,
+  export function ArmorHit(position?: Vector3 | undefined, player: boolean = false): Sound {
+    let sound = new Sound(`ArmorHit-${idx()}`, randomItem(player ? PlayerArmorHitFiles : ArmorHitFiles), undefined, undefined,
     {
       maxDistance: 4000,
       autoplay: true
