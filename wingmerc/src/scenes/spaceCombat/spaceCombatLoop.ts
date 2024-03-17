@@ -96,6 +96,8 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.controllerInput = new CombatControllerInput()
     MusicPlayer.instance.playSong("action")
     MusicPlayer.instance.playStinger("encounter")
+
+    document.body.style.cursor = "none";
   }
 
   /** call to clean up */
@@ -122,6 +124,9 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.driftSoundSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
+
+    // reset cursor
+    document.body.style.cursor = "auto";
   }
 
   deinit() {

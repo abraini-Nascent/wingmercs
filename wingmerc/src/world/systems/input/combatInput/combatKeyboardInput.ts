@@ -87,7 +87,7 @@ export function combatKeyboardInput(dt: number) {
   }
   if (keyboard?.getInput(KeyboardMap.ESCAPE) && captured) {
     captured = false
-    document.body.style.cursor = "auto";
+    document.body.style.cursor = "none";
   }
   if (captured) {
     if (mouse.getInput(PointerInput.LeftClick)) {
