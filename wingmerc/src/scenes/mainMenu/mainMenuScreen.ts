@@ -60,7 +60,7 @@ export class MainMenuScreen extends MercScreen {
     careerButton.isEnabled = false
     mainPanel.addControl(careerButton)
 
-    const startButton = this.createMainMenuButton("start", "Train Sim");
+    const startButton = this.createMainMenuButton("start", "Training Sim");
     startButton.onPointerClickObservable.addOnce(() => {
       setTimeout(() => {
         SoundEffects.Select()

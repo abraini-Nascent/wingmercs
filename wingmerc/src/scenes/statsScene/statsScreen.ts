@@ -12,10 +12,25 @@ export class StatsScreen {
   screen: GUI.Container
   title: TextBlock
   scorePanel: GUI.StackPanel
+  oldHighScore: number
+  useMemory: boolean = null
 
   constructor(private score: Score, private stats: NerdStats) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Stats");
     this.gui = advancedTexture
+    if (this.isLocalStorageAvailable()) {
+      let storedScore = window.localStorage.getItem("wing_merc_highScore")
+      if (storedScore != undefined) {
+        try {
+          this.oldHighScore = parseInt(storedScore)
+        } catch(e) {
+          this.oldHighScore = 0
+        }
+      }
+      if (this.oldHighScore < Math.round(this.score.total)) {
+        window.localStorage.setItem("wing_merc_highScore", `${Math.round(this.score.total)}`)
+      }
+    }
     this.setupMain()
   }
   dispose() {
@@ -56,6 +71,21 @@ export class StatsScreen {
     title.verticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
     title.paddingTopInPixels = 16
     this.screen.addControl(title)
+
+    const highScoreText = this.oldHighScore > Math.round(score.total) ?
+      `High Score: ${Math.round(this.oldHighScore)}` :
+      `!! New High Score !!`
+    const highScore = new GUI.TextBlock()
+    highScore.name = "score"
+    highScore.fontFamily = "monospace"
+    highScore.text = highScoreText
+    highScore.color = "gold"
+    highScore.fontSize = 24
+    highScore.height = "24px"
+    highScore.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+    highScore.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+    highScore.verticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
+    scorePanel.addControl(highScore)
 
     const totalScore = new GUI.TextBlock()
     totalScore.name = "score"
@@ -161,5 +191,22 @@ export class StatsScreen {
     textblock.verticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
 
     return textblock
+  }
+
+  private isLocalStorageAvailable() {
+    if (this.useMemory !== null) {
+      return !this.useMemory
+    }
+    try {
+      window.localStorage.setItem("check", "true");
+      window.localStorage.removeItem("check");
+      // console.log("LocalStorage Available")
+      this.useMemory = false
+      return true;
+    } catch(error) {
+      // console.log("LocalStorage NOT Available")
+      this.useMemory = true
+      return false;
+    }
   }
 }
