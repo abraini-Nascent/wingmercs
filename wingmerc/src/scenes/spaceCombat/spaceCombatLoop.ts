@@ -40,6 +40,7 @@ import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/after
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
 import { IDisposable } from '@babylonjs/core';
+import { MusicPlayer } from '../../utils/music/musicPlayer';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -93,6 +94,8 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.score = playerEntity.score
     this.stats = playerEntity.nerdStats
     this.controllerInput = new CombatControllerInput()
+    MusicPlayer.instance.playSong("action")
+    MusicPlayer.instance.playStinger("encounter")
   }
 
   /** call to clean up */
@@ -139,8 +142,10 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       this.gameover = true
       this.hud.gameover = true
       this.gameoverTimer = 3000
+      MusicPlayer.instance.playStinger("fail")
       return
     }
+    MusicPlayer.instance.playStinger("win")
     const playerScore = AppContainer.instance.player.playerEntity.score
     playerScore.total += 1000 * this.waveCount
     playerScore.timeLeft += 20
@@ -212,6 +217,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       this.gameoverTimer -= delta
       this.hud.updateScreen(delta)
       if (this.gameoverTimer < 0) {
+        MusicPlayer.instance.playStinger("fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
         this.onDeath = undefined
         console.log("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)

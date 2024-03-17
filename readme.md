@@ -42,13 +42,14 @@ We will build out the same space flight and combat features as classic WC
 
 ## References
 - Sound effects generated from https://pro.sfxr.me/ and https://pixwlk.itch.io/bleeper
+- Music generated from https://krasse.itch.io/wavebots-editor
 - 3d Models of ships from Kenney https://www.kenney.nl/assets/space-kit
 - Crosshairs from https://opengameart.org/content/64-crosshairs-pack-split
 - Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
   
 ## Bugs:
-- [ ] trails start from origin when on a sub-node
-  - [ ] waiting for pr in babylonjs to merge
+- [x] trails start from origin when on a sub-node
+  - [x] waiting for pr in babylonjs to merge
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -150,7 +151,7 @@ We will build out the same space flight and combat features as classic WC
     - [x] cockpit vdu input
     - [x] target locked
     - [x] menu buttons
-  - [ ] music
+  - [x] music
   - [x] main menu runs demo ai vs ai scene
   - [x] damaged systems vdu animations
   - [x] replace sprite particles with 3d shapes

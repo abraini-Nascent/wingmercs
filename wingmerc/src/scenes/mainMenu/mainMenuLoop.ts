@@ -29,6 +29,7 @@ import { AfterburnerSoundSystem } from "../../world/systems/soundSystems/afterbu
 import { DriftSoundSystem } from "../../world/systems/soundSystems/driftSoundSystem";
 import { AfterburnerTrailsSystem } from "../../world/systems/renderSystems/afterburnerTrailsSystem";
 import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/systemsDamagedSpraySystem";
+import { MusicPlayer } from "../../utils/music/musicPlayer";
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 
@@ -77,6 +78,7 @@ export class MainMenuScene implements IDisposable {
 
     this.shipFirst = this.addShip()
     this.shipSecond = this.addShip()
+    MusicPlayer.instance.playSong("happy")
   }
 
   dispose(): void {
