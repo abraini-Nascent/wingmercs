@@ -153,7 +153,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     MusicPlayer.instance.playStinger("win")
     const playerScore = AppContainer.instance.player.playerEntity.score
     playerScore.total += 1000 * this.waveCount
-    playerScore.timeLeft += 20
+    playerScore.timeLeft += 30
     this.stats.totalKills += 1
     this.totalKillCount += 1
     this.waveKillCount += 1
