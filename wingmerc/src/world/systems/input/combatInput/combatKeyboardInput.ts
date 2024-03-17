@@ -82,7 +82,12 @@ export function combatKeyboardInput(dt: number) {
   /// capture mouse?!
   if (mouse.getInput(PointerInput.LeftClick) && captured == false) {
     // lockPointer()
+    document.body.style.cursor = "url('assets/crosshairs/crosshairs_01.png'), auto";
     captured = true
+  }
+  if (keyboard?.getInput(KeyboardMap.ESCAPE) && captured) {
+    captured = false
+    document.body.style.cursor = "auto";
   }
   if (captured) {
     if (mouse.getInput(PointerInput.LeftClick)) {
