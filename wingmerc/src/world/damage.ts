@@ -46,7 +46,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
     const incomingRadians = Vector3.GetAngleBetweenVectors(FORWARD, flatVector, UP)
     const incomingDegrees = ToDegree(incomingRadians)
     const quadrant: "fore" | "aft" = Math.abs(incomingDegrees) < 90 ? "fore" : "aft"
-    const player = AppContainer.instance.player.playerEntity
+    const player = AppContainer.instance.player?.playerEntity
     if (hitEntity.shields != undefined) {
       
       let oldShieldDamage = damage
