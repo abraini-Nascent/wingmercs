@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "electron .",
-    "package-mac": "electron-packager . wingmercs --platform=darwin --arch=x64 --overwrite",
-    "package-mac-arm": "electron-packager . wingmercs --platform=darwin --arch=arm64 --overwrite",
-    "package-win": "electron-packager . wingmercs --platform=win32 --arch=x64 --overwrite",
+    "package-mac": "electron-packager . wingmercs --platform=darwin --arch=x64 --icon=images/icon.icns --overwrite",
+    "package-mac-arm": "electron-packager . wingmercs --platform=darwin --arch=arm64 --icon=images/icon.icns --overwrite",
+    "package-win": "electron-packager . wingmercs --platform=win32 --arch=x64 --icon=images/icon.ico --overwrite",
     "copy-assets": "cp -R ../wingmerc/dist dist"
   },
   "author": "",
