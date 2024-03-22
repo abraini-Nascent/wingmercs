@@ -6,6 +6,8 @@ import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop';
 import { ModelViewerScene } from '../modelViewer/modelViewerLoop';
 import { SoundEffects } from '../../utils/sounds/soundEffects';
 import { Observer } from '@babylonjs/core';
+import { SettingsMenuScene } from '../settingsMenu/settingsMenuLoop';
+import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -23,6 +25,11 @@ export class MainMenuScreen extends MercScreen {
   }
   setupMain(): void {
     super.setupMain()
+
+    const urlParams = new URLSearchParams(window.location.search);
+    // Retrieve a specific parameter
+    const debug = urlParams.get('debug');
+
     const mainPanel = new GUI.StackPanel("Main Menu")
     mainPanel.isVertical = true
     mainPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -73,25 +80,55 @@ export class MainMenuScreen extends MercScreen {
     })
     mainPanel.addControl(startButton)
 
-    const fullscreenButton = this.createMainMenuButton("fullscreen", "Fullscreen");
-    let observer = fullscreenButton.onPointerClickObservable.add(() => {
-      setTimeout(() => {
-        window.document.body.requestFullscreen()
-      }, 333)
-    })
-    this.fullscreen = observer
-    mainPanel.addControl(fullscreenButton)
-
-    const debugButton = this.createMainMenuButton("model viewer", "Model Viewer");
-    debugButton.onPointerClickObservable.addOnce(() => {
-      SoundEffects.Select()
+    const settingsButton = this.createMainMenuButton("settings", "Settings");
+    settingsButton.onPointerClickObservable.addOnce(() => {
       const appContainer = AppContainer.instance
-      appContainer.server = true
       appContainer.gameScene.dispose()
-      appContainer.gameScene = new ModelViewerScene()
+      appContainer.gameScene = new SettingsMenuScene()
       this.dispose()
     })
-    mainPanel.addControl(debugButton)
+    mainPanel.addControl(settingsButton)
+
+    if (AppContainer.instance.env == "browser") {
+      const fullscreenButton = this.createMainMenuButton("fullscreen", "Fullscreen");
+      let observer = fullscreenButton.onPointerClickObservable.add(() => {
+        setTimeout(() => {
+          window.document.body.requestFullscreen()
+        }, 333)
+      })
+      this.fullscreen = observer
+      mainPanel.addControl(fullscreenButton)
+    }
+
+    const controlsButton = this.createMainMenuButton("controls", "Controls");
+    controlsButton.onPointerClickObservable.addOnce(() => {
+      setTimeout(() => {
+        AppContainer.instance.gameScene.dispose()
+        AppContainer.instance.gameScene = new ControlsMenuScene()
+      }, 333)
+    })
+    mainPanel.addControl(controlsButton)
+
+    if (debug != undefined) {
+      const debugButton = this.createMainMenuButton("model viewer", "Model Viewer");
+      debugButton.onPointerClickObservable.addOnce(() => {
+        SoundEffects.Select()
+        const appContainer = AppContainer.instance
+        appContainer.server = true
+        appContainer.gameScene.dispose()
+        appContainer.gameScene = new ModelViewerScene()
+        this.dispose()
+      })
+      mainPanel.addControl(debugButton)
+    }
+    if ((window as any).electron != undefined) {
+      const exitButton = this.createMainMenuButton("exit", "Exit");
+      exitButton.onPointerClickObservable.addOnce(() => {
+        SoundEffects.Select();
+        (window as any).electron.closeWindow()
+      })
+      mainPanel.addControl(exitButton)
+    }
   }
 
   private createMainMenuButton(name: string, text: string): GUI.Button {

@@ -8,8 +8,23 @@ import { EventPipeline } from './utils/pipeline';
 export class AppContainer {
   static instance: AppContainer = new AppContainer()
   private constructor() {
-
+    const urlParams = new URLSearchParams(window.location.search);
+    // Retrieve a specific parameter
+    const parameterValue = urlParams.get('env');
+    if (parameterValue) {
+      switch (parameterValue) {
+        case "desktop": {
+          this.env = "desktop"
+          break;
+        }
+        case "mobile": {
+          this.env = "mobile"
+          break;
+        }
+      }
+    }
   }
+  env: "browser" | "desktop" | "mobile" = "browser"
   player: PlayerAgent
   camera: TargetCamera
   server: boolean = false

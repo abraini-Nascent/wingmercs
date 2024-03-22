@@ -6,7 +6,7 @@ import { ArcRotateCamera, DeviceSourceManager, DeviceType, IDisposable, Mesh, Ra
 import { ToRadians } from '../../utils/math';
 import { Entity, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
-import { EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
+import { Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
 import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
 import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
 import { engineRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
@@ -111,7 +111,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   setup() {
 
-    let model = createShip(EnemyLight01, -100, 0, 0);
+    let model = createShip(Dirk, -100, 0, 0);
     world.update(model, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
     this.ship = model
     this.ship.ai.type = undefined

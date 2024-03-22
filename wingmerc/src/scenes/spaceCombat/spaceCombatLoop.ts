@@ -264,11 +264,11 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     particleSystem()
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
-    if (appContainer.server) {
-      netSyncServerSystem(delta)
-    } else {
-      netSyncClientSystem(delta)
-    }
+    // if (appContainer.server) {
+    //   netSyncServerSystem(delta)
+    // } else {
+    //   netSyncClientSystem(delta)
+    // }
     shieldPulserSystem.update(delta)
     updateRenderSystem()
     if (this.spaceDebris) {

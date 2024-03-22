@@ -20,6 +20,58 @@ export const GenericButtons = {
   Right: 15
 }
 
+export const GenericButtonNames = {
+  0: "A",
+  1: "B",
+  2: "X",
+  3: "Y",
+  4: "LB",
+  5: "RB",
+  6: "LT",
+  7: "RT",
+  8: "Select",
+  9: "Start",
+  10: "LS",
+  11: "RS",
+  12: "Up",
+  13: "Down",
+  14: "Left",
+  15: "Right",
+}
+
+export const InputNames = {
+"Afterburner": "Afterburner",
+"Brake": "Brake",
+"Drift": "Drift",
+"Camera": "Camera",
+"SpeedUp": "Speed Up",
+"SpeedDown": "Speed Down",
+"WeaponFire": "Weapon Fire",
+"WeaponSelect": "Weapon Select",
+"GunFire": "Gun Fire",
+"GunSelect": "Gun Select",
+"Target": "Target",
+"Pitch": "Pitch",
+"Roll": "Roll",
+"Yaw": "Yaw",
+}
+
+export const KeyboardKeys = {
+  "Afterburner": "Tab",
+  "Brake": "Alt",
+  "Drift": "Z",
+  "SpeedUp": "0",
+  "SpeedDown": "9",
+  "WeaponFire": "Enter",
+  "WeaponSelect": "W",
+  "GunFire": "Space/\nCtrl",
+  "GunSelect": "G",
+  "Target": "T",
+  "Pitch": "Up/\nDown",
+  "Roll": "Shift+\nYaw",
+  "Yaw": "Left/\nRight",
+}
+
 class CombatInputConfiguration {
 
   Afterburner: number
@@ -44,7 +96,7 @@ class CombatInputConfiguration {
       // load default
       this.Afterburner = GenericButtons.LS
       this.Brake = GenericButtons.LB
-      this.Drift = GenericButtons.LB
+      this.Drift = GenericButtons.B
       this.Camera = GenericButtons.Up
       this.SpeedUp = GenericButtons.A
       this.SpeedDown = GenericButtons.B

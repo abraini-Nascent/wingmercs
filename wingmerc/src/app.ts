@@ -28,6 +28,7 @@ class App {
   server: boolean = false
   constructor() {
     (window as any).appContainer = AppContainer.instance;
+
     // create the canvas html element and attach it to the webpage
     const canvas = document.createElement("canvas")
     canvas.style.width = "100%"
@@ -116,6 +117,7 @@ class App {
     // load the assets and physics engine
     const onFinishedLoading = () => {
       engine.hideLoadingUI()
+      Engine.audioEngine.setGlobalVolume(0.1);
       AppContainer.instance.gameScene = new MainMenuScene()
     }
     

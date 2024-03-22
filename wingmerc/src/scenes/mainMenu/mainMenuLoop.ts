@@ -30,6 +30,8 @@ import { DriftSoundSystem } from "../../world/systems/soundSystems/driftSoundSys
 import { AfterburnerTrailsSystem } from "../../world/systems/renderSystems/afterburnerTrailsSystem";
 import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/systemsDamagedSpraySystem";
 import { MusicPlayer } from "../../utils/music/musicPlayer";
+import { fuelConsumptionSystem } from "../../world/systems/shipSystems/fuelConsumptionSystem";
+import { moveCommandSystem } from "../../world/systems/controlSystems/moveCommandSystem";
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 
@@ -148,14 +150,15 @@ export class MainMenuScene implements IDisposable {
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
     engineRechargeSystem(delta)
+    fuelConsumptionSystem(delta)
     aiSystem(delta)
+    moveCommandSystem(delta)
     rotationalVelocitySystem()
     moveSystem(delta)
     radarTargetingSystem(delta)
     particleSystem()
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
-    aiSystem(delta)
     shieldPulserSystem.update(delta)
     updateRenderSystem()
     this.cameraSystem()
@@ -168,6 +171,7 @@ export class MainMenuScene implements IDisposable {
     // Calculate the center point between the two nodes
     const firstPosition = Vector3FromObj(this.shipFirst.position, TmpVectors.Vector3[0])
     const secondPosition = Vector3FromObj(this.shipSecond.position, TmpVectors.Vector3[1])
+    console.log(firstPosition, secondPosition)
     const center = Vector3.Center(firstPosition, secondPosition);
 
     // Calculate the distance between the two nodes

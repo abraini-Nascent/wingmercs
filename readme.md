@@ -48,8 +48,8 @@ We will build out the same space flight and combat features as classic WC
 - Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
   
 ## Bugs:
-- [x] trails start from origin when on a sub-node
-  - [x] waiting for pr in babylonjs to merge
+- [ ] high score doesn't seem to be saved
+- [x] volume is to loud
 ## TODO:
 ### initial publish of demo
 - [x] flight model
@@ -107,13 +107,13 @@ We will build out the same space flight and combat features as classic WC
 - [x] game over screen
   - [x] restart button
   - [x] make sure memory footprint is clear on restarts
-- [ ] scoring
+- [x] scoring
   - [x] points for kill
   - [x] points for time alive
   - [x] time awarded for kill
   - [x] time awarded for round
   - [x] time counts down till game over
-  - [ ] hi-score leaderboard
+  - [x] hi-score leaderboard
   - [x] stats for nerds
 - [x] more enemy types
   - [x] medium 1
@@ -167,6 +167,8 @@ We will build out the same space flight and combat features as classic WC
   - [x] replace missile models
   - [ ] 3d cockpit frame model
 - [x] code cleanup
+- [x] settings menu for volume
+- [x] controller input help menu
 
 ### next demo
 - [] joystick controls
