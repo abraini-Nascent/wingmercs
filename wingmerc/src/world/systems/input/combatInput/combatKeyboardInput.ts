@@ -215,6 +215,10 @@ export function combatKeyboardInput(dt: number) {
   if (keyboard?.getInput(KeyboardMap.ALT)) {
     movementCommand.brake = 1
   }
+  /// DRIFT
+  if (keyboard?.getInput(KeyboardMap.Z)) {
+    movementCommand.drift = 1
+  }
   /// SPEED UP
   if (keyboard?.getInput(KeyboardMap["9"])) {
     if (inputDebounce.tryNow(KeyboardMap["9"])) {
