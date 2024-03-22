@@ -46,7 +46,11 @@ We will build out the same space flight and combat features as classic WC
 - 3d Models of ships from Kenney https://www.kenney.nl/assets/space-kit
 - Crosshairs from https://opengameart.org/content/64-crosshairs-pack-split
 - Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
-  
+
+## License
+This code and project is released under the Creative Commons Attribution-NonCommercial 4.0 International license
+See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
+
 ## Bugs:
 - [ ] high score doesn't seem to be saved
 - [x] volume is to loud
