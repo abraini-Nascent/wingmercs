@@ -37,6 +37,11 @@ class App {
     canvas.id = "gameCanvas"
     document.body.appendChild(canvas)
 
+    canvas.addEventListener('keydown', (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+    });
+
     // initialize babylon scene and engine
     const container = AppContainer.instance
     const engine = new Engine(canvas, false, { antialias: false }, false)
