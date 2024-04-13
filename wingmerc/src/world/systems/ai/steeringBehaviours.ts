@@ -7,6 +7,7 @@ import * as Guns from '../../../data/guns';
 import { Gun } from '../../../data/guns/gun';
 import { randFloat } from '../../../utils/random';
 
+const PlanarUp = Vector3.Up()
 /** the steering error (-180 to 180 degrees) is clamped to -90 to 90 and normalized to -1 to 1, an error of < 1 degree is clamped to 0 */
 export function SteeringHardNormalizeClamp({ pitch, yaw, roll }: SteeringResult): SteeringResult {
   // console.log("[SteeringHardNormalizeClamp] error", { pitch, roll, yaw})
@@ -91,7 +92,7 @@ export function calculateSteering(dt: number, currentPosition: Vector3, currentR
 
 export namespace SteeringBehaviours {
   /** steer the character towards a specified position in global space */
-  export function seek(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
+  export function seek(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, targetUp?: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
     let error = targetPosition.subtract(currentPosition)
     error = error.applyRotationQuaternion(Quaternion.Inverse(currentRotation)) // transform to local space
   
@@ -99,6 +100,14 @@ export namespace SteeringBehaviours {
     let pitchError = new Vector3(0,       error.y, error.z).normalize()
     let rollError  = new Vector3(error.x, error.y, 0      ).normalize()
     let yawError   = new Vector3(error.x, 0,       error.z).normalize()
+
+    // if there is a target up, use that as the roll error
+    if (targetUp != undefined) {
+      let currentUp = Vector3.Up()
+      currentUp.rotateByQuaternionToRef(currentRotation, currentUp)
+      let upError = targetUp.subtract(currentUp).normalize()
+      rollError.set(upError.x, upError.y, 0)
+    }
   
     let pitch = signedAngle(Vector3.Forward(true), pitchError, Vector3.Right()) * -1 // pitch is inverted
     let yaw = signedAngle(Vector3.Forward(true), yawError, Vector3.Up())
@@ -124,7 +133,7 @@ export namespace SteeringBehaviours {
   }
   /** simply the inverse of seek */
   export function flee(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
-    let seekSteering = seek(dt, currentPosition, currentRotation, targetPosition, clampStrategy)
+    let seekSteering = seek(dt, currentPosition, currentRotation, targetPosition, PlanarUp, clampStrategy)
     return { 
       pitch: seekSteering.pitch * -1,
       roll: seekSteering.roll * -1,
@@ -135,19 +144,21 @@ export namespace SteeringBehaviours {
   export function pursuit(dt: number, entity: Entity, targetEntity: Entity, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
     const currentPosition = Vector3FromObj(entity.position)
     const currentRotation = QuaternionFromObj(entity.rotationQuaternion)
+    const targetUp = Vector3FromObj(targetEntity.up)
     const targetInterceptPosition = firstOrderIntercept(
       currentPosition,
       Vector3FromObj(entity.velocity),
       Vector3FromObj(targetEntity.position),
       Vector3FromObj(targetEntity.velocity),
       Vector3FromObj(entity.velocity).length()) ?? Vector3FromObj(targetEntity.position)
-    return seek(dt, currentPosition, currentRotation, targetInterceptPosition, clampStrategy)
+    return seek(dt, currentPosition, currentRotation, targetInterceptPosition, targetUp, clampStrategy)
   }
   /** similar to pursuit except that the intercept uses the gun speed instead of ship speed */
   export function gunPursuit(dt: number, entity: Entity, targetEntity: Entity, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
     const currentPosition = Vector3FromObj(entity.position)
     const currentDirection = Vector3FromObj(entity.direction)
     const currentRotation = QuaternionFromObj(entity.rotationQuaternion)
+    const targetUp = Vector3FromObj(targetEntity.up)
     const gunGroup = entity.guns.groups[entity.guns.selected]
     let gunsSpeed = 0
     for (let mountIdx of gunGroup) {
@@ -166,7 +177,7 @@ export namespace SteeringBehaviours {
     const angleToIntercept = AngleBetweenVectors(currentDirection, directionToIntercept)
     // console.log(`[SteeringBehaviours] Ship ${world.id(entity)} angle to intercept`, ToDegree(angleToIntercept))
     const firePosition = angleToIntercept < ToRadians(2.5)
-    const result = seek(dt, currentPosition, currentRotation, targetInterceptPosition, clampStrategy)
+    const result = seek(dt, currentPosition, currentRotation, targetInterceptPosition, targetUp, clampStrategy)
     result.firePosition = firePosition
     return result
   }
@@ -220,7 +231,7 @@ export namespace SteeringBehaviours {
     const currentRotation = QuaternionFromObj(entity.rotationQuaternion)
     const velocity = totalVelocityFrom(entity)
     const targetSpeed = arrivalSpeed(currentPosition, targetPosition, velocity, maxSpeed, slowingDistance)
-    const steering = seek(dt, currentPosition, currentRotation, targetPosition, clampStrategy)
+    const steering = seek(dt, currentPosition, currentRotation, targetPosition, PlanarUp, clampStrategy)
     const distancetoTarget = currentPosition.subtract(targetPosition).length()
     steering.throttle = targetSpeed - entity.currentSpeed
     if (distancetoTarget > 1000) {
@@ -286,7 +297,8 @@ export namespace SteeringBehaviours {
     if (distance < pathRadius) {
       return undefined
     }
-    return seek(dt, entityPosition, entityRotation, closestPointOnLine, clampStrategy)
+    // TODO: path could have a normal to describe the "up" of the path and we could lerp between the two points normals
+    return seek(dt, entityPosition, entityRotation, closestPointOnLine, undefined, clampStrategy)
   }
 
   export interface WanderState {
@@ -324,7 +336,7 @@ export namespace SteeringBehaviours {
     // Update the wander position for the next frame
     state.wanderPosition = constrainedPosition;
     // steer towards the new force
-    return seek(dt, entityPosition, entityRotation, constrainedPosition, clampStrategy)
+    return seek(dt, entityPosition, entityRotation, constrainedPosition, PlanarUp, clampStrategy)
   }
 
   export interface HeadingHoldState {
@@ -363,6 +375,7 @@ export namespace SteeringBehaviours {
         }
       }
     }
+    // TODO: we could could have a normal to describe the "up" of the heading
     const steering = calculateErrorSteering(dt, error, entityRotation, clampStrategy)
     // console.log("[headingHold] steering", steering)
     return steering;

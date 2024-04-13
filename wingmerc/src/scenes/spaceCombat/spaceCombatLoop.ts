@@ -42,6 +42,7 @@ import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSpr
 import { IDisposable, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
 import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
+import { MissionType } from '../../world/systems/ai/engagementState';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -215,7 +216,8 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       const ship = createShip(shipDetails, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z, 2, 1)
       // patrol around the players position
       world.addComponent(ship, "missionDetails", {
-        patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)]
+        patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)],
+        mission: MissionType.Patrol
       })
       this.lastSpawnCount += 1
     }

@@ -47,6 +47,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
   scaleBox: Mesh
   cameraEntity: Entity
   ship: Entity
+  ships: Entity[] = []
 
   debouncer = new DebounceTimedMulti()
 
@@ -124,11 +125,33 @@ export class ModelViewerScene implements GameScene, IDisposable {
     this.ship = model1
     // this.ship.ai.type = undefined
 
-    let model2 = createShip(EnemyMedium01, -50, 0, 0, 1, 1);
+    let model2 = createShip(EnemyMedium01, -50, 0, 0, 2, 1);
     world.addComponent(model2, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
     })
+
+    let model3 = createShip(EnemyMedium02, -50, 0, 0, 2, 1);
+    world.addComponent(model3, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    let model4 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    world.addComponent(model4, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    let model5 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    world.addComponent(model5, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    let model6 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    world.addComponent(model6, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    this.ships.push(model1, model2, model3, model4, model5, model6)
     // world.addComponent(model2, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()]
     // })
@@ -200,11 +223,8 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
     }
     if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A) && world.has(this.ship)) {
-      if (this.ship.ai.type == undefined) {
-        this.ship.ai.type = "demoLeader"
-      } else {
-        this.ship.ai.type = undefined
-        this.ship.ai.blackboard = {}
+      for (const ship of this.ships) {
+        ship.ai.blackboard.intelligence.objective = "BreakFormation"
       }
     }
     if (kbd?.getInput(KeyboardMap.T) && this.debouncer.tryNow(KeyboardMap.T)) {

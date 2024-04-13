@@ -1,4 +1,4 @@
-import { BreakLeftData, BreakRightData, HeadingManeuverData, FishHookData, FlipData, LoopData, SmallWaggleData } from '../../../data/maneuvers/headingManeuvers';
+import { BreakLeftData, BreakRightData, HeadingManeuverData, FishHookData, FlipData, LoopData, SmallWaggleData, VeerOffDownLeftData, VeerOffDownRightData, VeerOffUpLeftData, VeerOffUpRightData } from '../../../data/maneuvers/headingManeuvers';
 import { AngleBetweenVectors, QuaternionFromObj, ToDegree, ToRadians, Vector3FromObj, isPointBehind } from "../../../utils/math";
 import { MovementCommand, AIBlackboard, Entity, world, queries, FireCommand } from "../../world";
 import { ManeuverType, MissionType, NearDistance, ObjectiveType, STRIKE, StateOfConfrontation, StateOfHealth } from "./engagementState";
@@ -11,6 +11,14 @@ import { SteeringHardNormalizeClamp, SteeringSoftNormalizeClamp } from "./basicS
 import * as Ships from "../../../data/ships"
 import { ShipDetails } from "../../../data/ships/shipDetails"
 
+
+const PlanarUp = Vector3.Up()
+const BreakFormationPattern = [
+  VeerOffUpRightData,
+  VeerOffUpLeftData,
+  VeerOffDownRightData,
+  VeerOffDownLeftData
+];
 type intelligenceBlackboard = {
   intelligence: {
     mission: MissionType,
@@ -98,9 +106,9 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
           const formationPlace = leader.wingleader.wingmen.length
           let offset: Vector3
           if (formationPlace % 2 == 0) {
-            offset = new Vector3(50, 0, 0)
-          } else {
             offset = new Vector3(-50, 0, 0)
+          } else {
+            offset = new Vector3(50, 0, 0)
           }
           // [l, fr, fl, ffr, ffl, fffr, fffl]
           console.log(`[ShipIntelligence][Wingman] Ship ${world.id(entity)} forming up on ${world.id(followEntity)}, team ${followEntity.teamId}, group ${followEntity.groupId}`)
@@ -134,8 +142,17 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
       break;
     }
     case "BreakFormation": {
-      // TODO: we should veer off left or right based on our position in the wingman list
+      // we should veer off left or right based on our position in the wingman list
       if (blackboard.breakFormation == undefined) {
+        let leaderEntity: Entity
+        let checkBoard = blackboard
+        while (checkBoard.holdFormation?.leader != undefined) {
+          leaderEntity = world.entity(checkBoard.holdFormation.leader)
+          checkBoard = leaderEntity.ai.blackboard
+        }
+        const ourPosition = leaderEntity.wingleader.wingmen.indexOf(world.id(entity))
+        const remainder = (ourPosition - 1) % BreakFormationPattern.length;
+        const veeringData = BreakFormationPattern[remainder];
         console.log(`[ShipIntelligence][Wingman] Ship ${world.id(entity)} breaking formation!`)
         blackboard.breakFormation = {
           holdState: {     
@@ -143,8 +160,8 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
             headingHoldLength: 0,
             headingIndex: 0
           } as SteeringBehaviours.HeadingHoldState,
-          headings: VeerOffData.headings,
-          timings: VeerOffData.timings
+          headings: veeringData.headings,
+          timings: veeringData.timings
         }
       }
       const maneuverBlackboard = blackboard.breakFormation
@@ -160,11 +177,11 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
         deltaSpeed: 0
       }
       world.update(entity, "movementCommand", movementCommand)
-      if (blackboard.holdState.finished == true) {
+      if (blackboard.breakFormation.holdState.finished == true) {
         console.log(`[ShipIntelligence][Wingman] Ship ${world.id(entity)} break off complete!`)
         blackboard.breakFormation = undefined
         entity.ai.blackboard.intelligence.maneuver = undefined
-        blackboard.objective = ObjectiveType.Engage
+        blackboard.intelligence.objective = ObjectiveType.Engage
       }
       break;
     }
@@ -242,7 +259,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
       }
       const deltaSpeed = (entity.setSpeed ?? 0) < 350 ? 1 : -1
       // wander around
-      const input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, blackboard.lookout.checkpoint, SteeringSoftNormalizeClamp)
+      const input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, blackboard.lookout.checkpoint, PlanarUp, SteeringSoftNormalizeClamp)
       const movementCommand: MovementCommand = {
         pitch: input.pitch,
         yaw: input.yaw,
@@ -266,7 +283,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         return
       }
       // head back to patrol point
-      let input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, entity.missionDetails.patrolPoints[0], SteeringSoftNormalizeClamp)
+      let input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, entity.missionDetails.patrolPoints[0], PlanarUp, SteeringSoftNormalizeClamp)
       let deltaSpeed = (entity.setSpeed ?? 0) < 350 ? 1 : -1
       const movementCommand: MovementCommand = {
         pitch: input.pitch,
@@ -350,7 +367,6 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   blackboard.intelligence.stateOfHealth = stateOfHealth
 
   //// Check State of Confrontation
-  
 
   /// Enemy Destroyed
   if (blackboard.targeting.target == undefined || 
@@ -359,7 +375,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   {
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.EnemyDestroyed
     execute(entity, blackboard, entity.ai.executionTree.EnemyDestroyed[stateOfHealth])
-    if (blackboard.veerOff.holdState.finished) {
+    if (blackboard.veerOff == undefined) { // veer finished
       blackboard.intelligence.objective = undefined
       blackboard.intelligence.tactic = undefined
     }

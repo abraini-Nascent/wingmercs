@@ -85,6 +85,42 @@ export const VeerOffData: HeadingManeuverData = {
     1500
   ]
 }
+/** veer forward up right for 1.5 seconds */
+export const VeerOffUpRightData: HeadingManeuverData = {
+  headings: [
+    new Vector3(2, -1, 2)
+  ],
+  timings: [
+    1500
+  ]
+}
+/** veer forward up left for 1.5 seconds */
+export const VeerOffUpLeftData: HeadingManeuverData = {
+  headings: [
+    new Vector3(-2, -1, 2)
+  ],
+  timings: [
+    1500
+  ]
+}
+/** veer forward down right for 1.5 seconds */
+export const VeerOffDownRightData: HeadingManeuverData = {
+  headings: [
+    new Vector3(2, 1, 2)
+  ],
+  timings: [
+    1500
+  ]
+}
+/** veer forward down left for 1.5 seconds */
+export const VeerOffDownLeftData: HeadingManeuverData = {
+  headings: [
+    new Vector3(-2, 1, 2)
+  ],
+  timings: [
+    1500
+  ]
+}
 
 /** break left for 1.5 seconds */
 export const BreakLeftData: HeadingManeuverData = {
