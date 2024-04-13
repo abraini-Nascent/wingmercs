@@ -12,7 +12,7 @@ random.seed = 1
  * @param {*} min 
  * @param {*} max 
  */
-function rand(min, max) {
+function rand(min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min
 }
 /**
@@ -20,11 +20,11 @@ function rand(min, max) {
  * @param {*} min 
  * @param {*} max 
  */
-function randFloat(min, max) {
+function randFloat(min: number, max: number): number {
   return random() * (max - min) + min
 }
 
-function randomItem(array) {
+function randomItem<T>(array: T[]) {
   return array[Math.floor(random() * array.length)]
 }
 function chance(chance) {
@@ -100,7 +100,7 @@ class RNG {
    * @param {any[]} items an array of the items matching the weight by index
    * @returns {number|any} the selected index or item if items supplied
    */
-  rouletteSelectionStochastic(weights, items) {
+  rouletteSelectionStochastic<T>(weights: number[], items: T[]): T | number {
     if (weights == undefined || weights.length == 0) {
       throw new Error("rouletteSelectionStochastic must be called with an array of numbers as the first parameter")
     }
@@ -126,7 +126,7 @@ class RNG {
  * @param {number[]} items an array of weights, the index of the weights should corrispond to the weighted items
  * @returns {number} the selected index
  */
-function RouletteSelectionStochastic(items) {
+function RouletteSelectionStochastic(items: number[]) {
   let max = 0
   let index = -1
   for (let fitness of items)

@@ -1,3 +1,4 @@
+import { ExecutionTree, MissionType } from './systems/ai/engagementState';
 import {
   IDisposable,
   InstancedMesh,
@@ -5,9 +6,11 @@ import {
   PhysicsBody,
   TrailMesh,
   TransformNode,
+  Vector3,
 } from "@babylonjs/core"
 import { World } from "miniplex"
 import { net } from "../net"
+import { AIType } from "./systems/ai/aiSystem"
 
 export type MovementCommand = {
   pitch: number
@@ -55,7 +58,6 @@ export type ShipGuns = {
   selected: number,
   groups: number[][],
 }
-export type AIType = "basicCombat" | "deathRattle" | "demoLoop"
 export type ShipSystems = {
   quadrant: {
     fore: {
@@ -145,8 +147,23 @@ export type Score = {
   timeLeft: number
   livesLeft: number
 }
+export type AIBlackboard = { [key: string]: any }
+export type HitsTracked = {
+  hitCount: number
+  hitCountRecent: number
+  recentResetCountdown: number
+  hits: { shooter: number; victim: number; }[]
+}
+export type MissionDetails = {
+  mission: MissionType
+  patrolPoints: Vector3[]
+}
+// TODO: organize this... :S
 export type Entity = {
-  ai?: { type: AIType; blackboard: { [key: string]: any } }
+  ai?: { type: AIType; executionTree?: ExecutionTree, blackboard: AIBlackboard }
+  teamId?: number
+  groupId?: number
+  wingleader?: { wingmen: number[] }
   targetName?: string
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
@@ -178,6 +195,7 @@ export type Entity = {
   meshColor?: { r: number; g: number; b: number; a: number }
   meshInstance?: InstancedMesh
   movementCommand?: MovementCommand
+  missionDetails?: MissionDetails
   nerdStats?: NerdStats
   fireCommand?: FireCommand
   trail?: true
@@ -223,6 +241,7 @@ export type Entity = {
   systemsDamaged?: boolean
   score?: Score
   armor?: ShipArmor
+  hitsTaken?: HitsTracked
   vduState?: VDUState
   deathRattle?: boolean
   particleRange?: {
@@ -278,6 +297,7 @@ export const queries = {
   deathComes: world.with("deathRattle"),
   damageable: world.with("health"),
   cameras: world.with("camera"),
+  hits: world.with("hitsTaken"),
   missileEngine: world.with("missileEngine", "node"),
 }
 

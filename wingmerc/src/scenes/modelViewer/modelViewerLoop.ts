@@ -10,7 +10,7 @@ import { Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '
 import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
 import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
 import { engineRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
-import { aiSystem } from '../../world/systems/aiSystem';
+import { aiSystem } from '../../world/systems/ai/aiSystem';
 import { moveSystem} from '../../world/systems/moveSystem';
 import { rotationalVelocitySystem } from '../../world/systems/rotationalVelocitySystem';
 import { radarTargetingSystem } from '../../world/systems/shipSystems/radarTargetingSystem';
@@ -39,6 +39,7 @@ import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/after
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 
 const divFps = document.getElementById("fps");
+
 const Radius = 500;
 export class ModelViewerScene implements GameScene, IDisposable {
 
@@ -64,6 +65,9 @@ export class ModelViewerScene implements GameScene, IDisposable {
     systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
   constructor() {
+    divFps.style.height = "175px"
+    divFps.style.textAlign = "left"
+    divFps.style.width = "150px"
     const appContainer = AppContainer.instance
     this.screen = new ModelViewerScreen()
     // let box = MeshBuilder.CreateBox("Scale Box", { size: 100 }, AppContainer.instance.scene)
@@ -111,22 +115,33 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   setup() {
 
-    let model = createShip(Dirk, -100, 0, 0);
-    world.update(model, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    this.ship = model
-    this.ship.ai.type = undefined
+    let model1 = createShip(Dirk, -100, 0, 0, 2, 1);
+    world.addComponent(model1, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    // world.update(model, "ai", { type: "demoLeader", blackboard: model.ai.blackboard })
+    this.ship = model1
+    // this.ship.ai.type = undefined
 
-    let model2 = createShip(EnemyMedium01, -50, 0, 0);
-    world.update(model2, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    model2.ai.type = undefined
+    let model2 = createShip(EnemyMedium01, -50, 0, 0, 1, 1);
+    world.addComponent(model2, "missionDetails", {
+      patrolPoints: [Vector3.Zero()],
+      mission: "Patrol"
+    })
+    // world.addComponent(model2, "missionDetails", {
+    //   patrolPoints: [Vector3.Zero()]
+    // })
+    // world.update(model2, "ai", { type: "demoWingman", blackboard: model.ai.blackboard })
+    // model2.ai.type = undefined
 
-    let model3 = createShip(EnemyMedium02, 50, 0, 0);
-    world.update(model3, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    model3.ai.type = undefined
+    // let model3 = createShip(EnemyMedium02, 50, 0, 0);
+    // world.update(model3, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
+    // model3.ai.type = undefined
 
-    let model4 = createShip(EnemyHeavy01, 100, 0, 0);
-    world.update(model4, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    model4.ai.type = undefined
+    // let model4 = createShip(EnemyHeavy01, 100, 0, 0);
+    // world.update(model4, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
+    // model4.ai.type = undefined
 
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(10)
@@ -186,9 +201,10 @@ export class ModelViewerScene implements GameScene, IDisposable {
     }
     if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A) && world.has(this.ship)) {
       if (this.ship.ai.type == undefined) {
-        this.ship.ai.type = "demoLoop"
+        this.ship.ai.type = "demoLeader"
       } else {
         this.ship.ai.type = undefined
+        this.ship.ai.blackboard = {}
       }
     }
     if (kbd?.getInput(KeyboardMap.T) && this.debouncer.tryNow(KeyboardMap.T)) {
@@ -272,5 +288,11 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
     scene.render()
     divFps.innerHTML = engine.getFps().toFixed() + " fps";
+    divFps.innerHTML += "<br/>mission: " +this.ship.ai.blackboard.intelligence.mission
+    divFps.innerHTML += "<br/>objective: " +this.ship.ai.blackboard.intelligence.objective
+    divFps.innerHTML += "<br/>tactic: " +this.ship.ai.blackboard.intelligence.tactic
+    divFps.innerHTML += "<br/>SoH: " +this.ship.ai.blackboard.intelligence.stateOfHealth
+    divFps.innerHTML += "<br/>SoC: " +this.ship.ai.blackboard.intelligence.stateOfConfrontation
+    divFps.innerHTML += "<br/>maneuver: " +this.ship.ai.blackboard.intelligence.maneuver
   };
 }

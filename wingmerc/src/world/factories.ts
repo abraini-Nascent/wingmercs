@@ -1,10 +1,10 @@
 import { ShipDetails } from "../data/ships/shipDetails"
 import * as Guns from "../data/guns"
 import { Gun } from "../data/guns/gun"
-import { ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "./world"
+import { Entity, ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "./world"
 import { net } from "../net"
 
-export function createShip(ship: ShipDetails, x: number, y: number, z: number) {
+export function createShip(ship: ShipDetails, x: number, y: number, z: number, teamId?: number, groupId?): Entity {
   console.log(`[CreateShip] creating new ship ${ship.name}`)
   const gunMounts = ship.guns.reduce((guns, gun, index) => {
     const gunClass = Guns[gun.type] as Gun
@@ -86,7 +86,9 @@ export function createShip(ship: ShipDetails, x: number, y: number, z: number) {
   const enemyEntity = world.add({
     owner: net.id,
     local: true,
-    ai: { type: "basicCombat", blackboard: {} },
+    teamId: teamId,
+    groupId: groupId,
+    ai: { type: "shipIntelegence", blackboard: {} },
     meshName: ship.modelDetails.base,
     shieldMeshName: ship.modelDetails.shield,
     physicsMeshName: ship.modelDetails.physics,

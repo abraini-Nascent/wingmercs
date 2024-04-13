@@ -5,7 +5,7 @@ import { Entity, queries, world } from "../../world/world";
 import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
 import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
 import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
-import { aiSystem } from "../../world/systems/aiSystem";
+import { aiSystem } from "../../world/systems/ai/aiSystem";
 import {  moveSystem, } from "../../world/systems/moveSystem";
 import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
 import { radarTargetingSystem } from "../../world/systems/shipSystems/radarTargetingSystem";
@@ -42,8 +42,9 @@ export class MainMenuScene implements IDisposable {
   demoShips = new Set<Entity>()
   camera: TargetCamera
 
-  shipFirst: Entity
-  shipSecond: Entity
+  teamA = new Set<Entity>()
+  teamB = new Set<Entity>()
+  teamC = new Set<Entity>()
 
   // systems
   missileEngineSoundSystem = new MissileEngineSoundSystem()
@@ -78,8 +79,12 @@ export class MainMenuScene implements IDisposable {
 
     queries.deathComes.onEntityAdded.subscribe(this.onDeath)
 
-    this.shipFirst = this.addShip()
-    this.shipSecond = this.addShip()
+    const teams = [this.teamA,this.teamB,this.teamB]
+    teams.forEach((team, teamId) => {
+      for (let i = 0; i < 1; i += 1) {
+        team.add(this.addShip(teamId + 1))
+      }
+    })
     MusicPlayer.instance.playSong("happy")
   }
 
@@ -123,19 +128,26 @@ export class MainMenuScene implements IDisposable {
 
   onDeath = (entity: Entity) => {
     this.demoShips.delete(entity)
-    if (this.shipFirst == entity) {
-      this.shipFirst = this.shipSecond
-      this.shipSecond = undefined
-    } else if (this.shipSecond == entity) {
-      this.shipSecond = undefined
+    if (this.teamA.has(entity)) {
+      this.teamA.delete(entity)
+      this.teamA.add(this.addShip(1))
+    } else if (this.teamB.has(entity)) {
+      this.teamB.delete(entity)
+      this.teamB.add(this.addShip(2))
+    } else if (this.teamC.has(entity)) {
+      this.teamC.delete(entity)
+      this.teamC.add(this.addShip(3))
     }
-    this.shipSecond = this.addShip()
   }
 
-  addShip(): Entity {
+  addShip(team: number): Entity {
     const shipClass: ShipDetails = Ships[randomItem(ShipClasses)]
     const newPosition = pointInSphere(4000, undefined, TmpVectors.Vector3[0])
-    let newShip = createShip(shipClass, newPosition.x, newPosition.y, newPosition.z)
+    let newShip = createShip(shipClass, newPosition.x, newPosition.y, newPosition.z, team, 1)
+    world.addComponent(newShip, "missionDetails", {
+      patrolPoints: [new Vector3(0,0,0)],
+      mission: "Patrol"
+    })
     this.demoShips.add(newShip)
     return newShip
   }
@@ -169,9 +181,13 @@ export class MainMenuScene implements IDisposable {
 
   cameraSystem() {
     // Calculate the center point between the two nodes
-    const firstPosition = Vector3FromObj(this.shipFirst.position, TmpVectors.Vector3[0])
-    const secondPosition = Vector3FromObj(this.shipSecond.position, TmpVectors.Vector3[1])
-    console.log(firstPosition, secondPosition)
+    // follow cam
+    const first = Array.from(this.teamA.keys())[0]  // this is heavy handed...
+    const second = Array.from(this.teamB.keys())[0]
+    const firstPosition = Vector3FromObj(first.position, TmpVectors.Vector3[0])
+    const firstDirection = Vector3FromObj(first.direction)
+    const secondPosition = Vector3FromObj(second.position, TmpVectors.Vector3[1])
+    // console.log(firstPosition, secondPosition)
     const center = Vector3.Center(firstPosition, secondPosition);
 
     // Calculate the distance between the two nodes
@@ -187,6 +203,12 @@ export class MainMenuScene implements IDisposable {
     let newPosition = this.camera.position.subtract(center).normalize().scale(requiredDistance);
     newPosition.set(Math.abs(newPosition.x), Math.abs(newPosition.y), Math.abs(newPosition.z))
     newPosition = center.subtract(newPosition)
+
+
+    const behind = firstDirection.multiplyByFloats(-1, -1, -1).multiplyByFloats(150,150,150).addInPlace(firstPosition)
+    this.camera.position.copyFrom(behind)
+    this.camera.setTarget(firstPosition)
+    return
     // let newPosition = TmpVectors.Vector3[2]
     // newPosition.copyFrom(this.camera.position)
     // newPosition.y = center.y + requiredDistance

@@ -1,7 +1,7 @@
 import { DriftSoundSystem } from './../../world/systems/soundSystems/driftSoundSystem';
 import { GameScene } from './../gameScene';
 import { AppContainer } from "../../app.container";
-import { aiSystem } from "../../world/systems/aiSystem";
+import { aiSystem } from "../../world/systems/ai/aiSystem";
 import { cameraSystem } from "../../world/systems/renderSystems/cameraSystem";
 import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
 import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
@@ -39,8 +39,9 @@ import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterbu
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
-import { IDisposable } from '@babylonjs/core';
+import { IDisposable, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
+import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -73,6 +74,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   driftSoundSystem = new DriftSoundSystem()
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
+  hitTrackerSystem = new HitTrackerSystem()
 
   combatEntities = new Set<Entity>()
 
@@ -124,6 +126,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.driftSoundSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
+    this.hitTrackerSystem.dispose()
 
     // reset cursor
     document.body.style.cursor = "auto";
@@ -208,8 +211,12 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       const z = r * Math.cos(theta);
       const playerEntityPosition = AppContainer.instance.player.playerEntity.position
       // add enemy ship
-      const ship = Ships[ShipProgression[this.shipTypeIndex]]
-      createShip(ship, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z)
+      const shipDetails = Ships[ShipProgression[this.shipTypeIndex]]
+      const ship = createShip(shipDetails, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z, 2, 1)
+      // patrol around the players position
+      world.addComponent(ship, "missionDetails", {
+        patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)]
+      })
       this.lastSpawnCount += 1
     }
   }
@@ -264,6 +271,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     particleSystem()
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
+    this.hitTrackerSystem.update(delta)
     // if (appContainer.server) {
     //   netSyncServerSystem(delta)
     // } else {

@@ -112,6 +112,8 @@ export class PlayerAgent {
     const playerEntity = world.add({
       owner: net.id,
       local: true,
+      teamId: 1,
+      groupId: 1,
       targetName: "player",
       meshName: Dirk.modelDetails.base,
       visible: false,

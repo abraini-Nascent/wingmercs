@@ -23,6 +23,10 @@ export class AppContainer {
         }
       }
     }
+    const debugValue = urlParams.get('debug');
+    if (debugValue) {
+      this.debug = true
+    }
   }
   env: "browser" | "desktop" | "mobile" = "browser"
   player: PlayerAgent
@@ -37,6 +41,7 @@ export class AppContainer {
   onHavokPlugin: Observable<HavokPlugin> = new Observable()
   world = world
   queries = queries
+  debug: boolean = false
   get havokPlugin(): HavokPlugin {
     return this._havokPlugin
   }

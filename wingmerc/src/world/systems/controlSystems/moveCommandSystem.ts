@@ -40,12 +40,13 @@ export function moveCommandSystem(dt: number) {
         let pitchSpeed = Math.max(40, shipTemplate.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
         let yawSpeed   = Math.max(40, shipTemplate.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
         let rollSpeed  = Math.max(40, shipTemplate.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
+        // Positive for roll left, negative for roll right
+        const deltaRoll = (((rollSpeed * (movementCommand.roll ?? 0))) / 1000) * dt;
         // Positive for down, negative for up
         const deltaPitch = (((pitchSpeed * (movementCommand.pitch ?? 0))) / 1000) * dt;
         // Positive for right, negative for left
         const deltaYaw = (((yawSpeed * (movementCommand.yaw ?? 0))) / 1000) * dt;
-        // Positive for roll left, negative for roll right
-        const deltaRoll = (((rollSpeed * (movementCommand.roll ?? 0))) / 1000) * dt;
+        
         // call modify method
         rotationalVelocity.pitch = deltaPitch
         rotationalVelocity.yaw = deltaYaw

@@ -129,7 +129,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           SoundEffects.SystemHit(hitEntityPosition.clone())
           if (hitEntity.barkedSpooked == undefined && Scalar.RandomRange(0, 1) > 0.5) {
             world.addComponent(hitEntity, "barkedSpooked", true)
-            let bark: { english: string; ipa: string; sam: string; } = randomItem(barks.enemySpooked)
+            let bark: { english: string; ipa: string; sam?: string; } = randomItem(barks.enemySpooked)
             setTimeout(() => { 
               const sound = VoiceSound(bark.ipa, SAM)
               sound.maxDistance = 10000

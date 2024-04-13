@@ -57,10 +57,6 @@ export class CombatHud {
   constructor() {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
     this.gui = advancedTexture
-    let interceptor = AppContainer.instance.pipeline.addInterceptor("registerHit", (input) => {
-
-      return input
-    })
     this.registerHitInterceptor = interceptEvent("registerHit", (input: { victim: number, shooter: number }) => {
       if (input.victim == world.id(AppContainer.instance.player.playerEntity)) {
         this.hitPlayer.add(input.shooter)

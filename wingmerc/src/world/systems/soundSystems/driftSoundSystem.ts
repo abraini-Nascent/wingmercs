@@ -40,5 +40,4 @@ export class DriftSoundSystem implements IDisposable {
         this.driftSounds.delete(entity)
       }
   }
-
 }

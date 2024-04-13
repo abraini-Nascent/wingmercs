@@ -1,4 +1,4 @@
-import { Matrix, Quaternion, Vector3 } from "@babylonjs/core";
+import { Curve3, Matrix, Quaternion, Vector3 } from "@babylonjs/core";
 import { random } from "./random";
 
 export function DegreeToRadian(degrees: number): number {
@@ -42,7 +42,7 @@ export function ToRadians(degrees) {
   return degrees * (Math.PI / 180)
 }
 
-// unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180
+/** unsigned angle in radians between two vectors, smallest possible angle, between 0 and 180 */
 export function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number {
   // Calculate the dot product of normalized vectors
   const dotProduct = Vector3.Dot(vector1.normalize(), vector2.normalize());
@@ -55,6 +55,114 @@ export function AngleBetweenVectors(vector1: Vector3, vector2: Vector3): number 
 
   return angleRadians;
 }
+
+/** calculates the rotational quaternion needed to rotate a forward vector to match the velocity vector. forward is assumed to be Vector3.Forward() */
+export function rotationFromVelocity(velocity: Vector3): Quaternion {
+  // Get the forward vector (assumed to be Vector3.Forward())
+  const forward = Vector3.Forward();
+
+  // Calculate the angle between the forward vector and the velocity vector
+  const angle = Math.acos(Vector3.Dot(forward.normalize(), velocity.normalize()));
+
+  // Calculate the axis of rotation using cross product
+  const axis = Vector3.Cross(forward, velocity).normalize();
+
+  // Construct the rotation quaternion
+  const rotation = Quaternion.RotationAxis(axis, angle);
+
+  return rotation;
+}
+/** determine if a second point is behind the first point */
+export function isPointBehind(
+  firstPosition: Vector3,
+  firstVelocity: Vector3,
+  secondPosition: Vector3
+): boolean {
+  // Calculate vector from first point to second point
+  const directionVector = secondPosition.subtract(firstPosition);
+
+  // Check if the direction vector aligns with the velocity vector
+  return Vector3.Dot(directionVector, firstVelocity) < 0;
+}
+
+/** find lerp to point along curve: WARN this can be computationally intense */
+export function getCurvePoint(curve: Curve3, at: number) {
+  let curvePoints = curve.getPoints();
+  let curveLength = curve.length();
+  let previousPoint = curvePoints[0];
+  let currentPoint: Vector3;
+  let currentLength = 0;
+  let targetLength = at * curveLength;
+
+  for (let i = 0; i < curvePoints.length; i++) {
+      currentPoint = curvePoints[i];
+      let distance = Vector3.Distance(previousPoint, currentPoint);
+      currentLength += distance;
+      if (currentLength === targetLength) {
+          return currentPoint.clone();
+      } else if (currentLength > targetLength) {
+          let toLength = currentLength - targetLength;
+          let diff = toLength / distance;
+          let dir = previousPoint.subtract(currentPoint);
+          return currentPoint.add(dir.scale(diff));
+      }
+      previousPoint = currentPoint;
+  }
+  return Vector3.Zero();
+}
+
+/** Function to find the closest point on a line segment to a given point */
+export function closestPointOnLineSegment(point: Vector3, lineStart: Vector3, lineEnd: Vector3): Vector3 {
+  const lineDirection = lineEnd.subtract(lineStart);
+  const lineLengthSquared = lineDirection.lengthSquared();
+
+  if (lineLengthSquared === 0) {
+    // If the line segment has zero length, return the start point
+    return lineStart.clone();
+  }
+
+  // Calculate the parameter t for the closest point on the line
+  const t = Vector3.Dot(point.subtract(lineStart), lineDirection) / lineLengthSquared;
+
+  if (t < 0) {
+    // Closest point is beyond the 'lineStart' end of the line segment
+    return lineStart.clone();
+  } else if (t > 1) {
+    // Closest point is beyond the 'lineEnd' end of the line segment
+    return lineEnd.clone();
+  } else {
+    // Closest point is within the line segment
+    const closestPointOnLine = lineStart.add(lineDirection.scale(t));
+    return closestPointOnLine;
+  }
+}
+
+/** Function iterates through each segment of the curve, finding the closest point along the curve to the provided point */
+export function closestPointOnCurve(point: Vector3, curve: Curve3): Vector3 {
+  let minDistanceSquared = Number.MAX_VALUE;
+  let closestPoint = new Vector3();
+
+  // Iterate over each segment in the curve
+  for (let i = 0; i < curve.getPoints().length - 1; i++) {
+    const lineStart = curve.getPoints()[i];
+    const lineEnd = curve.getPoints()[i + 1];
+
+    // Find closest point on the current segment
+    const closestPointOnSegment = closestPointOnLineSegment(point, lineStart, lineEnd);
+
+    // Calculate squared distance to the target point
+    const distanceSquared = Vector3.DistanceSquared(closestPointOnSegment, point);
+
+    // Update the closest point if necessary
+    if (distanceSquared < minDistanceSquared) {
+      minDistanceSquared = distanceSquared;
+      closestPoint.copyFrom(closestPointOnSegment);
+    }
+  }
+
+  return closestPoint;
+}
+
 
 /** Function to calculate lead for intercepting a moving target */
 export function firstOrderIntercept(

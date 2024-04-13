@@ -55,6 +55,66 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] high score doesn't seem to be saved
 - [x] volume is to loud
 ## TODO:
+### next demo
+- [] joystick controls
+- [] VR controls
+- [] configurable input
+- [] rebuild ai: https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
+  - [x] pursuit
+  - [x] offset pursuit
+  - [x] arrival
+  - [x] flee
+  - [x] collisions
+    - [x] obstacle avoidance
+    - [x] unaligned collision avoidance
+  - [x] path following
+    - [ ] test path following
+  - [x] pre-defined maneuvers
+  - [x] action state tree
+    - [ ] test action state tree
+  - [x] ai personalities
+    - [ ] test personalities
+    - [ ] build more personalities
+  - [ ] offset / pursuit should match target "up"
+  - [ ] pre defined maneuvers can describe "up" of maneuver heading
+  - [x] add group ids for patrols so we can have multiple wings on the same team
+### next demo
+- [] fullish weapons list
+- [] fullish guns list
+- [] fullish ships list (add more player ships)
+- [] drop in system types (engines, power plants, shields)
+- [] configurable ships
+- [] configurable enemies
+- [] ship viewer
+- [] models for weapons
+- [] polish and juice
+### next demo
+- [] dynamic missions - instant action mode
+- [] polish and juice
+### next demo
+- [] purchase and maintain ships
+- [] purchase and maintain personal
+- [] polish and juice
+### next demo
+- [] ai nuance
+- [] polish and juice
+### next demo
+- [] capitol ships
+- [] polish and juice
+### next demo
+- [] 3d cockpits
+### next demo
+- [] carrier ships
+- [] space stations
+### v1.0 full release feature complete
+- [] configurable missions
+- [] mission selection
+### v1.1 distribute and .... profit?
+- [] native code capability
+- [] release on app stores
+- [] release on quest
+- [] release on steam
+## Finished releases
 ### initial publish of demo
 - [x] flight model
   - [x] afterburner slide
@@ -93,8 +153,6 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
   - [x] display player time to lock in hud
 - [x] space debris particle system for movement detection
 - [x] ai vs ai dogfighting demo mode
-- [ ] rebuild ai
-  - https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
 - [x] dynamically load ship stats from data files (unhardcode values)
 - [x] basic hud
   - [x] radar in hud
@@ -107,7 +165,7 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] respawn killed ships
 - [x] heal player every three dead ships
 - [x] rebuild main menu
-  - [x] make buttons more jucy
+  - [x] make buttons more juicy
 - [x] game over screen
   - [x] restart button
   - [x] make sure memory footprint is clear on restarts
@@ -174,58 +232,29 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] settings menu for volume
 - [x] controller input help menu
 
-### next demo
-- [] joystick controls
-- [] vr controls
-- [] configurable input
-- [] rebuild ai
-### next demo
-- [] fullish weapons list
-- [] fullish guns list
-- [] drop in system types (engines, power plants, shields)
-- [] configurable ships
-- [] configurable enemies
-- [] ship viewer
-- [] polish and juice
-### next demo
-- [] dynamic missions horde mode
-- [] polish and juice
-### next demo
-- [] purchase and maintain ships
-- [] purchase and maintain personal
-- [] polish and juice
-### next demo
-- [] ai overhaul
-- [] polish and juice
-### next demo
-- [] capitol ships
-- [] polish and juice
-### next demo
-- [] 3d cockpits
-### next demo
-- [] carrier ships
-- [] space stations
-### v1.0 full release feature complete
-- [] configurable missions
-- [] mission selection
-### v1.1 distribute and profit
-- [] native code capability
-- [] release on app stores
-- [] release on quest
-- [] release on steam
-
-
-oh give me a ship
-with a jump drive equip'd
-and the cargo hold filled to the brim
-
-the confed be damn
-cause the miners demand
+oh give me a ship, with a jump drive equip'd
+and with the cargo hold packed i'll go
+the confed be damn, 'cause the miners demand
 that the beer in my cargo hold flow
 
-home, home in the ink
-where the stars and the nebula shine
+long hauling in space, in the endless expanse do I go
+the confed be damn, 'cause the miners demand
+that the beer in my cargo hold flow
 
-i'll do one more job
-just a quick 5 jump run
+through asteroid belts wide, and nebulas i'll glide
+i'll haul every ounce that i know
+with stars as my guide, and contraband inside
+i'll navigate space high and low
+
+long hauling in space, in the endless expanse do I go
+the confed be damn, 'cause the miners demand
+that the beer in my cargo hold flow
+
+for my cargo hold's stash, is a contraband cache
+and the pirates will eat my exhaust
+i'll do one more haul, just a quick 5 jump sprawl
 and maybe even cover the cost
+
+long hauling in space, in the endless expanse do I go
+the confed be damn, 'cause the miners demand
+that the beer in my cargo hold flow

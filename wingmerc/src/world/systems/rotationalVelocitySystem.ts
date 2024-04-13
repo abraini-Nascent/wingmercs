@@ -19,6 +19,7 @@ export function rotationalVelocitySystem() {
     var axis = new Vector3(0, 0, -1);
     var partRotQuat  = new Quaternion();
 
+    // Roll last so that roll doesn't affect pitch and yaw input
     Quaternion.RotationAxisToRef(axis, ToRadians(roll), partRotQuat);
     (rotationQuaternionB as Quaternion).multiplyInPlace(partRotQuat);
 
@@ -27,6 +28,8 @@ export function rotationalVelocitySystem() {
 
     Quaternion.RotationAxisToRef(axis.set(0, 1, 0), ToRadians(yaw), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
+
+    
     
     rotationQuaternionB.toEulerAnglesToRef(rotationVec);
 
