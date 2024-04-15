@@ -103,7 +103,7 @@ export const ManeuverType = {
 export type ManeuverType = typeof ManeuverType[keyof typeof ManeuverType];
 
 export const OffensiveManeuvers: ManeuverType[] = ["Strafe", "RollAndStrafe", "Tail"]
-export const DefensiveManeuvers: ManeuverType[] = ["BreakLeft", "BreakRight", "Burnout", "FishHook", "HardBrake", "Kickstop", "Shake", "ShakeRattleAndRoll", "TurnAndKick", "TurnAndSpin", "SitAndKick", "SitAndSpin", "TightLoop"]
+export const DefensiveManeuvers: ManeuverType[] = ["BreakLeft", "BreakRight", "Burnout", "FishHook", "HardBrake", "Kickstop", "Shake", "ShakeRattleAndRoll", "TurnAndKick", "TurnAndSpin", "SitAndKick", "TightLoop"]
 
 /**
  * The AI has three layers

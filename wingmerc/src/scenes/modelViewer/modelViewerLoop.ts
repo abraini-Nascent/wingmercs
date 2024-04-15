@@ -131,27 +131,27 @@ export class ModelViewerScene implements GameScene, IDisposable {
       mission: "Patrol"
     })
 
-    let model3 = createShip(EnemyMedium02, -50, 0, 0, 2, 1);
+    let model3 = createShip(EnemyMedium02, 0, 0, 2000, 1, 1);
     world.addComponent(model3, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
     })
-    let model4 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    world.addComponent(model4, "missionDetails", {
-      patrolPoints: [Vector3.Zero()],
-      mission: "Patrol"
-    })
-    let model5 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    world.addComponent(model5, "missionDetails", {
-      patrolPoints: [Vector3.Zero()],
-      mission: "Patrol"
-    })
-    let model6 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    world.addComponent(model6, "missionDetails", {
-      patrolPoints: [Vector3.Zero()],
-      mission: "Patrol"
-    })
-    this.ships.push(model1, model2, model3, model4, model5, model6)
+    // let model4 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // world.addComponent(model4, "missionDetails", {
+    //   patrolPoints: [Vector3.Zero()],
+    //   mission: "Patrol"
+    // })
+    // let model5 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // world.addComponent(model5, "missionDetails", {
+    //   patrolPoints: [Vector3.Zero()],
+    //   mission: "Patrol"
+    // })
+    // let model6 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // world.addComponent(model6, "missionDetails", {
+    //   patrolPoints: [Vector3.Zero()],
+    //   mission: "Patrol"
+    // })
+    this.ships.push(model1, model2, model3)//, model4, model5, model6)
     // world.addComponent(model2, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()]
     // })
@@ -219,8 +219,13 @@ export class ModelViewerScene implements GameScene, IDisposable {
       }
     }
     // "DOWN" [40]
-    if (kbd?.getInput(KeyboardMap.K)) {
-
+    if (kbd?.getInput(KeyboardMap.K) && this.debouncer.tryNow(KeyboardMap.K)) {
+      let shipIndex = this.ships.indexOf(this.ship)
+      let nextShip = shipIndex += 1
+      if (nextShip > this.ships.length-1) {
+        nextShip = 0
+      }
+      this.ship = this.ships[nextShip]
     }
     if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A) && world.has(this.ship)) {
       for (const ship of this.ships) {

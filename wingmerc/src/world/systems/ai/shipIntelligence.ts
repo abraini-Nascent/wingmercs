@@ -6,7 +6,7 @@ import { SteeringBehaviours, SteeringHardTurnClamp, SteeringResult } from "./ste
 import { TmpVectors, Vector3 } from "@babylonjs/core";
 import { RouletteSelectionStochastic, randFloat, randomItem } from '../../../utils/random';
 import { VeerOffData } from "../../../data/maneuvers/headingManeuvers";
-import { totalVelocityFrom } from "../../helpers";
+import { shipDetailsFrom, totalVelocityFrom } from "../../helpers";
 import { SteeringHardNormalizeClamp, SteeringSoftNormalizeClamp } from "./basicSteering";
 import * as Ships from "../../../data/ships"
 import { ShipDetails } from "../../../data/ships/shipDetails"
@@ -132,11 +132,13 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
         afterburner: input.boost ? 1 : 0,
         brake: 0,
         drift: 0,
-        deltaSpeed: input.throttle ?? 0,
+        deltaSpeed: input.boost ? 1 : input.throttle ?? 0,
       }
       world.update(entity, "movementCommand", movementCommand)
       // if leader is engaging we are engaging
       if (leaderEntity.ai.blackboard.intelligence.objective == ObjectiveType.Engage) {
+        blackboard.targeting.target = leaderEntity.ai.blackboard.targeting.target
+        console.log(`[ShipIntelligence][Wingman] Ship ${world.id(entity)} leader is engaged with ${blackboard.targeting.target}, backup coming!`)
         blackboard.intelligence.objective = ObjectiveType.BreakFormation
       }
       break;
@@ -324,6 +326,14 @@ const ApproachTarget = (entity: Entity, blackboard: AIBlackboard): number => {
   const input = SteeringBehaviours.pursuit(blackboard.dt, entity, targetEntity, SteeringHardNormalizeClamp)
   const distanceToTarget = Vector3FromObj(targetEntity.position, TmpVectors.Vector3[0])
   .subtractToRef(Vector3FromObj(entity.position, TmpVectors.Vector3[1]), TmpVectors.Vector3[2]).length()
+  const shipDetails = shipDetailsFrom(entity)
+  const targetSpeed = Math.floor(shipDetails.cruiseSpeed * 0.75)
+  let throttle = 0
+  if (entity.setSpeed < targetSpeed) {
+    throttle += 1
+  } else if (entity.setSpeed > targetSpeed) {
+    throttle -= 1
+  }
   let afterburner = 0
   if (distanceToTarget > 5000) {
     afterburner = 1
@@ -335,7 +345,7 @@ const ApproachTarget = (entity: Entity, blackboard: AIBlackboard): number => {
     afterburner,
     brake: 0,
     drift: 0,
-    deltaSpeed: 0,
+    deltaSpeed: throttle,
   }
   world.update(entity, "movementCommand", movementCommand)
   return distanceToTarget
@@ -412,7 +422,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   const targetInfront = isPointBehind(entityPosition, entityDirection, targetPosition) == false
   if (targetInfront) {
     const directionsAngle = AngleBetweenVectors(targetDirection, entityDirection)
-    console.log(`[ShipIntelligence] Ship ${world.id(entity)} on enemy tail angle ${ToDegree(directionsAngle)}!`)
+    // console.log(`[ShipIntelligence] Ship ${world.id(entity)} on enemy tail angle ${ToDegree(directionsAngle)}!`)
     if (directionsAngle <= ToRadians(TRAILING/2)) {
       blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.OnEnemyTail
       execute(entity, blackboard, entity.ai.executionTree.OnEnemyTail[stateOfHealth])
@@ -422,7 +432,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   /// HeadToHead
   if (targetInfront) {
     const directionsAngle = AngleBetweenVectors(targetDirection, entityDirection)
-    console.log(`[ShipIntelligence] Ship ${world.id(entity)} head to head angle ${ToDegree(directionsAngle)}!`)
+    // console.log(`[ShipIntelligence] Ship ${world.id(entity)} head to head angle ${ToDegree(directionsAngle)}!`)
     if (directionsAngle <= ToRadians(TRAILING/2)) {
       blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.HeadToHead
       execute(entity, blackboard, entity.ai.executionTree.HeadToHead[stateOfHealth])
@@ -444,7 +454,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
       continue
     }
     const directionsAngle = AngleBetweenVectors(entityDirection, enemyDirection) 
-    console.log(`[ShipIntelligence] Ship ${world.id(entity)} enemy tailing angle ${ToDegree(directionsAngle)} > ${TRAILING/2} : ${directionsAngle > ToRadians(TRAILING/2)}!`)
+    // console.log(`[ShipIntelligence] Ship ${world.id(entity)} enemy tailing angle ${ToDegree(directionsAngle)} > ${TRAILING/2} : ${directionsAngle > ToRadians(TRAILING/2)}!`)
     if (directionsAngle > ToRadians(TRAILING/2)) {
       continue
     }
@@ -579,11 +589,18 @@ namespace AIManeuvers {
     headingManeuver(entity, blackboard, "fishHook", FishHookData)
   }
 
+  const FLEE_DESPAWN_RANGE = 15000
   export const Flee = (entity: Entity, blackboard: AIBlackboard) => {
     const shipDetails = Ships[entity.planeTemplate] as ShipDetails
     if (blackboard.flee == undefined) {
       blackboard.flee = {}
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} fleeing!`)
+    }
+    let nearestEntity = nearestEnemy(entity, FLEE_DESPAWN_RANGE)
+    if (nearestEntity == undefined) {
+      // we have cleared the battlefield
+      world.remove(entity)
+      return
     }
     let movementCommand: MovementCommand = {
       pitch: 0,
