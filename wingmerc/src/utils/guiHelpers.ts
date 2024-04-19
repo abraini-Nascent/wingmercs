@@ -1,5 +1,6 @@
 import * as GUI from "@babylonjs/gui"
 import { Color4, DynamicTexture, ICanvasRenderingContext } from "@babylonjs/core";
+import Yoga, { Node, Edge, FlexDirection, PositionType, MeasureFunction, MeasureMode, Unit, Direction } from 'yoga-layout';
 
 export class TintedImage extends GUI.Image {
   private _tint: Color4
@@ -110,7 +111,7 @@ export class TextSizeAnimationComponent {
   }
 }
 
-export class DynamicTextureImage extends GUI.Rectangle{
+export class DynamicTextureImage extends GUI.Rectangle {
     
   private _dynamicTexture: DynamicTexture
 
@@ -130,5 +131,251 @@ export class DynamicTextureImage extends GUI.Rectangle{
     context.save()
     context.drawImage(canvas, this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height)
     context.restore();
+  }
+}
+
+export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-layout';
+export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
+export class FlexContainer {
+  private _node = Yoga.Node.create();
+  name: string
+  host: GUI.AdvancedDynamicTexture | GUI.Container
+  _background: GUI.Rectangle
+  width: number
+  height: number
+  top: number = 0
+  left: number = 0
+  private _children: any[] = []
+
+  public get style(): FlexContainerNode {
+    return this._node as FlexContainerNode
+  }
+  constructor(name?: string, host?: GUI.AdvancedDynamicTexture | GUI.Container, direction?: FlexDirection) {
+    this._node.setFlexDirection(direction)
+    this.host = host
+    this.name = name
+    this._background = new GUI.Rectangle(`${name??"FlexContainer"}_background`)
+    this._background.horizontalAlignment = GUI.Container.HORIZONTAL_ALIGNMENT_LEFT
+    this._background.verticalAlignment = GUI.Container.VERTICAL_ALIGNMENT_TOP
+    this._background.thickness = 1
+    if (this.host == undefined) {
+      this.host = this._background
+    } else {
+      this.host.addControl(this._background)
+    }
+  }
+  public set background(value: string) {
+    this._background.background = value
+  }
+  public get background(): string {
+    return this._background.background
+  }
+  public set clipChildren(value: boolean) {
+    this._background.clipChildren = value
+  }
+  public get clipChildren(): boolean {
+    return this._background.clipChildren
+  }
+
+  dispose(): void {
+    this._node.free()
+  }
+  private _updateBackground() {
+    this._background.topInPixels = this.top
+    this._background.leftInPixels = this.left
+    this._background.heightInPixels = this.height
+    this._background.widthInPixels = this.width
+  }
+  
+  addControl(control: GUI.Control | FlexContainer | FlexItem): FlexContainer {
+    // start implementation from Control parent
+    if (!control) {
+      return this
+    }
+
+    if (control instanceof FlexContainer) {
+      const index = this._children.indexOf(control)
+      if (index !== -1) {
+          return this
+      }
+      this._children.push(control)
+      this._node.insertChild(control.style as Node, this._children.length - 1)
+      this.host.addControl(control._background)
+      return this
+    }
+
+    if (control instanceof FlexItem) {
+      const index = this._children.indexOf(control)
+      if (index !== -1) {
+        return this
+      }
+      this._children.push(control)
+      this._node.insertChild(control.node as Node, this._children.length - 1)
+      this.host.addControl(control.item)
+      return this
+    }
+
+    const duplicate = this._children.some((child) => {
+      if (child instanceof FlexContainer) {
+        return false
+      }
+      if (child instanceof FlexItem) {
+        return child.item == control
+      }
+      return false
+    })
+    if (duplicate) {
+      return this
+    }
+
+    const newItem = new FlexItem(control.name, control)
+    this._children.push(newItem)
+    this._node.insertChild(newItem.node, this._children.length - 1)
+    this.host.addControl(control)
+
+    return this;
+  }
+
+  removeControl(control: GUI.Control | FlexContainer): FlexContainer {
+    let index = this._children.indexOf(control);
+
+    if (index !== -1) {
+      this._children.splice(index, 1);
+      if (control instanceof FlexContainer) {
+        this._node.removeChild(control.style as Node)
+      }
+      return this
+    }
+    index = this._children.findIndex((child) => {
+      if (child instanceof FlexContainer) {
+        return false
+      }
+      if (child instanceof FlexItem) {
+        return child.item == control
+      }
+      return false
+    })
+    if (index !== -1) {
+      const child = this._children.splice(index, 1)[0] as FlexItem
+      this._node.removeChild(child.node as Node)
+      this.host.removeControl(child.item)
+    }
+
+    return this;
+  }
+
+  layout() {
+    if (this._node.isDirty() == false) {
+      return
+    }
+    this._node.calculateLayout(this.width ?? "auto", this.height ?? "auto", Direction.LTR)
+    // walk through child tree
+    this.left = this._node.getComputedLeft()
+    this.top = this._node.getComputedLeft()
+    this._updateBackground()
+
+    console.log(`${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`)
+    const queue: {parent: FlexContainer, child: FlexContainer | FlexItem}[] = 
+    this._children.map((child) => { return { parent: this, child } })
+    while (queue.length > 0) {
+      let next = queue.shift()
+      if (next.child instanceof FlexContainer) {
+        let container = next.child as FlexContainer
+        const margin = container._node.getComputedMargin(Edge.Left)
+        // container.left = next.parent.left + container._node.getComputedLeft()
+        // container.top = next.parent.top + container._node.getComputedTop()
+        container.left = container._node.getComputedLeft()
+        container.top = container._node.getComputedTop()
+        // TODO value by unit
+        const height = container._node.getComputedHeight()
+        const width = container._node.getComputedWidth()
+        container.height = height
+        container.width = width
+        
+        console.log(`${container.name}, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
+        const newItems = container._children.map((item) => {
+          return {
+            parent: container as FlexContainer,
+            child: item as FlexContainer | FlexItem
+          }
+        })
+        queue.push(...newItems)
+        container._updateBackground()
+      } else {
+        const control = next.child.item
+        const top = next.parent.top + next.child.node.getComputedTop()
+        const left = next.parent.left + next.child.node.getComputedLeft()
+        // control.topInPixels = top
+        // control.leftInPixels = left
+        control.leftInPixels = next.child.node.getComputedLeft()
+        control.topInPixels = next.child.node.getComputedTop()
+        console.log(`${control.name}-parent, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
+        console.log(`${control.name}-child, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
+        console.log(`${control.name}, \r\ntop:${top} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
+      }
+    }
+  }
+}
+
+export class FlexItem {
+
+  item: GUI.Control
+  node = Yoga.Node.create();
+  name: string
+
+  constructor(name?: string, control?: GUI.Control) {
+    this.item = control
+    control.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+    control.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
+    this.name = name
+    this.node.setMeasureFunc((
+      width: number,
+      widthMode: MeasureMode,
+      height: number,
+      heightMode: MeasureMode,
+    ): {
+      width: number,
+      height: number
+    } => {
+      return this.getMeasure(width, widthMode, height, heightMode)
+    })
+  }
+
+  public getMeasure: MeasureFunction = (
+    width: number,
+    widthMode: MeasureMode,
+    height: number,
+    heightMode: MeasureMode,
+  ): {
+    width: number,
+    height: number
+  } => {
+    let control = this.item
+    if (control != undefined) {
+      return {
+        width: control.widthInPixels,
+        height: control.heightInPixels
+      }
+    } else {
+      return {
+        width: 0,
+        height: 0
+      }
+    }
+  }
+
+  dispose(): void {
+    this.node.free()
+  }
+
+  /** If you try to add more than one item it will do nothing */
+  addItem(control: GUI.Control): FlexItem {
+    if (this.item != undefined) {
+      return this
+    }
+    this.item = control
+  }
+  removeItem() {
+    this.item = undefined
   }
 }

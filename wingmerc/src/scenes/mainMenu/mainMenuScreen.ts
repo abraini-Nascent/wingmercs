@@ -24,8 +24,6 @@ export class MainMenuScreen extends MercScreen {
     }
   }
   setupMain(): void {
-    super.setupMain()
-
     const urlParams = new URLSearchParams(window.location.search);
     // Retrieve a specific parameter
     const debug = urlParams.get('debug');

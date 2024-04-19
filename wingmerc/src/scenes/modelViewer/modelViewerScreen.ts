@@ -5,8 +5,5 @@ export class ModelViewerScreen extends MercScreen {
     super("ModelViewer")
     this.setupMain()
   }
-  setupMain(): void {
-    super.setupMain()
-    
-  }
+  setupMain(): void {}
 }

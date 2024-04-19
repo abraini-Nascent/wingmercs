@@ -53,7 +53,6 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 
 ## Bugs:
 - [ ] high score doesn't seem to be saved
-- [x] volume is to loud
 ## TODO:
 ### next demo
 - [] joystick controls
@@ -78,6 +77,7 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
   - [x] offset / pursuit should match target "up"
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
   - [x] add group ids for patrols so we can have multiple wings on the same team
+  - [ ] collision avoidance
 ### next demo
 - [] fullish weapons list
 - [] fullish guns list

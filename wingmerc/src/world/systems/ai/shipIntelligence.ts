@@ -357,8 +357,10 @@ const NEAR = 4000
 const SLOW = 150
 /** degrees forward or back if infront / behind */
 const TRAILING = 30
+/** how long do we chase fleeing targets */
+const FLEE_CHASE_LIMIT = 10000
 
-
+// TODO: we need a way to clean in progress maneuvers
 const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   if (entity.ai.executionTree == undefined) {
     entity.ai.executionTree = STRIKE
@@ -388,6 +390,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.veerOff == undefined) { // veer finished
       blackboard.intelligence.objective = undefined
       blackboard.intelligence.tactic = undefined
+      blackboard.intelligence.maneuver = undefined
     }
     return
   }
@@ -396,6 +399,21 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   const entityDirection = Vector3FromObj(entity.direction, TmpVectors.Vector3[1])
   const targetEntity = world.entity(blackboard.targeting.target)
 
+  if (targetEntity.ai?.blackboard?.intelligence?.maneuver == ManeuverType.Flee) {
+    // enemy target is fleeing, chase until chase limit
+    if (blackboard.chasing == undefined) {
+      blackboard.chasing = {
+        count: 0
+      }
+    }
+    blackboard.chasing.count += blackboard.dt
+    if (blackboard.chasing.count > FLEE_CHASE_LIMIT) {
+      blackboard.chasing = undefined
+      // act like enemy destroyed
+      blackboard.targeting.target == undefined
+      return
+    }
+  }
   /// LaserHit
   if (entity.hitsTaken && entity.hitsTaken.hitCountRecent >= 5) {
     // set the last person who hit me as my target
@@ -531,7 +549,7 @@ function nearestEnemy(entity: Entity, threshold: number = Number.MAX_SAFE_INTEGE
     if (otherEntity.teamId == entity.teamId) {
       continue
     }
-    const otherEntityPosition = Vector3FromObj(entityPosition, TmpVectors.Vector3[1])
+    const otherEntityPosition = Vector3FromObj(otherEntity.position, TmpVectors.Vector3[1])
     const distance = otherEntityPosition.subtractToRef(entityPosition, TmpVectors.Vector3[2]).length()
     if (distance < nearestEnemyDistance) {
       nearestEnemyDistance = distance
@@ -566,7 +584,7 @@ namespace AIManeuvers {
     }
     if (burnoutBlackboard.burnoutTime > BURNOUT_LIMIT) {
       blackboard.burnout = undefined
-      entity.ai.blackboard.intelligence.maneuver = undefined
+      entity.ai.blackboard.intelligence.maneuver = "Thinking"
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} burnout maneuver complete!`)
       return
     }
@@ -628,7 +646,7 @@ namespace AIManeuvers {
     if (brakeBlackboard.brakeTime > HARD_BRAKE_LIMIT) {
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} hardBrake maneuver complete!`)
       blackboard.hardBrake = undefined
-      entity.ai.blackboard.intelligence.maneuver = undefined
+      entity.ai.blackboard.intelligence.maneuver = "Thinking"
       return
     }
     brakeBlackboard.brakeTime += blackboard.dt
@@ -710,7 +728,7 @@ namespace AIManeuvers {
         // TODO reset to top of decision tree
         console.log(`[ShipIntelligence] Ship ${world.id(entity)} kickstop maneuver complete!`)
         blackboard.kickstop = undefined
-        entity.ai.blackboard.intelligence.maneuver = undefined
+        entity.ai.blackboard.intelligence.maneuver = "Thinking"
       }
     }
   }
@@ -824,7 +842,7 @@ namespace AIManeuvers {
       afterburner = 1
     } else {
       blackboard.SitAndKick = undefined
-      entity.ai.blackboard.intelligence.maneuver = undefined
+      entity.ai.blackboard.intelligence.maneuver = "Thinking"
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} SitAndKick maneuver complete!`)
       return
     }
@@ -946,6 +964,33 @@ namespace AIManeuvers {
     world.update(entity, "movementCommand", movementCommand)
   }
 
+  // TODO: The time it takes to think of the next move could be reduced by pilot skill
+  const THINK_LIMIT = 3000
+  export const Thinking = (entity: Entity, blackboard: AIBlackboard) => {
+    if (blackboard.thinking == undefined) {
+      console.log(`[ShipIntelligence] Ship ${world.id(entity)} thinking!`)
+      blackboard.thinking = {
+        count: 0
+      }
+    }
+    blackboard.thinking.count += blackboard.dt
+    if (blackboard.thinking.count > TAIL_TIMEOUT) {
+      blackboard.thinking = undefined
+      console.log(`[ShipIntelligence] Ship ${world.id(entity)} thinking complete!`)
+      return
+    }
+    const movementCommand: MovementCommand = {
+      pitch: 0,
+      yaw: 0,
+      roll: 1,
+      afterburner: 0,
+      drift: 0,
+      brake: 0,
+      deltaSpeed: 0
+    }
+    world.update(entity, "movementCommand", movementCommand)
+  }
+
   // TODO: There is no explaination of a "turn and kick" anywhere
   export const TurnAndKick = (entity: Entity, blackboard: AIBlackboard) => {
     SitAndKick(entity, blackboard)
@@ -995,7 +1040,7 @@ const headingManeuver = (entity: Entity, blackboard: AIBlackboard, stateName: st
   world.update(entity, "movementCommand", movementCommand)
   if (blackboard[stateName].holdState.finished == true) {
     blackboard[stateName] = undefined
-    entity.ai.blackboard.intelligence.maneuver = undefined
+    entity.ai.blackboard.intelligence.maneuver = "Thinking"
     // TODO reset to top of decision tree?
   }
 }

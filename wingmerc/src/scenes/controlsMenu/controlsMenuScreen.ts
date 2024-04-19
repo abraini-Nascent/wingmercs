@@ -23,8 +23,6 @@ export class ControlsMenuScreen extends MercScreen {
     }
   }
   setupMain(): void {
-    super.setupMain()
-    
     const title = new GUI.TextBlock()
     title.name = "title"
     title.fontFamily = "monospace"

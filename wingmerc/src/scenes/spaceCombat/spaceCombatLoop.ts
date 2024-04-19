@@ -88,7 +88,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(20)
-    queries.deathComes.onEntityAdded.subscribe(this.onDeath)
+    // queries.deathComes.onEntityAdded.subscribe(this.onDeath)
     this.hud = new CombatHud()
     this.readyTimer = 3000
     appContainer.player = new PlayerAgent()
@@ -107,7 +107,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   dispose(): void {
     world.onEntityAdded.unsubscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onCombatEntityRemoved)
-    queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
+    // queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
     this.hud.dispose()
     // todo space debri
     this.spaceDebris.dispose()
@@ -142,6 +142,9 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   }
 
   onCombatEntityRemoved = (entity: Entity) => {
+    if (entity.isTargetable && entity.isTargetable == "enemy") {
+      this.onDeath(entity)
+    }
     this.combatEntities.delete(entity)
   }
 

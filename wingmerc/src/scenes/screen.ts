@@ -8,20 +8,15 @@ export class MercScreen {
 
   constructor(name: string) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI(name);
-    advancedTexture.idealWidth = 1920
+    // advancedTexture.idealWidth = 1920
     this.gui = advancedTexture
-    this.setupMain()
+    this.screen = new GUI.Container("screen")
+    this.gui.addControl(this.screen)
   }
   dispose() {
     this.gui.removeControl(this.screen)
     this.screen.dispose()
     this.gui.dispose()
-  }
-
-  setupMain() {
-    
-    this.screen = new GUI.Container("screen")
-    this.gui.addControl(this.screen)
   }
 
   updateScreen(dt: number) {

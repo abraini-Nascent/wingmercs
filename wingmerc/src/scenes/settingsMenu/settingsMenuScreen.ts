@@ -22,7 +22,6 @@ export class SettingsMenuScreen extends MercScreen {
     }
   }
   setupMain(): void {
-    super.setupMain()
     const mainPanel = new GUI.StackPanel("Settings Menu")
     mainPanel.isVertical = true
     mainPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT

@@ -23,6 +23,7 @@ import "./world/systems/renderSystems/updatePhysicsSystem";
 import "./world/systems/deathRattleSystem";
 import { loadAssets } from "./assetLoader/assetLoader";
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
+import { FlexTestScene } from "./scenes/flexTest/flexTest"
 
 class App {
   assetsManager: AssetsManager
@@ -134,6 +135,7 @@ class App {
       engine.hideLoadingUI()
       Engine.audioEngine.setGlobalVolume(0.1);
       AppContainer.instance.gameScene = new MainMenuScene()
+      // AppContainer.instance.gameScene = new FlexTestScene()
     }
     
     this.assetsManager = loadAssets(onFinishedLoading)

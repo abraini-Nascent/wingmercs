@@ -18,7 +18,7 @@ import { createShip } from "../../world/factories";
 import { ShipDetails } from "../../data/ships/shipDetails";
 import * as Ships from "../../data/ships";
 import { randomItem } from "../../utils/random";
-import { Vector3FromObj, pointInSphere } from "../../utils/math";
+import { QuaternionFromObj, Vector3FromObj, pointInSphere } from "../../utils/math";
 import { MissileEngineSoundSystem } from "../../world/systems/soundSystems/missileEngineSoundSystem";
 import { DeathRattleSystem } from "../../world/systems/deathRattleSystem";
 import { UpdatePhysicsSystem } from "../../world/systems/renderSystems/updatePhysicsSystem";
@@ -81,7 +81,7 @@ export class MainMenuScene implements IDisposable {
 
     const teams = [this.teamA,this.teamB,this.teamB]
     teams.forEach((team, teamId) => {
-      for (let i = 0; i < 1; i += 1) {
+      for (let i = 0; i < 3; i += 1) {
         team.add(this.addShip(teamId + 1))
       }
     })
@@ -185,6 +185,7 @@ export class MainMenuScene implements IDisposable {
     const first = Array.from(this.teamA.keys())[0]  // this is heavy handed...
     const second = Array.from(this.teamB.keys())[0]
     const firstPosition = Vector3FromObj(first.position, TmpVectors.Vector3[0])
+    const firstRotation = QuaternionFromObj(first.rotationQuaternion, TmpVectors.Quaternion[1])
     const firstDirection = Vector3FromObj(first.direction)
     const secondPosition = Vector3FromObj(second.position, TmpVectors.Vector3[1])
     // console.log(firstPosition, secondPosition)
@@ -205,7 +206,11 @@ export class MainMenuScene implements IDisposable {
     newPosition = center.subtract(newPosition)
 
 
-    const behind = firstDirection.multiplyByFloats(-1, -1, -1).multiplyByFloats(150,150,150).addInPlace(firstPosition)
+    const behind = firstDirection.multiplyByFloats(-1, -1, -1).multiplyByFloats(150 * 5,150 * 5,150 * 5).addInPlace(firstPosition)
+    const upOffset = Vector3.Up()
+    upOffset.rotateByQuaternionToRef(firstRotation, upOffset)
+    upOffset.multiplyInPlace(TmpVectors.Vector3[5].set(150 * 5, 150 * 5, 150 * 5))
+    behind.addInPlace(upOffset)
     this.camera.position.copyFrom(behind)
     this.camera.setTarget(firstPosition)
     return
