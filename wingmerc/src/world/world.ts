@@ -156,7 +156,8 @@ export type HitsTracked = {
 }
 export type MissionDetails = {
   mission: MissionType
-  patrolPoints: Vector3[]
+  destroy?: number
+  patrolPoints?: Vector3[]
 }
 // TODO: organize this... :S
 export type Entity = {
@@ -212,7 +213,10 @@ export type Entity = {
   bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody
   node?: TransformNode
-  health?: number
+  health?: {
+    current: number
+    base: number
+  }
   totalScore?: number
   worth?: number
   paused?: true

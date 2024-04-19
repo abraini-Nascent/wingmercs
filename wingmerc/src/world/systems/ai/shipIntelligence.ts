@@ -41,20 +41,26 @@ export function shipIntelligence(entity: Entity) {
   const intelligence = blackboard.intelligence
 
   switch (intelligence.mission) {
-    case "Patrol":
+    case MissionType.Destroy:
+      DestroyMission(entity, blackboard)
+      break;
+    case MissionType.Patrol:
       PatrolMission(entity, blackboard)
       break;
-    case "Wingman":
+    case MissionType.Wingman:
       WingmanMission(entity, blackboard)
       break;
     default:
-      intelligence.mission = "Wingman"
+      intelligence.mission = MissionType.Wingman
       break;
   }
 }
 
 /****
  * WINGMAN MISSION
+ * Follow your wing leader
+ * engage the wingleaders target
+ * become the wingleader if there is none for your group
  */
 const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
   const objective = blackboard.intelligence.objective
@@ -195,7 +201,54 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
 }
 
 /****
+ * DESTROY MISSION
+ * Approach and engage your designated target
+ */
+const DestroyMission = (entity: Entity, blackboard: intelligenceBlackboard) => {
+  const objective = blackboard.intelligence.objective
+  switch (objective) {
+    case "Engage": {
+      Engage(entity, blackboard)
+      break;
+    }
+    case "ApproachTarget": {
+      if (entity.ai.blackboard.targeting?.target == undefined) {
+        entity.ai.blackboard.targeting.target = entity.missionDetails.destroy
+        console.log("[ShipIntelligence][Destroy] engaging target!", entity.missionDetails.destroy)
+      }
+      if (world.entity(entity.ai.blackboard.targeting.target) == undefined || 
+        world.entity(entity.ai.blackboard.targeting.target).deathRattle
+      ) {
+        console.log("[ShipIntelligence][Destroy] target dead or missing, disengaging")
+        blackboard.intelligence.objective = "Disengage"
+        blackboard.intelligence.tactic = undefined
+        blackboard.intelligence.maneuver = undefined
+        return
+      }
+      const distancetoTarget = ApproachTarget(entity, blackboard)
+      if (distancetoTarget <= 2500) {
+        blackboard.intelligence.objective = "Engage"
+        blackboard.intelligence.tactic = undefined
+        blackboard.intelligence.maneuver = undefined
+        return
+      }
+      break;
+    }
+    case "Disengage": {
+      AIManeuvers.Flee(entity, blackboard)
+      break
+    }
+    default: {
+      blackboard.intelligence.objective = "ApproachTarget"
+      break;
+    }
+  }
+}
+
+/****
  * PATROL MISSION
+ * Wander around the patrol point
+ * Approach and engage enemies within range
  */
 const PatrolMission = (entity: Entity, blackboard: intelligenceBlackboard) => {
   const objective = blackboard.intelligence.objective
@@ -370,10 +423,23 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   let stateOfHealth: StateOfHealth = "LittleDamage"
   const shields = entity.shields
   const armor = entity.armor
-  const health = entity.health
-  if (armor.back == 0 || armor.front == 0 || armor.left == 0 || armor.right == 0) {
+  const healthPercent = entity.health.current / entity.health.base
+  let missingArmorCount = 0
+  if (armor.back == 0) {
+    missingArmorCount += 1
+  } 
+  if (armor.front == 0) {
+    missingArmorCount += 1
+  }
+  if (armor.left == 0) {
+    missingArmorCount += 1
+  }
+  if (armor.right == 0) {
+    missingArmorCount += 1
+  }
+  if (missingArmorCount > 1 || healthPercent < 0.7) {
     stateOfHealth = "HeavyDamage"
-  } else if (shields.currentAft <= 1 || shields.currentFore <= 1) {
+  } else if (shields.currentAft <= 1 || shields.currentFore <= 1 || missingArmorCount == 1) {
     stateOfHealth = "MediumDamage"
   }
   blackboard.intelligence.stateOfHealth = stateOfHealth

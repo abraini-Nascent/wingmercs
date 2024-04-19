@@ -37,6 +37,7 @@ export const FarDistance = 10000
 export const SlowSpeed = 200
 
 export const MissionType = {
+  Destroy: "Destroy",
   Patrol: "Patrol",
   Wingman: "Wingman"
 } as const;
@@ -45,10 +46,9 @@ export type MissionType = typeof MissionType[keyof typeof MissionType];
 export const ObjectiveType = {
   HoldFormation: "HoldFormation",
   BreakFormation: "BreakFormation",
-  /** specific ship */
-  DestroyShip: "DestroyShip",
   /** enter the furball and pick the most oportunistic ship */
   Engage: "Engage",
+  Disengage: "Disengage",
   Wander: "Wander",
   Return: "Return",
   ApproachTarget: "ApproachTarget"

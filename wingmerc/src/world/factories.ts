@@ -106,7 +106,10 @@ export function createShip(ship: ShipDetails, x: number, y: number, z: number, t
     rotationalVelocity: {roll: 0, pitch: 0, yaw: 0},
     rotationQuaternion: {w: 1, x: 0, y:0, z:0},
     rotation: {x: 0, y: 0, z: -1},
-    health: 100,
+    health: {
+      current: ship.health,
+      base: ship.health,
+    },
     totalScore: 0,
     guns,
     weapons,

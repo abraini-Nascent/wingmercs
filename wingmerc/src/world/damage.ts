@@ -163,8 +163,8 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           if (remaining > 0) {
             randomDamage += rand(1, remaining)
           }
-          hitEntity.health -= randomDamage
-          console.log("[Damage] hit health", randomDamage, hitEntity.health)
+          hitEntity.health.current -= randomDamage
+          console.log("[Damage] hit health", randomDamage, hitEntity.health.current, hitEntity.health.base)
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           switch (damagedSystem) {
             case "guns": {
@@ -196,7 +196,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           console.log("[Damage] remaining health:", hitEntity.health)
           // double up particle effects and play a different sound
           // ConeParticleEmitter("assets/particles/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
-          if (hitEntity.health <= 0 && hitEntity.deathRattle == undefined) {
+          if (hitEntity.health.current <= 0 && hitEntity.deathRattle == undefined) {
             // death animation or something
             world.addComponent(hitEntity, "deathRattle", true)
           }

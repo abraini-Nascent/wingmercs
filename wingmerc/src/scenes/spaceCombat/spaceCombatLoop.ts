@@ -181,7 +181,10 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       playerScore.total += 10000 * this.waveCount // end of wave bonus
       const playerEntity = AppContainer.instance.player.playerEntity
       const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
-      playerEntity.health = shipTemplate.health
+      playerEntity.health = {
+        current: shipTemplate.health,
+        base: shipTemplate.health
+      }
       playerEntity.systems.state = { ...playerEntity.systems.base }
       playerEntity.armor = { ...playerEntity.armor }
       playerEntity.shields.currentAft = playerEntity.shields.maxAft
@@ -220,7 +223,8 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       // patrol around the players position
       world.addComponent(ship, "missionDetails", {
         patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)],
-        mission: MissionType.Patrol
+        destroy: world.id(AppContainer.instance.player.playerEntity),
+        mission: MissionType.Destroy
       })
       this.lastSpawnCount += 1
     }
