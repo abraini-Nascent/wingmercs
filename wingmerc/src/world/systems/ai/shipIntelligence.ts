@@ -976,6 +976,7 @@ namespace AIManeuvers {
     blackboard.thinking.count += blackboard.dt
     if (blackboard.thinking.count > TAIL_TIMEOUT) {
       blackboard.thinking = undefined
+      blackboard.intelligence.maneuver = undefined
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} thinking complete!`)
       return
     }
