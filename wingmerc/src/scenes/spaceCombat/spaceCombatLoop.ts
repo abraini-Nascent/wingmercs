@@ -187,7 +187,10 @@ export class SpaceCombatScene implements GameScene, IDisposable {
         base: shipTemplate.health
       }
       playerEntity.systems.state = { ...playerEntity.systems.base }
-      playerEntity.armor = { ...playerEntity.armor }
+      playerEntity.armor.back = shipTemplate.armor.back
+      playerEntity.armor.front = shipTemplate.armor.front
+      playerEntity.armor.left = shipTemplate.armor.left
+      playerEntity.armor.right = shipTemplate.armor.right
       playerEntity.shields.currentAft = playerEntity.shields.maxAft
       playerEntity.shields.currentFore = playerEntity.shields.maxFore
       playerEntity.weapons.mounts.forEach((mount, index) => {
