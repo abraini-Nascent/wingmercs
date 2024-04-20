@@ -146,11 +146,7 @@ export class TargetingHUD {
       this.lockBox.isVisible = false
       this.targetBox.isVisible = false
     }
-    const planeClass = Ships[targetEntity.planeTemplate]
     const enemyPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
-    const distance = Math.round(new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
-      .subtract(enemyPosition).length())
-    
     if (playerEntity.targeting?.locked) {
       this.lockBox.isVisible = true
     } else {
