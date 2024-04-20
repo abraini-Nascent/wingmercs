@@ -2,9 +2,9 @@ import { Entity, MovementCommand, world } from "../../world"
 
 export function deathRattleAI(entity: Entity, dt: number) {
   let movementCommand = {
-    pitch: 0,
+    pitch: 1,
     yaw: 0,
-    roll: 0,
+    roll: 1,
     deltaSpeed: 100,
     // afterburner: 1,
     // brake: brake,
