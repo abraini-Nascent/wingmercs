@@ -143,7 +143,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   }
 
   onCombatEntityRemoved = (entity: Entity) => {
-    if (entity.isTargetable && entity.isTargetable == "enemy") {
+    if (entity.isTargetable && (entity.isTargetable == "enemy" || entity.isTargetable == "player")) {
       this.onDeath(entity)
     }
     this.combatEntities.delete(entity)
