@@ -24,9 +24,6 @@ export class FlexTestScene implements GameScene, IDisposable {
   setup() {
   }
 
-  checkInput(dt: number) {
-  }
-
   runLoop = (delta: number) => {
     const appContainer = AppContainer.instance
     const engine = AppContainer.instance.engine

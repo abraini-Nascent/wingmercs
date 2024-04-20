@@ -191,6 +191,7 @@ export type Entity = {
   shieldMesh?: Mesh
   physicsMeshName?: string
   physicsMesh?: Mesh
+  physicsRadius?: number
   meshName?: string
   mesh?: Mesh
   meshColor?: { r: number; g: number; b: number; a: number }

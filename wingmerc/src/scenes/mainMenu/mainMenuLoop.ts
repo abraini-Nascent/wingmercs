@@ -94,7 +94,22 @@ export class MainMenuScene implements IDisposable {
     queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
     world.remove(this.cameraEntity)
 
+    this.cameraEntity = undefined
+    this.screen.dispose()
+    this.screen = undefined
+    this.teamA.clear()
+    this.teamB.clear()
+    this.teamC.clear()
+    for (const entity of this.screenEntities) {
+      console.log("[MainMenu] removing entity", entity)
+      world.remove(entity)
+    }
+    this.screenEntities.clear()
+    this.demoShips.clear()
+    this.camera = undefined
+
     // systems
+    // dispose systems last since they help with cleanup
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()
     this.updatePhysicsSystem.dispose()
@@ -105,17 +120,6 @@ export class MainMenuScene implements IDisposable {
     this.driftSoundSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
-
-    this.cameraEntity = undefined
-    this.screen.dispose()
-    this.screen = undefined
-    for (const entity of this.screenEntities) {
-      console.log("[MainMenu] removing entity", entity)
-      world.remove(entity)
-    }
-    this.screenEntities.clear()
-    this.demoShips.clear()
-    this.camera = undefined
   }
 
   onScreenEntityAdded = (entity: Entity) => {

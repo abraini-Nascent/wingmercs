@@ -27,6 +27,7 @@ export class MeshedSystem implements IDisposable {
     let mat: StandardMaterial = undefined
     let engineMesh: Mesh = undefined
     let shieldMesh: Mesh = undefined
+    let radius: number = 0
     if (entity.meshColor != undefined) {
       // TODO: we could cache and reuse mats of the same color
       mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
@@ -47,6 +48,9 @@ export class MeshedSystem implements IDisposable {
       }
       //.createInstance(`asteroid-mesh-${i}-${mi}`)
       instanceMesh.isVisible = visible
+      if (instanceMesh.getBoundingInfo().boundingSphere.radiusWorld > radius) {
+        radius = instanceMesh.getBoundingInfo().boundingSphere.radiusWorld
+      }
       // instanceMesh.setParent(newNode)
     }
     if (entity.shieldMeshName) {
@@ -66,17 +70,22 @@ export class MeshedSystem implements IDisposable {
         mat.wireframe = true
         instanceMesh.material = mat
         instanceMesh.isVisible = visible
+        if (instanceMesh.getBoundingInfo().boundingSphere.radiusWorld > radius) {
+          radius = instanceMesh.getBoundingInfo().boundingSphere.radiusWorld
+        }
         shieldMesh = instanceMesh
       }
     }
     world.addComponent(entity, "node", newNode)
     world.addComponent(entity, "engineMesh", engineMesh)
+    world.addComponent(entity, "physicsRadius", radius)
     if (shieldMesh) {
       world.addComponent(entity, "shieldMesh", shieldMesh)
     }
   }
 
   meshedOnEntityRemoved = (entity) => {
+    console.log("[meshed] disposing entity", entity)
     const oldNode = entity.node
     if (oldNode == undefined) { return }
     const children = oldNode.getChildMeshes()
@@ -85,6 +94,7 @@ export class MeshedSystem implements IDisposable {
       mesh.isVisible = false
       // in the past i've seen stutters when too many meshes are disposed at once
       // it might be a good idea to add these to a queue and dispose a set limit per frame
+      console.log("[meshed] disposing mesh", mesh)
       mesh.dispose()
     }
     if (entity.trailMeshs) {

@@ -342,10 +342,10 @@ export class FlexItem {
   }
 
   public getMeasure: MeasureFunction = (
-    width: number,
-    widthMode: MeasureMode,
-    height: number,
-    heightMode: MeasureMode,
+    _width: number,
+    _widthMode: MeasureMode,
+    _height: number,
+    _heightMode: MeasureMode,
   ): {
     width: number,
     height: number
@@ -374,6 +374,7 @@ export class FlexItem {
       return this
     }
     this.item = control
+    return this
   }
   removeItem() {
     this.item = undefined

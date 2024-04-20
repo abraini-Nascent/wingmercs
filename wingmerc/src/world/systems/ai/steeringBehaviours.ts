@@ -52,7 +52,7 @@ export function SteeringHardTurnClamp({ pitch, yaw, roll }: SteeringResult): Ste
 }
 export type SteeringResult = { pitch: number, roll: number, yaw: number, throttle?: number, boost?: boolean, firePosition?: boolean }
 
-export function calculateErrorSteering(dt: number, error: Vector3, currentRotation: Quaternion, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
+export function calculateErrorSteering(_dt: number, error: Vector3, currentRotation: Quaternion, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
   error = error.applyRotationQuaternion(Quaternion.Inverse(currentRotation)) // transform to local space
 
   let errorDirection = error.normalizeToNew()
@@ -92,7 +92,7 @@ export function calculateSteering(dt: number, currentPosition: Vector3, currentR
 
 export namespace SteeringBehaviours {
   /** steer the character towards a specified position in global space */
-  export function seek(dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, targetUp?: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
+  export function seek(_dt: number, currentPosition: Vector3, currentRotation: Quaternion, targetPosition: Vector3, targetUp?: Vector3, clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult {
     let error = targetPosition.subtract(currentPosition)
     error = error.applyRotationQuaternion(Quaternion.Inverse(currentRotation)) // transform to local space
   
@@ -240,7 +240,8 @@ export namespace SteeringBehaviours {
     return steering
   }
 
-  export function obstacleAvoidance(dt: number, entity: Entity, targets: Entity[], avoidanceDistance: number, avoidanceRadius: number): SteeringResult | undefined {
+  /** Maneuver in a cluttered environment by dodging around obstacles */
+  export function obstacleAvoidance(_dt: number, entity: Entity, targets: Entity[], avoidanceDistance: number, avoidanceRadius: number): SteeringResult | undefined {
     const entityPosition = Vector3FromObj(entity.position)
     const entityVelocity = totalVelocityFrom(entity)
     const entityRotation = rotationFromVelocity(entityVelocity)
@@ -299,6 +300,108 @@ export namespace SteeringBehaviours {
     }
     // TODO: path could have a normal to describe the "up" of the path and we could lerp between the two points normals
     return seek(dt, entityPosition, entityRotation, closestPointOnLine, undefined, clampStrategy)
+  }
+
+  /** Tries to keep characters which are moving in arbitrary directions from running into each other */
+  export function collisionAvoidance(_dt: number, entity: Entity, targets: Entity[], _clampStrategy?: (input: SteeringResult) => SteeringResult): SteeringResult | undefined {
+    // our character considers each of the other characters and determines (based on current velocities) 
+    // when and where the two will make their nearest approach. A potential for collision exists if the 
+    // nearest approach is in the future, and if the distance between the characters at nearest approach 
+    // is small enough (indicated by circles in Figure 12). The nearest of these potential collisions, 
+    // if any, is determined. The character then steers to avoid the site of the predicted collision. 
+    // It will steer laterally to turn away from the potential collision. It will also accelerate forward or 
+    // decelerate backwards to get to the indicate site before or after the predicted collision. In Figure 12 
+    // the character approaching from the right decides to slow down and turn to the left, while the other 
+    // character will speed up and turn to the left.
+    const entityPosition = Vector3FromObj(entity.position)
+    const entityVelocity = totalVelocityFrom(entity)
+    const entityRotation = QuaternionFromObj(entity.rotationQuaternion)
+    const entityBoundingSphere = entity.physicsRadius ?? 20
+    
+    let closestCollisionTime = Number.MAX_SAFE_INTEGER
+    let closestCollisionEntity: Entity
+    let closestCollisionPoint: Vector3
+    for (const targetEntity of targets) {
+      if (targetEntity == entity) {
+        continue;
+      }
+      const targetPosition = Vector3FromObj(targetEntity.position)
+      const targetVelocity = totalVelocityFrom(targetEntity)
+      // Calculate the relative velocity between the entities
+      const relativeVelocity = targetVelocity.subtract(entityVelocity);
+
+      // Calculate the relative position between the entities
+      const relativePosition = targetPosition.subtract(entityPosition);
+
+      // Calculate the time to collision (assuming constant relative velocity)
+      const timeToCollision = calculateTimeToCollision(entityBoundingSphere, targetEntity.physicsRadius ?? 20, relativePosition, relativeVelocity);
+
+      if (timeToCollision !== undefined && timeToCollision < closestCollisionTime) {
+        closestCollisionTime = timeToCollision;
+        closestCollisionEntity = targetEntity;
+        closestCollisionPoint = targetPosition.add(relativeVelocity.scale(timeToCollision));
+      }
+    }
+      
+    if (closestCollisionEntity && closestCollisionPoint && closestCollisionTime < 1) {
+      // Steer to avoid the predicted collision point
+      const avoidanceDirection = closestCollisionPoint.subtract(entityPosition).normalize();
+      const avoidanceForce = avoidanceDirection.scale(entityVelocity.length());
+
+      // If we are going to run into something in two seconds, turn
+      console.log("[SteeringBehaviours] !!! Avoid Avoid Avoid !!!", world.id(entity), closestCollisionTime)
+      return {
+        pitch: 1,
+        yaw: 1,
+        roll: 0,
+        boost: false,
+        throttle: 0
+      }
+      // Return the steering result
+      // return {
+      //     linear: avoidanceForce,
+      //     angular: Vector3.Zero() // No angular steering in this example
+      // };
+    } else { 
+      // No collision predicted, return undefined
+      return undefined;
+    }
+  }
+
+  function calculateTimeToCollision(radius1: number, radius2: number, relativePosition: Vector3, relativeVelocity: Vector3): number | undefined {
+    // Calculate the sum of radii
+    const sumRadii = radius1 + radius2;
+
+    // Calculate the squared distance between the entities along their direction of motion
+    const relativePositionLengthSquared = relativePosition.lengthSquared();
+    const relativeVelocityLengthSquared = relativeVelocity.lengthSquared();
+
+    // Check if the entities are already colliding
+    if (relativePositionLengthSquared < sumRadii * sumRadii) {
+      return 0; // Entities are already colliding
+    }
+
+    // Calculate the dot product of relative position and velocity
+    const dotProduct = Vector3.Dot(relativePosition, relativeVelocity);
+
+    // If the dot product is positive, the entities are moving away from each other
+    if (dotProduct > 0) {
+      return undefined; // No collision will occur
+    }
+
+    // Calculate the discriminant
+    const discriminant = dotProduct * dotProduct - relativeVelocityLengthSquared * (relativePositionLengthSquared - sumRadii * sumRadii);
+
+    // If the discriminant is negative, the entities will never intersect
+    if (discriminant < 0) {
+      return undefined; // No collision will occur
+    }
+
+    // Calculate the time to collision
+    const timeToCollision = -(dotProduct + Math.sqrt(discriminant)) / relativeVelocityLengthSquared;
+
+    // Return the time to collision
+    return timeToCollision;
   }
 
   export interface WanderState {

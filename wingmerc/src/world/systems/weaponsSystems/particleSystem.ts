@@ -25,6 +25,10 @@ export function particleSystem() {
     physicsEngine.raycastToRef(start, end, raycastResult);
     if (raycastResult.hasHit && entity.originatorId != ""+raycastResult.body.entityId) {
       const hitEntity = world.entity(raycastResult.body.entityId)
+      if (hitEntity == undefined) {
+        console.error("we collided with a mesh that has an entity id that doesn't exist in the world!", raycastResult.body, raycastResult.body.entityId)
+        continue
+      }
       if (entity.originatorId == hitEntity.originatorId) {
         // we were shot out by the same thing!
         console.log("[ParticleSystem] we were shot out by the same thing and hit each other!")

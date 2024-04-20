@@ -117,6 +117,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.combatEntities.clear()
 
     // systems
+    // dispose systems last since they help with cleanup
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()
     this.updatePhysicsSystem.dispose()

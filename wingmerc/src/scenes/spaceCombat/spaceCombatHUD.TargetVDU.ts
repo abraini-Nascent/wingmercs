@@ -251,8 +251,8 @@ class TargetBody {
       this.updateArmor(entity.armor.left/planeClass.armor.left, this.armorLeft, "╠", "├", " ")
       this.updateArmor(entity.armor.right/planeClass.armor.right, this.armorRight, "╣", "┤", " ")
     }
-    if (entity.health) {
-      this.updateHealth(entity.health/planeClass.health, this.health, "↑", "⇡", "*")
+    if (entity.health != undefined) {
+      this.updateHealth(entity.health.current/entity.health.base, this.health, "↑", "⇡", "*")
     } else {
       this.updateHealth(1, this.health, "0", "O", " ")
     }

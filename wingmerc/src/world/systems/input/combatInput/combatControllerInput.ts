@@ -173,7 +173,7 @@ export class CombatControllerInput {
     }
 
     world.update(AppContainer.instance.player.playerEntity, "movementCommand", movementCommand)
-    console.log("[combat input]", movementCommand)
+    // console.log("[combat input]", movementCommand)
 
     const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0, lock: false }
     if (this.genericButtons.get(ic.GunFire) > 0.2) {

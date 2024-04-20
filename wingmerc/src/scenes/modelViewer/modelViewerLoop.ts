@@ -94,7 +94,15 @@ export class ModelViewerScene implements GameScene, IDisposable {
   }
 
   dispose() {
+    world.remove(this.cameraEntity)
+    this.cameraEntity = undefined
+    // this.scaleBox.dispose()
+    // this.scaleBox = undefined
+    this.screen.dispose()
+    this.screen = undefined
+
     // systems
+    // dispose systems last since they help with cleanup
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()
     this.updatePhysicsSystem.dispose()
@@ -105,18 +113,11 @@ export class ModelViewerScene implements GameScene, IDisposable {
     this.driftSoundSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
-
-    world.remove(this.cameraEntity)
-    this.cameraEntity = undefined
-    // this.scaleBox.dispose()
-    // this.scaleBox = undefined
-    this.screen.dispose()
-    this.screen = undefined
   }
 
   setup() {
 
-    let model1 = createShip(Dirk, -100, 0, 0, 2, 1);
+    let model1 = createShip(Dirk, -100, 0, -1000, 2, 1);
     world.addComponent(model1, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
@@ -125,17 +126,17 @@ export class ModelViewerScene implements GameScene, IDisposable {
     this.ship = model1
     // this.ship.ai.type = undefined
 
-    let model2 = createShip(EnemyMedium01, -50, 0, 0, 2, 1);
+    let model2 = createShip(EnemyMedium01, 100, 0, 1000, 3, 1);
     world.addComponent(model2, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
     })
 
-    let model3 = createShip(EnemyMedium02, 0, 0, 2000, 1, 1);
-    world.addComponent(model3, "missionDetails", {
-      patrolPoints: [Vector3.Zero()],
-      mission: "Patrol"
-    })
+    // let model3 = createShip(EnemyMedium02, 0, 0, 2000, 1, 1);
+    // world.addComponent(model3, "missionDetails", {
+    //   patrolPoints: [Vector3.Zero()],
+    //   mission: "Patrol"
+    // })
     // let model4 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
     // world.addComponent(model4, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()],
@@ -151,7 +152,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     //   patrolPoints: [Vector3.Zero()],
     //   mission: "Patrol"
     // })
-    this.ships.push(model1, model2, model3)//, model4, model5, model6)
+    this.ships.push(model1, model2)//, model3)//, model4, model5, model6)
     // world.addComponent(model2, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()]
     // })

@@ -950,6 +950,7 @@ namespace AIManeuvers {
       }
       world.update(entity, "fireCommand", fireCommand)
     }
+    const avoidCollision = SteeringBehaviours.collisionAvoidance(blackboard.dt, entity, queries.targets.entities.filter(t => t.isTargetable != "missile"))
     if (blackboard.strafe.flyPast) {
       if (blackboard.strafe.flyPastCount > STRAFE_FIRE_COUNT) {
         blackboard.strafe = undefined
@@ -966,6 +967,11 @@ namespace AIManeuvers {
         brake: 0,
         deltaSpeed: 0
       }
+      if (avoidCollision) {
+        movementCommand.pitch = avoidCollision.pitch
+        movementCommand.yaw = avoidCollision.yaw
+        movementCommand.deltaSpeed = avoidCollision.throttle
+      }
       world.update(entity, "movementCommand", movementCommand)
       blackboard.strafe.flyPastCount += blackboard.dt
     }
@@ -977,6 +983,11 @@ namespace AIManeuvers {
       drift: 0,
       brake: 0,
       deltaSpeed: input.throttle ?? 0
+    }
+    if (avoidCollision) {
+      movementCommand.pitch = avoidCollision.pitch
+      movementCommand.yaw = avoidCollision.yaw
+      movementCommand.deltaSpeed = avoidCollision.throttle
     }
     world.update(entity, "movementCommand", movementCommand)
     if (distanceToTarget < STRAFE_BREAKOFF) {

@@ -78,13 +78,13 @@ export class FlexTestScreen extends MercScreen {
     text2.textWrapping = GUI.TextWrapping.WordWrap
     text2.fontFamily = "monospace"
     const text1FlexItem = new FlexItem("test1-flex", text1)
-    text1FlexItem.getMeasure = (width, widthMode, height, heightMode): {width: number, height: number} => {
+    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
       text1.widthInPixels = width
       text1.heightInPixels = text1.computeExpectedHeight()
       return { width: text1.widthInPixels, height: text1.computeExpectedHeight() }
     }
     const text2FlexItem = new FlexItem("test2-flex", text2)
-    text2FlexItem.getMeasure = (width, widthMode, height, heightMode): {width: number, height: number} => {
+    text2FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
       text2.widthInPixels = width
       text2.heightInPixels = text2.computeExpectedHeight()
       return { width: text2.widthInPixels, height: text2.computeExpectedHeight() }
@@ -128,7 +128,7 @@ export class FlexTestScreen extends MercScreen {
     this.root = root
   }
 
-  updateScreen(dt: number): void {
+  updateScreen(_dt: number): void {
     this.root.layout()
   }
 }

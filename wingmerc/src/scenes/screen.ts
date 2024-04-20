@@ -19,6 +19,6 @@ export class MercScreen {
     this.gui.dispose()
   }
 
-  updateScreen(dt: number) {
+  updateScreen(_dt: number) {
   }
 }
