@@ -1,5 +1,5 @@
-import { IDisposable, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShapeContainer, PhysicsShapeConvexHull, PhysicsShapeMesh, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
-import { queries, world } from "../../world"
+import { IDisposable, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShapeContainer, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
+import { Entity, queries, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { AppContainer } from "../../../app.container"
 import { ToRadians } from "../../../utils/math";
@@ -23,7 +23,7 @@ export class UpdatePhysicsSystem implements IDisposable {
     queries.physics.onEntityAdded.unsubscribe(this.physicsOnEntityAdded)
   }
 
-  private physicsOnEntityAdded = (entity) => {
+  private physicsOnEntityAdded = (entity: Entity) => {
     const { node, bodyType } = entity
     console.log(`[PhysicsSystem] creating body for [${world.id(entity)}]"${entity.targetName}"`)
     // create the body
@@ -65,6 +65,8 @@ export class UpdatePhysicsSystem implements IDisposable {
       // hullShapeMesh.bakeCurrentTransformIntoVertices()
       hullShapeMesh.dispose()
       // hullShape = physicsHullShape
+    } else if (entity.physicsRadius != undefined) {
+      hullShape = new PhysicsShapeSphere(Vector3.Zero(), entity.physicsRadius, app.scene)
     } else {
       hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
     }

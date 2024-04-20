@@ -1,8 +1,12 @@
-import { PhysicsEngineV2, PhysicsRaycastResult, Vector3 } from "@babylonjs/core"
+import { HavokPlugin, PhysicsEngineV2, PhysicsRaycastResult, Quaternion, ShapeCastResult, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
 import { registerHit } from "../../damage"
+import { QuaternionFromObj } from "../../../utils/math"
 
+const shapeLocalResult = new ShapeCastResult()
+const hitWorldResult = new ShapeCastResult()
+const DEFAULT_ROTATION = Quaternion.Zero()
 export function particleSystem() {
   for (const entity of queries.particle) {
     const { position, particleRange } = entity
@@ -17,16 +21,30 @@ export function particleSystem() {
       // skipping dead particle
       continue
     }
+    shapeLocalResult.reset()
+    hitWorldResult.reset()
     // check if particle passed through an entity
-    var raycastResult = new PhysicsRaycastResult()
+    // var raycastResult = new PhysicsRaycastResult()
     var start = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)
     var end = new Vector3(position.x, position.y, position.z)
     const physicsEngine = AppContainer.instance.scene.getPhysicsEngine() as PhysicsEngineV2
-    physicsEngine.raycastToRef(start, end, raycastResult);
-    if (raycastResult.hasHit && entity.originatorId != ""+raycastResult.body.entityId) {
-      const hitEntity = world.entity(raycastResult.body.entityId)
+    const havok = physicsEngine.getPhysicsPlugin() as HavokPlugin
+    havok.shapeCast({
+      shape: entity.body.shape,
+      rotation: DEFAULT_ROTATION,
+      startPosition: start,
+      endPosition: end,
+      shouldHitTriggers: false,
+  }, shapeLocalResult, hitWorldResult)
+    
+    // physicsEngine.raycastToRef(start, end, raycastResult);
+    // if (shapeLocalResult.hasHit) {
+    //   debugger;
+    // }
+    if (shapeLocalResult.hasHit && entity.originatorId != ""+hitWorldResult.body.entityId) {
+      const hitEntity = world.entity(hitWorldResult.body.entityId)
       if (hitEntity == undefined) {
-        console.error("we collided with a mesh that has an entity id that doesn't exist in the world!", raycastResult.body, raycastResult.body.entityId)
+        console.error("we collided with a mesh that has an entity id that doesn't exist in the world!", hitWorldResult.body, hitWorldResult.body.entityId)
         continue
       }
       if (entity.originatorId == hitEntity.originatorId) {
@@ -36,7 +54,7 @@ export function particleSystem() {
       }
       console.log(`[ParticleSystem] contact: ${world.id(entity)}`)
       // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
-      registerHit(hitEntity, entity, raycastResult.hitPointWorld, entity.damage ?? 1)
+      registerHit(hitEntity, entity, hitWorldResult.hitPoint, entity.damage ?? 1)
       const shooter = world.entity(parseInt(entity.originatorId))
       if (shooter?.nerdStats) {
         shooter.nerdStats.roundsHit += 1

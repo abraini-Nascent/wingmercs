@@ -94,7 +94,8 @@ export class WeaponCommandSystem implements IDisposable {
             width: 1,
             length: 2,
           }],
-          // bodyType: "animated"
+          physicsRadius: 1,
+          bodyType: "animated"
         });
         let laserSound = SoundEffects.Laser()
         laserSound.spatialSound = true
