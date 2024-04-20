@@ -17,10 +17,12 @@ export class UpdatePhysicsSystem implements IDisposable {
 
   constructor () {
     queries.physics.onEntityAdded.subscribe(this.physicsOnEntityAdded)
+    queries.physics.onEntityRemoved.subscribe(this.physicsOnEntityRemoved)
   }
 
   dispose(): void {
     queries.physics.onEntityAdded.unsubscribe(this.physicsOnEntityAdded)
+    queries.physics.onEntityRemoved.unsubscribe(this.physicsOnEntityRemoved)
   }
 
   private physicsOnEntityAdded = (entity: Entity) => {
@@ -80,5 +82,14 @@ export class UpdatePhysicsSystem implements IDisposable {
     
     world.addComponent(entity, "body", body)
     node.position.set(nodePos.x, nodePos.y, nodePos.z)
+  }
+
+  private physicsOnEntityRemoved = (entity: Entity) => {
+    if (entity.body) {
+      if (entity.body.shape) {
+        entity.body.shape.dispose()
+      }
+      entity.body.dispose()
+    }
   }
 }
