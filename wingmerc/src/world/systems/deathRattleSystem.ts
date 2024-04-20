@@ -53,9 +53,6 @@ export class DeathRattleSystem implements IDisposable {
     sps.begin()
     // is there a better way than using a timeout...
     setTimeout(() => {
-      SoundEffects.Explosion(Vector3FromObj(entity.position))
-      sps.dispose()
-      sps = undefined
       let fade = 300
       let observer = scene.onAfterRenderObservable.add(() => {
         let dt = scene.getEngine().getDeltaTime()
@@ -74,12 +71,18 @@ export class DeathRattleSystem implements IDisposable {
         //   }
         // }
         if (fade <= 0) {
+          SoundEffects.Explosion(Vector3FromObj(entity.position))
           const sphereEmitter = new MercParticleSphereEmitter()
           Vector3FromObj(entity.position, sphereEmitter.position)
           let sphereSps = MercParticles.deathExplosion(`death-explosion-${i}`, scene, sphereEmitter)
           observer.remove()
           observer = undefined
           world.remove(entity)
+          sps.stopped = true
+          sps.onDone = () => {
+            sps.dispose()
+            sps = undefined
+          }
         }
       })
     }, 3000)
