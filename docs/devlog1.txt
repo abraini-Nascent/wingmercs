@@ -1,0 +1,54 @@
+Recapturing the Golden Era of Dogfighting: Behind the Scenes of "Squadron: Mercenaries" Space Combat AI 
+
+For decades, Wing Commander has stood as a pillar of the space combat genre, captivating players with its immersive universe, gripping narrative, and intense dogfighting action. As pioneers in interactive storytelling, the franchise redefined what it meant to soar among the stars, weaving together cinematic flair with adrenaline-fueled gameplay.  
+
+In the vast expanse of space, where every maneuver could mean the difference between victory and defeat, the art of aerial combat takes center stage. From thrilling chase sequences to daring evasive maneuvers, dogfights epitomize the essence of Wing Commander, delivering an authentic and exhilarating space combat experience unlike any other.  
+
+[I have fond memories of the original Wing Commander 2.5D games - I & II and Privateer and it's add-on, Righteous Fire.  I've recently played through them again with a gamepad setup on the Steam Deck and found they hold up really well.  Playing through the 3d era, I could feel the 3d teething problems.  Dogfighting in WC3 did not have the same cutthroat feel.] -- is this necessary? 
+
+With `Squadron: Mercenaries` I want the feel of the original dogfighting mechanics. I'll walk through how I've implemented the AI to match as best I could the original AI systems as they were described in interviews, strategy guides, and game design documents.
+
+Steering Behaviors and Classic Maneuvers:
+In my effort to capture the essence of Wing Commander's iconic space combat, I've implemented steering behaviors that handle spaceship flight dynamics with a sense of authenticity and homage to the original series. Drawing inspiration from the classic maneuvers documented in Wing Commander's 'Taggard's Tactics' section from the original game manual.  These aren't just mechanics to me; they're nods to the moments that made us all fall in love with space combat gaming.
+
+For example, the iconic Kickstop maneuver, known for its abrupt deceleration followed by a sharp turn, has been faithfully recreated to offer players an opponent capable of evading your fire or gaining the upper hand in combat. Similarly, maneuvers like the Fish Hook and Tight Loop, synonymous with daring aerial acrobatics and precision maneuvers, have been carefully integrated into the gameplay experience, aiming to recapture the thrill and excitement of dogfighting in deep space.
+
+As an aside, the "Kick" in "Kickstop" is repeated in quite a few player documents but was never really described in full. The Kick is used in the name of five different maneuvers! It was only with the help of the Wing Commander fan community finding the original maneuver design documentation that I was able to piece together the Kick being a classic hard turn and full afterburner.
+
+By meticulously studying and implementing these classic maneuvers from the original Wing Commander design documentation, I'm trying to ensure that every aspect of the spaceship combat dynamics pays homage to the rich heritage of the franchise. Whether witnessing a precise Tight Loop to evade your incoming fire or executing a daring Kickstop to turn the tide of battle, players will find themselves immersed in the heart-pounding excitement of Wing Commander's signature dogfighting action.
+
+Hierarchical State Machines for AI Strategy:
+The enemy fighter pilots need to know what maneuvers they should be executing and when.  It wouldn't make sense to be pulling defensive maneuvers when behind the player or attempting to make a strafing run thousands of kilometers outside of gun range.  To manage this strategy level of thinking, the AI is written in the classic State Machine.  It kind of gets a bad wrap these days with much more complex AI systems out there like Goal Oriented Action Planning, Behavior Trees, and Utility-Based Systems. But in this case it works really well.
+
+It starts with the state machine for the Mission.  For now we have a Patrol, Destroy Target, and Wingman missions.  At the top level of the mission we choose what Operation to run.  For Patrol it might be to wander the patrol area, or head back to the patrol point.  
+
+Each Operation state machine is broken down into a set of Tasks.  For instance Wander will pick a new point to wander to, steer towards the point, and scan for enemies within range. If the scan Task finds an enemy in range we switch the Operation to Approach Target.  Approach Target has it's own Tasks to run to close the distance and once within combat range we can switch to Engage.  The Engage task is where we switch from a State Machine to another classic game AI pattern; the Decision Tree.
+
+Decision-Making in Dogfights:
+When the original Wing Commander AI creator Ken Demarest was designing the decision-making process for AI pilots during dogfights, his focus was on creating a system that responds dynamically to the ever-changing conditions of battle. Key factors such as the health status of the AI pilot and the positional context of the engagement play a crucial role in determining the appropriate course of action.
+
+For instance, when an AI pilot sustains heavy damage, the decision-making algorithm prioritizes evasive maneuvers aimed at minimizing further harm and preserving the pilot's survival. This might involve executing defensive maneuvers like the Hard Brake or Sit-'n'-Spin to throw off enemy targeting or fleeing the field of battle entirely.
+
+Conversely, when the AI pilot detects vulnerabilities in the enemy's defenses or positioning, the algorithm shifts towards a more aggressive stance, selecting offensive maneuvers designed to exploit weaknesses and seize the advantage. This could include executing strafing runs to a target's exposed flanks or performing Tail maneuvers to gain a positional advantage behind the enemy fighter.
+
+Throughout the dogfight, the decision-making process remains fluid, constantly reassessing the combat state and adjusting maneuver selection accordingly. For example, if the AI pilot's health status improves or if the AI's position becomes more favorable, the algorithm may transition from defensive to offensive tactics to capitalize on emerging opportunities.
+
+By incorporating these dynamic decision-making mechanisms into the AI pilot's behavior, I'm attempting to create intense and realistic dogfights that challenge players to think strategically and adapt to evolving battlefield conditions. Through a careful balance of defensive and offensive maneuvers tailored to the combat state, each engagement becomes a thrilling test of skill and cunning in the unforgiving expanse of space.
+
+Data-Driven AI:
+The implementation of a data-driven AI system brings a multitude of advantages to the table, fundamentally reshaping the way AI pilots interact with the player and the game environment. By leveraging this approach, space combat achieves a level of flexibility and adaptability that enhances the overall gameplay experience.
+
+One of the primary advantages of a data-driven AI system is its ability to dynamically compose objectives, tasks, and maneuvers based on combat states. Unlike traditional scripted AI, which follows predetermined paths and behaviors, a data-driven system analyzes real-time data to make informed decisions on the fly. This means that AI pilots can adapt their strategies and tactics in response to changing circumstances, creating more dynamic and unpredictable encounters for the player.
+
+Furthermore, a data-driven AI system offers unparalleled flexibility in terms of scalability and customization. As the complexity of the game increases or new features are introduced, the AI can seamlessly adapt to accommodate these changes without the need for extensive reprogramming. This not only streamlines the development process but also allows for greater experimentation and innovation in AI behavior.
+
+This means I can easily add new maneuvers to the full roster of available maneuvers.  I could also restrict certain maneuvers to only high-skilled AI pilots or to the state of the ship or to specific ship types.  Since the state machines are composed of reusable Tasks and Operations I can easily recombine them to create new missions or variants.
+
+Overall, the advantages of a data-driven AI system are clear: it provides the flexibility, adaptability, and scalability needed to create dynamic and engaging gameplay experiences. By harnessing the power of data-driven AI, I hope to push the game in the future to deliver intense and immersive space combat.
+
+Where I'm going with all of this:
+The demo launched with very basic AI that resulted in "space jousting".  Now the intensity has been ramped up! I've been caught by the ship I'm tailing pulling a tight loop or straining to train my guns on a ship that Shakes and Rolls.  Flying in a straight line is a death sentence and a head-to-head attack is risky.
+
+I've only built out the data for a single personality and we still only have the Training Simulator's horde waves to go up against.  But with the systems built, growing the breadth of the AI will be as easy as described above, perhaps just a week's worth of train rides.
+
+The next major milestone will be another data-driven piece of the game: Ship Customization.  I'll be drawing inspiration from the classic DOS Battletech and Mechwarrior games as we begin to build out the Mercenaries part of "Squadron: Mercenaries".
