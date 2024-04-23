@@ -1,3 +1,5 @@
+import { PilotAIType } from "../pilotAI/pilotAI";
+
 export interface ShipDetails {
   name: string;
   class: string;
@@ -18,6 +20,7 @@ export interface ShipDetails {
           }
       }[];
   };
+  pilot: PilotAIType,
   shields: {
       fore: number;
       aft: number;

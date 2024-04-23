@@ -3,6 +3,7 @@ import { ShipDetails } from "./shipDetails";
 export const Dirk: ShipDetails = Object.seal({
   name: "Dirk",
   class: "Dirk",
+  pilot: "Light01",
   modelDetails: {
     base: "craftMiner",
     physics: "craftMinerHull",

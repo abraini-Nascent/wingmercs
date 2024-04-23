@@ -88,7 +88,7 @@ export function createShip(ship: ShipDetails, x: number, y: number, z: number, t
     local: true,
     teamId: teamId,
     groupId: groupId,
-    ai: { type: "shipIntelegence", blackboard: {} },
+    ai: { type: "shipIntelegence", blackboard: {}, pilot: ship.pilot },
     meshName: ship.modelDetails.base,
     shieldMeshName: ship.modelDetails.shield,
     physicsMeshName: ship.modelDetails.physics,

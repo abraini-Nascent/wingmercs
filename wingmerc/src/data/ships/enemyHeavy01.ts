@@ -3,6 +3,7 @@ import { ShipDetails } from "./shipDetails";
 export const EnemyHeavy01: ShipDetails = Object.seal({
   name: "Beetle",
   class: "EnemyHeavy01",
+  pilot: "Heavy01",
   modelDetails: {
     base: "craftSpeederD",
     physics: "craftSpeederDHull",
@@ -163,4 +164,7 @@ export const EnemyHeavy01: ShipDetails = Object.seal({
       weapons: 50,
     }
   },
+  fuel: {
+    maxCapacity: 90
+  }
 })

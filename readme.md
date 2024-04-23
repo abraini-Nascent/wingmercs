@@ -73,11 +73,11 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
     - [x] test action state tree
   - [x] ai personalities
     - [x] test personalities
-    - [ ] build more personalities
+    - [x] build more personalities
   - [x] offset / pursuit should match target "up"
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
   - [x] add group ids for patrols so we can have multiple wings on the same team
-  - [ ] collision avoidance
+  - [x] collision avoidance
 ### next demo
 - [] fullish weapons list
 - [] fullish guns list

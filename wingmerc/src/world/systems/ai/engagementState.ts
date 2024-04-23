@@ -82,6 +82,7 @@ export const ManeuverType = {
   BreakRight: "BreakRight",
   /** afterburns out of a pursuer's range or for 5 seconds and then makes a tight 180º turn to return fire */
   Burnout: "Burnout",
+  Corkscrew: "Corkscrew",
   Flee: "Flee",
   FishHook: "FishHook",
   HardBrake: "HardBrake",
@@ -91,6 +92,7 @@ export const ManeuverType = {
   RollAndStrafe: "RollAndStrafe",
   Shake: "Shake",
   ShakeRattleAndRoll: "ShakeRattleAndRoll",
+  SitAndFire: "SitAndFire",
   SitAndKick: "SitAndKick",
   // SitAndSpin: "SitAndSpin", no, this is dumb
   Strafe: "Strafe",
@@ -103,6 +105,7 @@ export const ManeuverType = {
 export type ManeuverType = typeof ManeuverType[keyof typeof ManeuverType];
 
 export const OffensiveManeuvers: ManeuverType[] = ["Strafe", "RollAndStrafe", "Tail"]
+export const StrafeAttacks: ManeuverType[] = ["Strafe", "RollAndStrafe"]
 export const DefensiveManeuvers: ManeuverType[] = ["BreakLeft", "BreakRight", "Burnout", "FishHook", "HardBrake", "Kickstop", "Shake", "ShakeRattleAndRoll", "TurnAndKick", "TurnAndSpin", "SitAndKick", "TightLoop"]
 
 /**
@@ -120,56 +123,4 @@ export const DefensiveManeuvers: ManeuverType[] = ["BreakLeft", "BreakRight", "B
  */
 
 // example execution layout for STRIKE objective 
-export type ExecutionTree = {
-  [situation in StateOfConfrontation]: 
-  {
-    [damage in StateOfHealth]: [weight: number, maneuver: ManeuverType[]][]
-  } 
-}
-export const STRIKE: ExecutionTree = {
-  EnemyNear: {
-    LittleDamage: [[70, ["Tail"]], [30, OffensiveManeuvers]],
-    MediumDamage: [[80, ["Tail"]], [20, OffensiveManeuvers]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  EnemySlow: {
-    LittleDamage: [[80, ["Strafe"]], [20, ["Burnout"]]],
-    MediumDamage: [[50, ["Strafe"]], [50, ["Tail"]]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  EnemyFar: {
-    LittleDamage: [[1, ["Intercept"]]],
-    MediumDamage: [[1, ["Intercept"]]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  EnemyTailing: {
-    LittleDamage: [[90, ["BreakLeft"]], [10, DefensiveManeuvers]],
-    MediumDamage: [[90, ["BreakLeft"]], [10, DefensiveManeuvers]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  HeadToHead: {
-    LittleDamage: [[50, OffensiveManeuvers], [50, DefensiveManeuvers]],
-    MediumDamage: [[80, OffensiveManeuvers], [20, DefensiveManeuvers]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  OnEnemyTail: {
-    LittleDamage: [[1, OffensiveManeuvers]],
-    MediumDamage: [[1, OffensiveManeuvers]],
-    HeavyDamage: [[1, OffensiveManeuvers]]
-  },
-  MissileIncoming: {
-    LittleDamage: [[1, DefensiveManeuvers]],
-    MediumDamage: [[80, ["BreakLeft"]], [20, DefensiveManeuvers]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  LaserHit: {
-    LittleDamage: [[1, DefensiveManeuvers]],
-    MediumDamage: [[25, ["BreakLeft"]], [75, DefensiveManeuvers]],
-    HeavyDamage: [[1, ["Flee"]]]
-  },
-  EnemyDestroyed: {
-    LittleDamage: [[1, ["Veer"]]],
-    MediumDamage: [[1, ["Veer"]]],
-    HeavyDamage: [[1, ["Veer"]]]
-  }
-}
+

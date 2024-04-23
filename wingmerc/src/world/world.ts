@@ -11,6 +11,7 @@ import {
 import { World } from "miniplex"
 import { net } from "../net"
 import { AIType } from "./systems/ai/aiSystem"
+import { PilotAIType } from '../data/pilotAI/pilotAI';
 
 export type MovementCommand = {
   pitch: number
@@ -161,7 +162,7 @@ export type MissionDetails = {
 }
 // TODO: organize this... :S
 export type Entity = {
-  ai?: { type: AIType; executionTree?: ExecutionTree, blackboard: AIBlackboard }
+  ai?: { type: AIType; pilot: PilotAIType, blackboard: AIBlackboard }
   teamId?: number
   groupId?: number
   wingleader?: { wingmen: number[] }
