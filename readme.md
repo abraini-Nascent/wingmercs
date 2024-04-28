@@ -53,40 +53,28 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 
 ## Bugs:
 - [ ] high score doesn't seem to be saved
-## TODO:
-### next demo
-- [] joystick controls
-- [] VR controls
-- [] configurable input
-- [] rebuild ai: https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
-  - [x] pursuit
-  - [x] offset pursuit
-  - [x] arrival
-  - [x] flee
-  - [x] collisions
-    - [x] obstacle avoidance
-    - [x] unaligned collision avoidance
-  - [x] path following
-    - [ ] test path following
-  - [x] pre-defined maneuvers
-  - [x] action state tree
-    - [x] test action state tree
-  - [x] ai personalities
-    - [x] test personalities
-    - [x] build more personalities
-  - [x] offset / pursuit should match target "up"
+## Backlog:
+- [ ] joystick controls
+- [ ] VR controls
+- [ ] configurable input
+- [ ] rebuild ai:
+  - [ ] test path following
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
-  - [x] add group ids for patrols so we can have multiple wings on the same team
-  - [x] collision avoidance
+## TODO:
+
 ### next demo
 - [] fullish weapons list
 - [] fullish guns list
 - [] fullish ships list (add more player ships)
-- [] drop in system types (engines, power plants, shields)
-- [] configurable ships
-- [] configurable enemies
-- [] ship viewer
+- [x] drop in system types (engines, power plants, shields)
+- [x] configurable ships
+- [] ship builder
+  - [ ] select ship
+  - [ ] add modifiers
+  - [ ] see stats
+  - [ ] launch ship
 - [] models for weapons
+- [] models for guns
 - [] polish and juice
 ### next demo
 - [] dynamic missions - instant action mode
@@ -231,6 +219,30 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] code cleanup
 - [x] settings menu for volume
 - [x] controller input help menu
+### AI Rebuild
+- [] joystick controls
+- [] VR controls
+- [] configurable input
+- [] rebuild ai: https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
+  - [x] pursuit
+  - [x] offset pursuit
+  - [x] arrival
+  - [x] flee
+  - [x] collisions
+    - [x] obstacle avoidance
+    - [x] unaligned collision avoidance
+  - [x] path following
+    - [ ] test path following
+  - [x] pre-defined maneuvers
+  - [x] action state tree
+    - [x] test action state tree
+  - [x] ai personalities
+    - [x] test personalities
+    - [x] build more personalities
+  - [x] offset / pursuit should match target "up"
+  - [ ] pre defined maneuvers can describe "up" of maneuver heading
+  - [x] add group ids for patrols so we can have multiple wings on the same team
+  - [x] collision avoidance
 
 oh give me a ship, with a jump drive equip'd
 and with the cargo hold packed i'll go

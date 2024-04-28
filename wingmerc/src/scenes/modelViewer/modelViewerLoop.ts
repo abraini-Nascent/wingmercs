@@ -1,3 +1,4 @@
+import { Afterburners } from './../../data/components/afterburners';
 import { DebounceTimedMulti } from './../../utils/debounce';
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
@@ -9,7 +10,7 @@ import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
 import { Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
 import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
 import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
-import { engineRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
+import { powerPlantRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
 import { aiSystem } from '../../world/systems/ai/aiSystem';
 import { moveSystem} from '../../world/systems/moveSystem';
 import { rotationalVelocitySystem } from '../../world/systems/rotationalVelocitySystem';
@@ -18,7 +19,7 @@ import { particleSystem } from '../../world/systems/weaponsSystems/particleSyste
 import { missileSteeringSystem } from '../../world/systems/weaponsSystems/missileSteeringSystem';
 import { missileTargetingSystem } from '../../world/systems/weaponsSystems/missileTargetingSystem';
 import { updateRenderSystem } from '../../world/systems/renderSystems/updateRenderSystem';
-import { createShip } from '../../world/factories';
+import { createCustomShip, createShip } from '../../world/factories';
 import { KeyboardMap } from '../../utils/keyboard';
 import { damageSprayParticlePool, registerHit, shieldPulserSystem } from '../../world/damage';
 import SamJs from 'sam-js';
@@ -37,6 +38,7 @@ import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterbu
 import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSystem';
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
+import { Epee } from '../../data/ships/epee';
 
 const divFps = document.getElementById("fps");
 
@@ -117,13 +119,16 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   setup() {
 
-    let model1 = createShip(Dirk, -100, 0, -1000, 2, 1);
+    let epee = structuredClone(Epee)
+    epee.afterburnerSlot.modifier = structuredClone(Afterburners.Light)
+    // let model1 = createShip(Dirk, -100, 0, -1000, 2, 1);
+    let model1 = createCustomShip(epee, -100, 0, -1000, 2, 1);
     world.addComponent(model1, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
     })
     // world.update(model, "ai", { type: "demoLeader", blackboard: model.ai.blackboard })
-    this.ship = model1
+    
     // this.ship.ai.type = undefined
 
     let model2 = createShip(EnemyMedium01, 100, 0, 1000, 3, 1);
@@ -131,6 +136,8 @@ export class ModelViewerScene implements GameScene, IDisposable {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
     })
+
+    this.ship = model1
 
     // let model3 = createShip(EnemyMedium02, 0, 0, 2000, 1, 1);
     // world.addComponent(model3, "missionDetails", {
@@ -292,7 +299,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     this.checkInput(delta)
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
-    engineRechargeSystem(delta)
+    powerPlantRechargeSystem(delta)
     aiSystem(delta)
     moveCommandSystem(delta)
     rotationalVelocitySystem()

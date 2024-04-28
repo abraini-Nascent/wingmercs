@@ -134,8 +134,12 @@ class App {
     const onFinishedLoading = () => {
       engine.hideLoadingUI()
       Engine.audioEngine.setGlobalVolume(0.1);
-      AppContainer.instance.gameScene = new MainMenuScene()
-      // AppContainer.instance.gameScene = new FlexTestScene()
+      if (AppContainer.instance.debug) {
+        AppContainer.instance.gameScene = new MainMenuScene()
+        // AppContainer.instance.gameScene = new FlexTestScene()
+      } else {
+        AppContainer.instance.gameScene = new MainMenuScene()
+      }
     }
     
     this.assetsManager = loadAssets(onFinishedLoading)

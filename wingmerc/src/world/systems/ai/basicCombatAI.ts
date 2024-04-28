@@ -104,7 +104,7 @@ export function basicCombatAI(entity: Entity, dt: number) {
   const shipTemplateName = entity.planeTemplate
   const shipTemplate: { cruiseSpeed: number } = Ships[shipTemplateName] ?? Ships.EnemyLight01
   world.update(entity, "rotationalVelocity", input)
-  world.update(entity, "setSpeed", shipTemplate.cruiseSpeed)
+  world.update(entity, "setSpeed", entity.engine.cruiseSpeed)
   world.update(entity, "movementCommand", {
     pitch: input.pitch,
     yaw: input.yaw,

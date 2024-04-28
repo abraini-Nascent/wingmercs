@@ -1,6 +1,6 @@
 export type Gun = {
   /** id */
-  class: string,
+  class: GunType,
   /** display name */
   name: string,
   /** range before dissipating */
@@ -16,3 +16,12 @@ export type Gun = {
   /** how much damage it can take before being destroyed */
   health: number
 }
+
+export const GunType = {
+  laser: "laser",
+  massdriver: "massdriver",
+  neutron: "neutron",
+} as const
+
+export type GunType = typeof GunType[keyof typeof GunType];
+export type Guns = { [gunType in GunType]: Gun };

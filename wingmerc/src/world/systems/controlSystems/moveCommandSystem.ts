@@ -11,17 +11,17 @@ import { QuaternionFromObj } from '../../../utils/math';
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moveCommanded) {
-    const { position, acceleration, systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel } = entity;
+    const { systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel, engine } = entity;
     let { setSpeed } = entity;
     const { movementCommand } = entity;
     const shipTemplateName = entity.planeTemplate
-    const shipTemplate: { cruiseSpeed: number, maxSpeed: number, pitch: number, yaw: number, roll: number, accelleration: number, afterburnerAccelleration: number, breakingForce: number, breakingLimit: number } = Ships[shipTemplateName] ?? Ships.Dirk
+    const shipTemplate: { pitch: number, yaw: number, roll: number, breakingForce: number, breakingLimit: number } = Ships[shipTemplateName] ?? Ships.Dirk
 
     // scale back speeds based on damage, minimum 20% capability even if destroyed
-    const maxDamagedSpeed = shipTemplate.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
-    const maxDamagedCruiseSpeed = shipTemplate.cruiseSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
+    const maxDamagedSpeed = engine.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
+    const maxDamagedCruiseSpeed = engine.cruiseSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
     if (movementCommand.deltaSpeed != 0) {
-      setSpeed = (Math.max(0, Math.min(shipTemplate.cruiseSpeed, setSpeed + movementCommand.deltaSpeed)))
+      setSpeed = (Math.max(0, Math.min(engine.cruiseSpeed, setSpeed + movementCommand.deltaSpeed)))
       entity.setSpeed = setSpeed
     }
     if (maxDamagedCruiseSpeed < setSpeed) {
@@ -55,8 +55,8 @@ export function moveCommandSystem(dt: number) {
       world.update(entity, "rotationalVelocity", rotationalVelocity);
 
       //// change speed of the ship
-      const cruiseAcceleration = (shipTemplate.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
-      const afterburnerAcceleration = (shipTemplate.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
+      const cruiseAcceleration = (engine.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
+      const afterburnerAcceleration = (engine.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
       const breakAcceleration = (shipTemplate.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       const canAfterburner = fuel == undefined ? true : fuel.currentCapacity > (dt / 1000) // TODO burn rate should scale, there should be enough fuel to match afterburner's burn rate
       if (movementCommand.afterburner && canAfterburner) {
@@ -160,9 +160,12 @@ export function moveCommandSystem(dt: number) {
         }
         if (newSpeed < setSpeed) {
           // TODO: this should take into consideration damage
-          newSpeed = Math.min(currentSpeed + cruiseAcceleration, shipTemplate.cruiseSpeed)
+          newSpeed = Math.min(currentSpeed + cruiseAcceleration, engine.cruiseSpeed)
         } else if (newSpeed > setSpeed) {
           newSpeed = Math.min(Math.max(currentSpeed - cruiseAcceleration, 0), setSpeed)
+        }
+        if (isNaN(newSpeed)) {
+          debugger
         }
 
         // world.update(entity, "currentSpeed", newSpeed)

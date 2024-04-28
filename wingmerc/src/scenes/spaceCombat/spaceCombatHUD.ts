@@ -274,7 +274,7 @@ export class CombatHud {
 
   powerBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    let f = playerEntity.engine.currentCapacity / playerEntity.engine.maxCapacity
+    let f = playerEntity.powerPlant.currentCapacity / playerEntity.powerPlant.maxCapacity
     f = Math.round(f * 100)
     return barPercentCustom(f, 10)
   }

@@ -4,7 +4,7 @@ import { MainMenuScreen } from "./mainMenuScreen";
 import { Entity, queries, world } from "../../world/world";
 import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
 import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
-import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
+import { powerPlantRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
 import { aiSystem } from "../../world/systems/ai/aiSystem";
 import {  moveSystem, } from "../../world/systems/moveSystem";
 import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
@@ -165,7 +165,7 @@ export class MainMenuScene implements IDisposable {
     // systems for demo ships
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
-    engineRechargeSystem(delta)
+    powerPlantRechargeSystem(delta)
     fuelConsumptionSystem(delta)
     aiSystem(delta)
     moveCommandSystem(delta)
@@ -215,6 +215,9 @@ export class MainMenuScene implements IDisposable {
     upOffset.rotateByQuaternionToRef(firstRotation, upOffset)
     upOffset.multiplyInPlace(TmpVectors.Vector3[5].set(150 * 5, 150 * 5, 150 * 5))
     behind.addInPlace(upOffset)
+    if (isNaN(behind.x)) {
+      debugger
+    }
     this.camera.position.copyFrom(behind)
     this.camera.setTarget(firstPosition)
     return

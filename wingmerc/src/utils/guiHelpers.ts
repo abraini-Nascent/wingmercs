@@ -1,5 +1,5 @@
 import * as GUI from "@babylonjs/gui"
-import { Color4, DynamicTexture, ICanvasRenderingContext } from "@babylonjs/core";
+import { Color4, DynamicTexture, ICanvasRenderingContext, Observable, Observer } from "@babylonjs/core";
 import Yoga, { Node, Edge, FlexDirection, PositionType, MeasureFunction, MeasureMode, Unit, Direction } from 'yoga-layout';
 
 export class TintedImage extends GUI.Image {
@@ -134,13 +134,14 @@ export class DynamicTextureImage extends GUI.Rectangle {
   }
 }
 
+const debug = true
 export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-layout';
 export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
 export class FlexContainer {
   private _node = Yoga.Node.create();
   name: string
   host: GUI.AdvancedDynamicTexture | GUI.Container
-  _background: GUI.Rectangle
+  _container: GUI.Container
   width: number
   height: number
   top: number = 0
@@ -150,41 +151,43 @@ export class FlexContainer {
   public get style(): FlexContainerNode {
     return this._node as FlexContainerNode
   }
-  constructor(name?: string, host?: GUI.AdvancedDynamicTexture | GUI.Container, direction?: FlexDirection) {
+  constructor(name?: string, host?: GUI.AdvancedDynamicTexture, container?: GUI.Container, direction?: FlexDirection) {
     this._node.setFlexDirection(direction)
     this.host = host
     this.name = name
-    this._background = new GUI.Rectangle(`${name??"FlexContainer"}_background`)
-    this._background.horizontalAlignment = GUI.Container.HORIZONTAL_ALIGNMENT_LEFT
-    this._background.verticalAlignment = GUI.Container.VERTICAL_ALIGNMENT_TOP
-    this._background.thickness = 1
+    this._container = container ?? new GUI.Rectangle(`${name??"FlexContainer"}_background`)
+    this._container.horizontalAlignment = GUI.Container.HORIZONTAL_ALIGNMENT_LEFT
+    this._container.verticalAlignment = GUI.Container.VERTICAL_ALIGNMENT_TOP
+    if ('thickness' in this._container) {
+      this._container.thickness = debug ? 1 : 0
+    }
     if (this.host == undefined) {
-      this.host = this._background
+      this.host = this._container
     } else {
-      this.host.addControl(this._background)
+      this.host.addControl(this._container)
     }
   }
   public set background(value: string) {
-    this._background.background = value
+    this._container.background = value
   }
   public get background(): string {
-    return this._background.background
+    return this._container.background
   }
   public set clipChildren(value: boolean) {
-    this._background.clipChildren = value
+    this._container.clipChildren = value
   }
   public get clipChildren(): boolean {
-    return this._background.clipChildren
+    return this._container.clipChildren
   }
 
   dispose(): void {
     this._node.free()
   }
   private _updateBackground() {
-    this._background.topInPixels = this.top
-    this._background.leftInPixels = this.left
-    this._background.heightInPixels = this.height
-    this._background.widthInPixels = this.width
+    this._container.topInPixels = this.top
+    this._container.leftInPixels = this.left
+    this._container.heightInPixels = this.height
+    this._container.widthInPixels = this.width
   }
   
   addControl(control: GUI.Control | FlexContainer | FlexItem): FlexContainer {
@@ -200,7 +203,7 @@ export class FlexContainer {
       }
       this._children.push(control)
       this._node.insertChild(control.style as Node, this._children.length - 1)
-      this.host.addControl(control._background)
+      this.host.addControl(control._container)
       return this
     }
 
@@ -271,7 +274,7 @@ export class FlexContainer {
     this._node.calculateLayout(this.width ?? "auto", this.height ?? "auto", Direction.LTR)
     // walk through child tree
     this.left = this._node.getComputedLeft()
-    this.top = this._node.getComputedLeft()
+    this.top = this._node.getComputedTop()
     this._updateBackground()
 
     console.log(`${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`)
@@ -292,7 +295,7 @@ export class FlexContainer {
         container.height = height
         container.width = width
         
-        console.log(`${container.name}, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
+        console.log(`${container.name}-container, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
         const newItems = container._children.map((item) => {
           return {
             parent: container as FlexContainer,
@@ -303,15 +306,11 @@ export class FlexContainer {
         container._updateBackground()
       } else {
         const control = next.child.item
-        const top = next.parent.top + next.child.node.getComputedTop()
-        const left = next.parent.left + next.child.node.getComputedLeft()
-        // control.topInPixels = top
-        // control.leftInPixels = left
-        control.leftInPixels = next.child.node.getComputedLeft()
         control.topInPixels = next.child.node.getComputedTop()
-        console.log(`${control.name}-parent, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
-        console.log(`${control.name}-child, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
-        console.log(`${control.name}, \r\ntop:${top} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
+        control.leftInPixels = next.child.node.getComputedLeft()
+        console.log(`${control.name}-parent-node, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
+        console.log(`${control.name}-child-node, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
+        console.log(`${control.name}-item, \r\ntop:${control.topInPixels} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
       }
     }
   }
@@ -322,6 +321,7 @@ export class FlexItem {
   item: GUI.Control
   node = Yoga.Node.create();
   name: string
+  dirtyObserver: Observer<GUI.Control>
 
   constructor(name?: string, control?: GUI.Control) {
     this.item = control
@@ -338,6 +338,14 @@ export class FlexItem {
       height: number
     } => {
       return this.getMeasure(width, widthMode, height, heightMode)
+    })
+    this.dirtyObserver = this.item.onDirtyObservable.add(() => {
+      setTimeout(() => {
+        // wait for render cycle to finish
+        if (this.item.isDirty) {
+          this.node.markDirty()
+        }
+      }, 1)
     })
   }
 
@@ -365,7 +373,9 @@ export class FlexItem {
   }
 
   dispose(): void {
+    this.node.unsetMeasureFunc()
     this.node.free()
+    this.dirtyObserver.remove()
   }
 
   /** If you try to add more than one item it will do nothing */

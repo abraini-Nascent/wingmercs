@@ -665,7 +665,7 @@ namespace AIManeuvers {
       afterburner: 1,
       drift: 0,
       brake: 0,
-      deltaSpeed: shipDetails.cruiseSpeed
+      deltaSpeed: entity.engine.accelleration
     }
     world.update(entity, "movementCommand", movementCommand)
   }
@@ -708,7 +708,6 @@ namespace AIManeuvers {
 
   const FLEE_DESPAWN_RANGE = 15000
   export const Flee = (entity: Entity, blackboard: AIBlackboard) => {
-    const shipDetails = Ships[entity.planeTemplate] as ShipDetails
     if (blackboard.flee == undefined) {
       blackboard.flee = {}
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} fleeing!`)
@@ -726,7 +725,7 @@ namespace AIManeuvers {
       afterburner: 1,
       drift: 0,
       brake: 0,
-      deltaSpeed: shipDetails.cruiseSpeed
+      deltaSpeed: entity.engine.accelleration
     }
     world.update(entity, "movementCommand", movementCommand)
   }
@@ -749,7 +748,6 @@ namespace AIManeuvers {
       return
     }
     brakeBlackboard.brakeTime += blackboard.dt
-    const shipDetails = Ships[entity.planeTemplate] as ShipDetails
     let movementCommand: MovementCommand = {
       pitch: 0,
       yaw: 0,
@@ -757,7 +755,7 @@ namespace AIManeuvers {
       afterburner: 1,
       drift: 0,
       brake: 0,
-      deltaSpeed: -shipDetails.cruiseSpeed
+      deltaSpeed: -entity.engine.accelleration
     }
     world.update(entity, "movementCommand", movementCommand)
   }
@@ -1123,14 +1121,15 @@ namespace AIManeuvers {
       }
     }
     blackboard.sitAnfFire.count += blackboard.dt
-    if (blackboard.sitAnfFire.count > SIT_AND_FIRE_TIMEOUT) {
+    const targetEntity = world.entity(blackboard.targeting.target)
+    if (blackboard.sitAnfFire.count > SIT_AND_FIRE_TIMEOUT || targetEntity == undefined) {
       blackboard.sitAnfFire = undefined
       blackboard.intelligence.maneuver = undefined
       entity.setSpeed = shipCruiseSpeed(entity)
       console.log(`[ShipIntelligence] Ship ${world.id(entity)} site and fire complete!`)
       return
     }
-    const input = SteeringBehaviours.gunPursuit(blackboard.dt, entity, blackboard.targeting.target, SteeringHardTurnClamp)
+    const input = SteeringBehaviours.gunPursuit(blackboard.dt, entity, targetEntity, SteeringHardTurnClamp)
     const movementCommand: MovementCommand = {
       pitch: input.pitch,
       yaw: input.yaw,
@@ -1192,8 +1191,7 @@ const headingManeuver = (entity: Entity, blackboard: AIBlackboard, stateName: st
 }
 
 function shipCruiseSpeed(entity: Entity): number {
-  const shipDetails = Ships[entity.planeTemplate] as ShipDetails
-  return Math.floor(shipDetails.cruiseSpeed * 0.75)
+  return Math.floor(entity.engine.cruiseSpeed * 0.75)
 }
 
 function shipPilot(entity: Entity): ExecutionTree {

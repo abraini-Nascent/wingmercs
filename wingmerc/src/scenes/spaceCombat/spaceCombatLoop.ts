@@ -3,7 +3,7 @@ import { GameScene } from './../gameScene';
 import { AppContainer } from "../../app.container";
 import { aiSystem } from "../../world/systems/ai/aiSystem";
 import { cameraSystem } from "../../world/systems/renderSystems/cameraSystem";
-import { engineRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
+import { powerPlantRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
 import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
 import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missileSteeringSystem";
 import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem";
@@ -272,7 +272,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     }
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
-    engineRechargeSystem(delta)
+    powerPlantRechargeSystem(delta)
     fuelConsumptionSystem(delta)
     combatKeyboardInput(delta)
     this.controllerInput.checkInput(delta)

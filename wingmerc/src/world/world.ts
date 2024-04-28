@@ -23,7 +23,7 @@ export type MovementCommand = {
   deltaSpeed: number
 }
 export type FireCommand = { gun: number; weapon: number; lock: boolean }
-export type ShipEngine = {
+export type ShipPowerPlant = {
   rate: number
   maxCapacity: number
   currentCapacity: number
@@ -47,15 +47,21 @@ export type ShipArmor = {
   left: number
   right: number
 }
+export type ShipEngine = {
+  cruiseSpeed: number;
+  accelleration: number;
+  maxSpeed: number;
+  afterburnerAccelleration: number;
+  fuelConsumeRate: number;
+}
+export type ShipGunsMount = {
+  class: string
+  delta: number
+  possition: { x: number; y: number; z: number }
+  currentHealth: number
+}
 export type ShipGuns = {
-  mounts: {
-    [gunId: number]: {
-      class: string
-      delta: number
-      possition: { x: number; y: number; z: number }
-      currentHealth: number
-    }
-  },
+  mounts: { [gunId: number]: ShipGunsMount },
   selected: number,
   groups: number[][],
 }
@@ -241,6 +247,7 @@ export type Entity = {
     delta: number
   }
   engine?: ShipEngine
+  powerPlant?: ShipPowerPlant
   shields?: ShipShields
   systems?: ShipSystems
   fuel?: FuelTank
@@ -283,7 +290,7 @@ export const queries = {
   colliders: world.with("body"),
   guns: world.with("guns"),
   weapons: world.with("weapons"),
-  engines: world.with("engine"),
+  powerPlant: world.with("powerPlant"),
   fuel: world.with("fuel"),
   afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   afterburner: world.with("afterburnerActive"),

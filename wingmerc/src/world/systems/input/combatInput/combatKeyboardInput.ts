@@ -233,7 +233,7 @@ export function combatKeyboardInput(dt: number) {
   if (keyboard?.getInput(KeyboardMap["0"])) {
     if (inputDebounce.tryNow(KeyboardMap["0"])) {
       movementCommand.deltaSpeed = +25
-      let newSpeed = Math.min(playerEntity.setSpeed + 25, Dirk.cruiseSpeed)
+      let newSpeed = Math.min(playerEntity.setSpeed + 25, playerEntity.engine.cruiseSpeed)
       world.update(playerEntity, "setSpeed", newSpeed)
     }
   } else {

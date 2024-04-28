@@ -2,7 +2,7 @@ export type Weapon = {
   /** id */
   class: string,
   /** type */
-  type: "heatseeking" | "dumbfire" | "imagerecognition" | "friendorfoe", 
+  type: WeaponType,
   /** display name */
   name: string,
   /** range before dissipating */
@@ -24,3 +24,13 @@ export type Weapon = {
   /** the roll turn rate in degrees per second */
   roll: number,
 }
+
+export const WeaponType = {
+  heatseeking: "heatseeking",
+  dumbfire: "dumbfire",
+  imagerecognition: "imagerecognition",
+  friendorfoe: "friendorfoe",
+} as const
+
+export type WeaponType = typeof WeaponType[keyof typeof WeaponType];
+export type Weapons = { [gunType in WeaponType]: Weapon };

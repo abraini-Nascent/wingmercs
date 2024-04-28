@@ -2,9 +2,9 @@ import { queries } from "../../world"
 
 export function shieldRechargeSystem(dt: number) {
   for (const entity of queries.shields) {
-    const { shields, engine, systems } = entity
-    if (engine != undefined) {
-      if (engine.currentCapacity < shields.energyDrain * (dt / 1000)) {
+    const { shields, powerPlant, systems } = entity
+    if (powerPlant != undefined) {
+      if (powerPlant.currentCapacity < shields.energyDrain * (dt / 1000)) {
         continue;
       }
     }
@@ -20,8 +20,8 @@ export function shieldRechargeSystem(dt: number) {
     shields.currentAft += recharge
     shields.currentFore = Math.min(shields.currentFore, shields.maxFore)
     shields.currentAft = Math.min(shields.currentAft, shields.maxAft)
-    if (engine != undefined) {
-      engine.currentCapacity -= shields.energyDrain * (dt / 1000)
+    if (powerPlant != undefined) {
+      powerPlant.currentCapacity -= shields.energyDrain * (dt / 1000)
     }
   }
 }

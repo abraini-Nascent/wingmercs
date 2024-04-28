@@ -39,9 +39,7 @@ export class FlexTestScreen extends MercScreen {
 </Layout>
  */
 
-    const root = new FlexContainer("root", this.gui, FlexDirection.Row)
-    // root.flexDetails.setWidth(250)
-    // root.flexDetails.setHeight(475)
+    const root = new FlexContainer("root", this.gui, undefined, FlexDirection.Row)
     root.style.setPadding(Edge.All, 10)
     root.width = 250
     root.height = 475
@@ -67,15 +65,22 @@ export class FlexTestScreen extends MercScreen {
     child3.clipChildren = true
     child0.addControl(child3)
 
+    const scrollView = new GUI.ScrollViewer("scroll1")
+    const child4 = new FlexContainer("child4", undefined, scrollView)
+    child4.style.setFlex(1)
+    child3.addControl(child4)
+
     const text1 = new GUI.TextBlock("text1", "Can we make a text block work with yoga flow so that they work and align correctly?")
     text1.resizeToFit = true
     text1.textWrapping = GUI.TextWrapping.WordWrap
-    text1.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-    text1.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+    text1.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
+    text1.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
     text1.fontFamily = "monospace"
     const text2 = new GUI.TextBlock("text2", "What if we make two text blocks, will they align properly in the parent container, and make it soo long that it will go past the container???")
     text2.resizeToFit = true
     text2.textWrapping = GUI.TextWrapping.WordWrap
+    text2.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
+    text2.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
     text2.fontFamily = "monospace"
     const text1FlexItem = new FlexItem("test1-flex", text1)
     text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
@@ -87,10 +92,11 @@ export class FlexTestScreen extends MercScreen {
     text2FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
       text2.widthInPixels = width
       text2.heightInPixels = text2.computeExpectedHeight()
-      return { width: text2.widthInPixels, height: text2.computeExpectedHeight() }
+      const result = { width: text2.widthInPixels, height: text2.heightInPixels }
+      return result
     }
-    child3.addControl(text1FlexItem)
-    child3.addControl(text2FlexItem)
+    child4.addControl(text1FlexItem)
+    child4.addControl(text2FlexItem)
 
     const bottomBar = new FlexContainer("bottomBar")
     bottomBar.style.setPosition(Edge.Bottom, 0)
