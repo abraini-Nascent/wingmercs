@@ -1,4 +1,4 @@
-import { EngineModifierDetails } from "../ships/shipDetails";
+import { EngineModifierDetails } from "../ships/shipTemplate";
 
 export const BasicEngines = {
   name: "Basic Engines",

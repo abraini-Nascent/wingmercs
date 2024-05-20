@@ -1,4 +1,4 @@
-import { friendorfoe } from './../weapons/friendorfoe';
+import { friendorfoe } from '../weapons/friendorfoe';
 import { PilotAIType } from "../pilotAI/pilotAI";
 import { GunType } from '../guns/gun';
 import { WeaponType } from '../weapons/weapon';
@@ -91,6 +91,12 @@ export interface ShipDetails {
   }
 }
 
+export const ShipWeightClass = {
+  Light: "Light",
+  Medium: "Medium",
+  Heavy: "Heavy"
+} as const
+export type ShipWeightClass = typeof ShipWeightClass[keyof typeof ShipWeightClass];
 export const ShipComponentSize = {
   Small: "Small",
   Medium: "Medium",
@@ -189,6 +195,26 @@ export interface FuelTankBaseDetails {
   capacity: number;
 }
 
+export interface ThrustersModifierDetails {
+  name: string;
+  size: ShipComponentSize;
+  cost: number;
+  health: ComponentModifier;
+  pitch: ComponentModifier;
+  roll: ComponentModifier;
+  yaw: ComponentModifier;
+  breakingForce: ComponentModifier;
+  breakingLimit: ComponentModifier;
+}
+export interface ThrustersBaseDetails {
+  health: number;
+  pitch: number;
+  roll: number;
+  yaw: number;
+  breakingForce: number;
+  breakingLimit: number;
+}
+
 export interface RadarDetails {
   health: number;
   /** how much fuel the tank can hold */
@@ -224,6 +250,18 @@ export interface GunMounts {
   }
 }
 
+export const StructureSlotType = {
+  Thruster: "Thruster",
+  Afterburner: "Afterburner",
+  Shields: "Shields",
+  Engine: "Engine",
+  PowerPlant: "PowerPlant",
+  Radar: "Radar",
+  Gun: "Gun",
+  Weapon: "Weapon",
+  Generic: "Generic",
+} as const
+export type StructureSlotType = typeof StructureSlotType[keyof typeof StructureSlotType];
 /**
  * Ship details:
  * We want ships to feel unique but also be customizable with components.
@@ -244,9 +282,11 @@ export interface GunMounts {
  * they should provide or cater to different play styles, higher levels should shrink the negative trait
  * for example a level 4 "consumes more fuel but has a higher top end" afterburner should consume less fuel than a level 1, but still consume more that a stock afterburner
  */
-export interface ShipDetailsCustomizable {
+export interface ShipTemplate {
   name: string;
   class: string;
+  weightClass: ShipWeightClass;
+  maxWeight: number;
   modelDetails: {
       base: string;
       physics: string;
@@ -289,15 +329,43 @@ export interface ShipDetailsCustomizable {
     maxSize: ShipComponentSize;
     base: RadarDetails;
   };
-  fuelTankSlow: {
+  fuelTankSlot: {
     maxSize: ShipComponentSize;
     base: FuelTankBaseDetails;
   };
-  armor: {
-    front: number;
-    back: number;
-    left: number;
-    right: number;
+  thrustersSlot: {
+    modifier?: ThrustersModifierDetails;
+    base: ThrustersBaseDetails;
+  };
+  structure: {
+    core: {
+      health: number;
+      slots: StructureSlotType[];
+    }
+    front: {
+      armor: number;
+      maxArmor: number;
+      health: number;
+      slots: StructureSlotType[];
+    }
+    back: {
+      armor: number;
+      maxArmor: number;
+      health: number;
+      slots: StructureSlotType[];
+    }
+    left: {
+      armor: number;
+      maxArmor: number;
+      health: number;
+      slots: StructureSlotType[];
+    }
+    right: {
+      armor: number;
+      maxArmor: number;
+      health: number;
+      slots: StructureSlotType[];
+    }
   };
   systems: {
     quadrant: {
@@ -323,12 +391,6 @@ export interface ShipDetailsCustomizable {
         weapons: number;
     };
   };
-  health: number;
-  pitch: number;
-  roll: number;
-  yaw: number;
-  breakingForce: number;
-  breakingLimit: number;
   guns: GunSelection;
   gunMounts: GunMounts[];
   weapons: WeaponSelection[];

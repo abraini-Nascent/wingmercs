@@ -139,6 +139,7 @@ export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-
 export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
 export class FlexContainer {
   private _node = Yoga.Node.create();
+  private _dirty: boolean = false
   name: string
   host: GUI.AdvancedDynamicTexture | GUI.Container
   _container: GUI.Container
@@ -180,8 +181,9 @@ export class FlexContainer {
     return this._container.clipChildren
   }
 
-  dispose(): void {
+  dispose(): GUI.Control {
     this._node.free()
+    return this._container
   }
   private _updateBackground() {
     this._container.topInPixels = this.top
@@ -239,15 +241,16 @@ export class FlexContainer {
     return this;
   }
 
-  removeControl(control: GUI.Control | FlexContainer): FlexContainer {
+  /** returns the removed control or undfein*/
+  removeControl(control: GUI.Control | FlexContainer | FlexItem): FlexContainer | FlexItem | undefined {
     let index = this._children.indexOf(control);
 
     if (index !== -1) {
-      this._children.splice(index, 1);
+      let child = this._children.splice(index, 1)[0];
       if (control instanceof FlexContainer) {
         this._node.removeChild(control.style as Node)
       }
-      return this
+      return child
     }
     index = this._children.findIndex((child) => {
       if (child instanceof FlexContainer) {
@@ -262,15 +265,21 @@ export class FlexContainer {
       const child = this._children.splice(index, 1)[0] as FlexItem
       this._node.removeChild(child.node as Node)
       this.host.removeControl(child.item)
+      return child
     }
 
-    return this;
+    return undefined;
+  }
+
+  get children() {
+    return new Array(...this._children) as (FlexContainer|FlexItem)[]
   }
 
   layout() {
-    if (this._node.isDirty() == false) {
+    if (this._node.isDirty() == false && !this._dirty) {
       return
     }
+    this._dirty = false
     this._node.calculateLayout(this.width ?? "auto", this.height ?? "auto", Direction.LTR)
     // walk through child tree
     this.left = this._node.getComputedLeft()
@@ -314,6 +323,10 @@ export class FlexContainer {
       }
     }
   }
+
+  markDirty() {
+    this._dirty = true
+  }
 }
 
 export class FlexItem {
@@ -322,6 +335,10 @@ export class FlexItem {
   node = Yoga.Node.create();
   name: string
   dirtyObserver: Observer<GUI.Control>
+  /** override calculated height */
+  height: number | undefined
+  /** override calculated width */
+  width: number | undefined
 
   constructor(name?: string, control?: GUI.Control) {
     this.item = control
@@ -337,7 +354,14 @@ export class FlexItem {
       width: number,
       height: number
     } => {
-      return this.getMeasure(width, widthMode, height, heightMode)
+      const size = this.getMeasure(width, widthMode, height, heightMode)
+      if (this.width != undefined) {
+        size.width = this.width
+      }
+      if (this.height != undefined) {
+        size.height = this.height
+      }
+      return size
     })
     this.dirtyObserver = this.item.onDirtyObservable.add(() => {
       setTimeout(() => {
@@ -372,10 +396,11 @@ export class FlexItem {
     }
   }
 
-  dispose(): void {
+  dispose(): GUI.Control {
     this.node.unsetMeasureFunc()
     this.node.free()
     this.dirtyObserver.remove()
+    return this.item
   }
 
   /** If you try to add more than one item it will do nothing */

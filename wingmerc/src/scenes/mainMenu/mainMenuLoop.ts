@@ -14,8 +14,8 @@ import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missil
 import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem";
 import { shieldPulserSystem } from "../../world/damage";
 import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem";
-import { createShip } from "../../world/factories";
-import { ShipDetails } from "../../data/ships/shipDetails";
+import { createCustomShip } from "../../world/factories";
+import { ShipDetails, ShipTemplate } from "../../data/ships/shipTemplate";
 import * as Ships from "../../data/ships";
 import { randomItem } from "../../utils/random";
 import { QuaternionFromObj, Vector3FromObj, pointInSphere } from "../../utils/math";
@@ -145,9 +145,9 @@ export class MainMenuScene implements IDisposable {
   }
 
   addShip(team: number): Entity {
-    const shipClass: ShipDetails = Ships[randomItem(ShipClasses)]
+    const shipClass: ShipTemplate = Ships[randomItem(ShipClasses)]
     const newPosition = pointInSphere(4000, undefined, TmpVectors.Vector3[0])
-    let newShip = createShip(shipClass, newPosition.x, newPosition.y, newPosition.z, team, 1)
+    let newShip = createCustomShip(shipClass, newPosition.x, newPosition.y, newPosition.z, team, 1)
     world.addComponent(newShip, "missionDetails", {
       patrolPoints: [new Vector3(0,0,0)],
       mission: "Patrol"

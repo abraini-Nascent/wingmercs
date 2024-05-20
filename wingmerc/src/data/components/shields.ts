@@ -1,4 +1,4 @@
-import { ShieldGeneratorModifierDetails } from "../ships/shipDetails";
+import { ShieldGeneratorModifierDetails } from "../ships/shipTemplate";
 
 export const BasicShields = {
   name: "Basic Shield Booster",

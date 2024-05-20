@@ -1,8 +1,10 @@
-import {  GunMounts, ShipDetailsCustomizable, WeaponMounts } from "./shipDetails";
+import {  GunMounts, ShipTemplate, WeaponMounts } from "./shipTemplate";
 
-export const Epee: ShipDetailsCustomizable = Object.seal({
+export const Epee: ShipTemplate = Object.seal({
   name: "Epee",
   class: "Epee",
+  weightClass: "Light",
+  maxWeight: 15,
   // ai
   pilot: "Light01",
   // 3d model
@@ -49,7 +51,7 @@ export const Epee: ShipDetailsCustomizable = Object.seal({
       health: 15,
     }
   },
-  fuelTankSlow: {
+  fuelTankSlot: {
     maxSize: "Small",
     base: {
       health: 10,
@@ -84,11 +86,22 @@ export const Epee: ShipDetailsCustomizable = Object.seal({
       health: 20
     }
   },
-  armor: {
-    front: 35,
-    back: 35,
-    left: 30,
-    right: 30,
+  thrustersSlot: {
+    base: {
+      health: 10,
+      pitch: 100,
+      roll: 100,
+      yaw: 100,
+      breakingForce: 225,
+      breakingLimit: 200,
+    }
+  },
+  structure: {
+    core: { health: 10, slots: 2},
+    front: { armor: 35, maxArmor: 35, health: 35, slots: 2 },
+    back: { armor: 35, maxArmor: 35, health: 35, slots: 2 },
+    left: { armor: 30, maxArmor: 30, health: 30, slots: 2 },
+    right: { armor: 30, maxArmor: 30, health: 30, slots: 2 },
   },
   systems: {
     quadrant: {
@@ -155,12 +168,6 @@ export const Epee: ShipDetailsCustomizable = Object.seal({
       weapons: 50,
     }
   },
-  health: 50,
-  pitch: 100,
-  roll: 100,
-  yaw: 100,
-  breakingForce: 225,
-  breakingLimit: 200,
   guns: [
     "laser", "laser"
   ],

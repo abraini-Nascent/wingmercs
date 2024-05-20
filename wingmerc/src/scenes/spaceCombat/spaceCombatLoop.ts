@@ -25,7 +25,7 @@ import { damageSprayParticlePool, shieldPulserSystem } from '../../world/damage'
 import '../../world/systems/soundSystems/missileEngineSoundSystem';
 import { CombatControllerInput } from '../../world/systems/input/combatInput/combatControllerInput';
 import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
-import { createShip } from '../../world/factories';
+import { createCustomShip } from '../../world/factories';
 import { PlayerAgent } from '../../agents/playerAgent';
 import { fuelConsumptionSystem } from '../../world/systems/shipSystems/fuelConsumptionSystem';
 import { MissileEngineSoundSystem } from '../../world/systems/soundSystems/missileEngineSoundSystem';
@@ -183,14 +183,14 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       const playerEntity = AppContainer.instance.player.playerEntity
       const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
       playerEntity.health = {
-        current: shipTemplate.health,
-        base: shipTemplate.health
+        current: shipTemplate.structure.core.health,
+        base: shipTemplate.structure.core.health
       }
       playerEntity.systems.state = { ...playerEntity.systems.base }
-      playerEntity.armor.back = shipTemplate.armor.back
-      playerEntity.armor.front = shipTemplate.armor.front
-      playerEntity.armor.left = shipTemplate.armor.left
-      playerEntity.armor.right = shipTemplate.armor.right
+      playerEntity.armor.back = shipTemplate.structure.back.armor
+      playerEntity.armor.front = shipTemplate.structure.front.armor
+      playerEntity.armor.left = shipTemplate.structure.left.armor
+      playerEntity.armor.right = shipTemplate.structure.right.armor
       playerEntity.shields.currentAft = playerEntity.shields.maxAft
       playerEntity.shields.currentFore = playerEntity.shields.maxFore
       playerEntity.weapons.mounts.forEach((mount, index) => {
@@ -223,7 +223,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       const playerEntityPosition = AppContainer.instance.player.playerEntity.position
       // add enemy ship
       const shipDetails = Ships[ShipProgression[this.shipTypeIndex]]
-      const ship = createShip(shipDetails, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z, 2, 1)
+      const ship = createCustomShip(shipDetails, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z, 2, 1)
       // patrol around the players position
       world.addComponent(ship, "missionDetails", {
         patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)],

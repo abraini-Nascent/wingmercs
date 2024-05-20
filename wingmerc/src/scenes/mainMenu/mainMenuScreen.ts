@@ -8,6 +8,7 @@ import { SoundEffects } from '../../utils/sounds/soundEffects';
 import { Observer } from '@babylonjs/core';
 import { SettingsMenuScene } from '../settingsMenu/settingsMenuLoop';
 import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
+import { ShipSelectionScene } from '../shipCustomizer/shipSelection/shipSelectionLoop';
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -32,7 +33,7 @@ export class MainMenuScreen extends MercScreen {
     mainPanel.isVertical = true
     mainPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
     mainPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-    mainPanel.width = "100%"
+    mainPanel.widthInPixels = 300
     mainPanel.paddingBottomInPixels = 24
     mainPanel.paddingLeftInPixels = 24
     mainPanel.paddingTopInPixels = 128
@@ -41,11 +42,11 @@ export class MainMenuScreen extends MercScreen {
     
     const title = new GUI.TextBlock()
     title.name = "title"
-    title.fontFamily = "monospace"
+    title.fontFamily = "Regular5"
     title.text = "-=Squadron: Mercenaries=-"
     title.color = "gold"
     // title.fontSize = 64
-    title.fontSizeInPixels = 64
+    title.fontSizeInPixels = 45
     title.heightInPixels = 128
     title.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     title.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
@@ -54,11 +55,11 @@ export class MainMenuScreen extends MercScreen {
     this.gui.addControl(title)
 
     const careerButton = GUI.Button.CreateSimpleButton("career", "New Career");
-    careerButton.textBlock.fontFamily = "monospace"
+    careerButton.textBlock.fontFamily = "Regular5"
     careerButton.textBlock.color = "black"
     careerButton.textBlock.disabledColor = "grey"
     careerButton.disabledColor = "grey"
-    careerButton.textBlock.fontSizeInPixels = 24
+    careerButton.textBlock.fontSizeInPixels = 20
     careerButton.heightInPixels = 40
     careerButton.widthInPixels = 280
     careerButton.background = "grey"
@@ -77,6 +78,17 @@ export class MainMenuScreen extends MercScreen {
       }, 333)
     })
     mainPanel.addControl(startButton)
+
+    const shipSelection = this.createMainMenuButton("model viewer", "Ship Selection");
+    shipSelection.onPointerClickObservable.addOnce(() => {
+      SoundEffects.Select()
+      const appContainer = AppContainer.instance
+      appContainer.server = true
+      appContainer.gameScene.dispose()
+      appContainer.gameScene = new ShipSelectionScene()
+      this.dispose()
+    })
+    mainPanel.addControl(shipSelection)
 
     const settingsButton = this.createMainMenuButton("settings", "Settings");
     settingsButton.onPointerClickObservable.addOnce(() => {
@@ -131,9 +143,9 @@ export class MainMenuScreen extends MercScreen {
 
   private createMainMenuButton(name: string, text: string): GUI.Button {
     let button = GUI.Button.CreateSimpleButton(name, text);
-    button.textBlock.fontFamily = "monospace"
+    button.textBlock.fontFamily = "Regular5"
     button.textBlock.color = "gold"
-    button.textBlock.fontSizeInPixels = 28
+    button.textBlock.fontSizeInPixels = 15
     button.heightInPixels = 40
     button.widthInPixels = 280
     button.background = "dark blue"

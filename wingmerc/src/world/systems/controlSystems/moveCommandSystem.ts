@@ -37,9 +37,9 @@ export function moveCommandSystem(dt: number) {
       //// change direction of the ship...
       if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
 
-        let pitchSpeed = Math.max(40, shipTemplate.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
-        let yawSpeed   = Math.max(40, shipTemplate.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
-        let rollSpeed  = Math.max(40, shipTemplate.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
+        let pitchSpeed = Math.max(40, entity.thrusters.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
+        let yawSpeed   = Math.max(40, entity.thrusters.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
+        let rollSpeed  = Math.max(40, entity.thrusters.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
         // Positive for roll left, negative for roll right
         const deltaRoll = (((rollSpeed * (movementCommand.roll ?? 0))) / 1000) * dt;
         // Positive for down, negative for up

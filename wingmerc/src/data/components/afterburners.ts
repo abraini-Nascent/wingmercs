@@ -1,4 +1,4 @@
-import { AfterburnerModifierDetails } from "../ships/shipDetails";
+import { AfterburnerModifierDetails } from "../ships/shipTemplate";
 
 /**
  * - consumes more fuel but has a higher top end

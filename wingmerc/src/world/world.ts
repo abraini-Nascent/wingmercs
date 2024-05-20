@@ -54,6 +54,11 @@ export type ShipEngine = {
   afterburnerAccelleration: number;
   fuelConsumeRate: number;
 }
+export type ShipThrusters = {
+  pitch: number;
+  roll: number;
+  yaw: number;
+}
 export type ShipGunsMount = {
   class: string
   delta: number
@@ -250,6 +255,7 @@ export type Entity = {
   powerPlant?: ShipPowerPlant
   shields?: ShipShields
   systems?: ShipSystems
+  thrusters?: ShipThrusters
   fuel?: FuelTank
   systemsDamaged?: boolean
   score?: Score

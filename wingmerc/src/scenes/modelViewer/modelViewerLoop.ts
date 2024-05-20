@@ -19,7 +19,7 @@ import { particleSystem } from '../../world/systems/weaponsSystems/particleSyste
 import { missileSteeringSystem } from '../../world/systems/weaponsSystems/missileSteeringSystem';
 import { missileTargetingSystem } from '../../world/systems/weaponsSystems/missileTargetingSystem';
 import { updateRenderSystem } from '../../world/systems/renderSystems/updateRenderSystem';
-import { createCustomShip, createShip } from '../../world/factories';
+import { createCustomShip } from '../../world/factories';
 import { KeyboardMap } from '../../utils/keyboard';
 import { damageSprayParticlePool, registerHit, shieldPulserSystem } from '../../world/damage';
 import SamJs from 'sam-js';
@@ -55,17 +55,17 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   testSPS: MercParticleSystem
 
-    // systems
-    missileEngineSoundSystem = new MissileEngineSoundSystem()
-    deathRattleSystem = new DeathRattleSystem()
-    updatePhysicsSystem = new UpdatePhysicsSystem()
-    weaponCommandSystem = new WeaponCommandSystem()
-    meshedSystem = new MeshedSystem()
-    trailersSystem = new TrailersSystem()
-    afterburnerSoundsSystem = new AfterburnerSoundSystem()
-    driftSoundSystem = new DriftSoundSystem()
-    afterburnerTrailsSystem = new AfterburnerTrailsSystem()
-    systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
+  // systems
+  missileEngineSoundSystem = new MissileEngineSoundSystem()
+  deathRattleSystem = new DeathRattleSystem()
+  updatePhysicsSystem = new UpdatePhysicsSystem()
+  weaponCommandSystem = new WeaponCommandSystem()
+  meshedSystem = new MeshedSystem()
+  trailersSystem = new TrailersSystem()
+  afterburnerSoundsSystem = new AfterburnerSoundSystem()
+  driftSoundSystem = new DriftSoundSystem()
+  afterburnerTrailsSystem = new AfterburnerTrailsSystem()
+  systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
   constructor() {
     divFps.style.height = "175px"
@@ -121,7 +121,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
     let epee = structuredClone(Epee)
     epee.afterburnerSlot.modifier = structuredClone(Afterburners.Light)
-    // let model1 = createShip(Dirk, -100, 0, -1000, 2, 1);
+    // let model1 = createCustomShip(Dirk, -100, 0, -1000, 2, 1);
     let model1 = createCustomShip(epee, -100, 0, -1000, 2, 1);
     world.addComponent(model1, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
@@ -131,7 +131,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     
     // this.ship.ai.type = undefined
 
-    let model2 = createShip(EnemyMedium01, 100, 0, 1000, 3, 1);
+    let model2 = createCustomShip(EnemyMedium01, 100, 0, 1000, 3, 1);
     world.addComponent(model2, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"
@@ -139,22 +139,22 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
     this.ship = model1
 
-    // let model3 = createShip(EnemyMedium02, 0, 0, 2000, 1, 1);
+    // let model3 = createCustomShip(EnemyMedium02, 0, 0, 2000, 1, 1);
     // world.addComponent(model3, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()],
     //   mission: "Patrol"
     // })
-    // let model4 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // let model4 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
     // world.addComponent(model4, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()],
     //   mission: "Patrol"
     // })
-    // let model5 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // let model5 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
     // world.addComponent(model5, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()],
     //   mission: "Patrol"
     // })
-    // let model6 = createShip(EnemyHeavy01, -50, 0, 0, 2, 1);
+    // let model6 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
     // world.addComponent(model6, "missionDetails", {
     //   patrolPoints: [Vector3.Zero()],
     //   mission: "Patrol"
@@ -166,11 +166,11 @@ export class ModelViewerScene implements GameScene, IDisposable {
     // world.update(model2, "ai", { type: "demoWingman", blackboard: model.ai.blackboard })
     // model2.ai.type = undefined
 
-    // let model3 = createShip(EnemyMedium02, 50, 0, 0);
+    // let model3 = createCustomShip(EnemyMedium02, 50, 0, 0);
     // world.update(model3, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
     // model3.ai.type = undefined
 
-    // let model4 = createShip(EnemyHeavy01, 100, 0, 0);
+    // let model4 = createCustomShip(EnemyHeavy01, 100, 0, 0);
     // world.update(model4, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
     // model4.ai.type = undefined
 

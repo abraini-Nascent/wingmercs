@@ -1,7 +1,7 @@
 import { TmpVectors, Vector3 } from "@babylonjs/core"
 import { Entity } from "./world"
 import { Vector3FromObj } from "../utils/math"
-import { ShipDetails } from "../data/ships/shipDetails"
+import { ShipDetails } from "../data/ships/shipTemplate"
 import * as Ships from "../data/ships"
 
 /// Helper functions to transform, collect, or express data from the world

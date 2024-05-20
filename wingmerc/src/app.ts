@@ -24,13 +24,16 @@ import "./world/systems/deathRattleSystem";
 import { loadAssets } from "./assetLoader/assetLoader";
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
 import { FlexTestScene } from "./scenes/flexTest/flexTest"
+import { convert, setup } from "./data/ships/tools"
 
 class App {
   assetsManager: AssetsManager
   camera: TargetCamera
   server: boolean = false
   constructor() {
+
     (window as any).appContainer = AppContainer.instance;
+    setup()
 
     ;(window as any).vector45DegreesUpForward = ():Vector3 =>  {
       // Define the forward direction (assumed to be Vector3.Forward())

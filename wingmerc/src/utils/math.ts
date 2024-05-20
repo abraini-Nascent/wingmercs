@@ -163,6 +163,20 @@ export function closestPointOnCurve(point: Vector3, curve: Curve3): Vector3 {
   return closestPoint;
 }
 
+export function generatePointsOnCircle(radius: number, numberOfPoints: number): Vector3[] {
+  const points: Vector3[] = [];
+  const angleIncrement = (2 * Math.PI) / numberOfPoints;
+
+  for (let i = 0; i < numberOfPoints; i++) {
+      const angle = i * angleIncrement;
+      const x = radius * Math.cos(angle);
+      const z = radius * Math.sin(angle);
+      points.push(new Vector3(x, 0, z));
+  }
+
+  return points;
+}
+
 
 /** Function to calculate lead for intercepting a moving target */
 export function firstOrderIntercept(

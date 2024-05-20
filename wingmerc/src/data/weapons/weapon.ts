@@ -28,6 +28,7 @@ export type Weapon = {
 export const WeaponType = {
   heatseeking: "heatseeking",
   dumbfire: "dumbfire",
+  enemyDumbfire: "enemyDumbfire",
   imagerecognition: "imagerecognition",
   friendorfoe: "friendorfoe",
 } as const

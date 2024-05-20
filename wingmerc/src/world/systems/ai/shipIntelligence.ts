@@ -9,7 +9,7 @@ import { VeerOffData } from "../../../data/maneuvers/headingManeuvers";
 import { shipDetailsFrom, totalVelocityFrom } from "../../helpers";
 import { SteeringHardNormalizeClamp, SteeringSoftNormalizeClamp } from "./basicSteering";
 import * as Ships from "../../../data/ships"
-import { ShipDetails } from "../../../data/ships/shipDetails"
+import { ShipDetails } from "../../../data/ships/shipTemplate"
 import { PilotAIs } from '../../../data/pilotAI/pilotAI';
 import { ExecutionTree } from '../../../data/pilotAI/executionTree';
 

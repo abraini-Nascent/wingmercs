@@ -44,6 +44,18 @@ export function loadAssets(onFinishedLoading: () => void) {
       )
     }
   }
+  /// Load fonts
+  const fontFaceRegular = new FontFace("Regular5", "url(./assets/fonts/GravityRegular5.ttf)");
+  const fontFaceKong = new FontFace("KongfaceRegular", "url(./assets/fonts/kongtext.regular.ttf)");
+  const fontLoaded = Promise.all([fontFaceRegular.load(), fontFaceKong.load()]).then(function(loadedFonts) {
+    loadedFonts.forEach((loadedFont) => {
+      const fonts = document.fonts as any
+      fonts.add(loadedFont);
+      console.log('Font loaded:', loadedFont);
+    })
+  }).catch(function(error) {
+    console.error('Font loading failed:', error);
+  });
   Promise.all([
     new Promise((resolve) => {
       assetsManager.onFinish = (tasks) => {
@@ -51,7 +63,8 @@ export function loadAssets(onFinishedLoading: () => void) {
         resolve({})
       }
     }),
-    HavokPhysics()
+    HavokPhysics(),
+    fontLoaded
   ])
   .then(([_, havokInstance]) => {
     const havokPlugin = new HavokPlugin(true, havokInstance)

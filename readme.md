@@ -39,6 +39,24 @@ We will build out the same space flight and combat features as classic WC
 - brake to temporarily slow down to make tighter turns
 - "drift" using afterburner slide. Afterburner acceleration and velocity over the speed limit of the plane does not match the direction of the plane
 - "drift" by cutting off the lock between direction of the plane and "cruise" speed
+#### Customization
+- add battery banks for more power storage capacity
+- add modifiers for engine, shields, power generator, afterburners, fuel...
+- swap guns around on mounts
+- swap weapons around on mounts
+- stay within a weight limit for the ship and ship category
+- move armor thickness around
+  0.25 tonnes per cm of armor
+the Ferret is a light patrol craft and weighs 10.5 tonnes, with armor of Front 6.5 cm, Rear 6.5 cm, Right 4.5 cm, Left 4.5 cm, for a total of 13cm of armor
+  13cm of armor is 3.25 tonnes of armor, leaving 7 tonnes for systems and structure
+the Saber is a heavy fighter and weighs 22 tonnes, with armor of Front 20.0 cm, Rear 20.0 cm, Right 18.0 cm, Left 18.0 cm, for a total of 76cm of armor.
+the Rapier is a medium fighter and weighs 13.5 tonnes with 7.5, 7.5, 6.5, 6.5 for a total of 28 armor,
+  76 cm is 19 tonnes of armor, leaving 3 tonnes left for systems, structure, and weapons.
+  if we rebalance for 6 tonnes for bare structure, 1 tonne each for engine, powerplant, shields, 0.5 tonnes for thrusters, radar, guns. 0.25 tonnes for each weapon
+  Dirk: 10t for structure and systems. 1t for 2 guns, 3.25t for armor. 14.25 tonnes. 10-15 tonnes for light fighter class
+  Rapier: 10t for structure and systems, 2t for 4 guns, 2t for 8 weapons, 5.5t for armor. 19.5t, 20-30t for medium fighters
+  Saber: 10t for structure and systems, 2t for 4 guns, 19t of armor, >35 tonnes for heavy fighter class
+
 
 ## References
 - Sound effects generated from https://pro.sfxr.me/ and https://pixwlk.itch.io/bleeper
@@ -46,6 +64,7 @@ We will build out the same space flight and combat features as classic WC
 - 3d Models of ships from Kenney https://www.kenney.nl/assets/space-kit
 - Crosshairs from https://opengameart.org/content/64-crosshairs-pack-split
 - Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
+- Monospaced retro font _KongText_ from https://www.1001fonts.com/kongtext-font.html
 
 ## License
 This code and project is released under the Creative Commons Attribution-NonCommercial 4.0 International license
