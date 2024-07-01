@@ -103,13 +103,23 @@ export const EnemyLight01: ShipTemplate = Object.seal({
   structure: {
     core: {
       health: 25,
-      slots: ["PowerPlant", "Shields", "Thruster", "Utility"],
+      slots: ["PowerPlant", "Shields", "Thruster"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
     },
     front: {
       armor: 30,
       maxArmor: 30,
       health: 30,
-      slots: ["Radar", "Utility"],
+      slots: ["Radar"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       weaponMounts: [
         {
           maxCount: 1,
@@ -136,7 +146,12 @@ export const EnemyLight01: ShipTemplate = Object.seal({
       armor: 15,
       maxArmor: 15,
       health: 15,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
@@ -155,7 +170,12 @@ export const EnemyLight01: ShipTemplate = Object.seal({
       armor: 15,
       maxArmor: 15,
       health: 15,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {

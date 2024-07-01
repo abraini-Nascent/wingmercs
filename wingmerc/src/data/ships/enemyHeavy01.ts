@@ -103,24 +103,36 @@ export const EnemyHeavy01: ShipTemplate = Object.seal({
   structure: {
     core: {
       health: 50,
-      slots: [
-        "PowerPlant",
-        "Shields",
-        "Thruster",
-        "Utility",
-        "Utility",
-        "Utility",
+      slots: ["PowerPlant", "Shields", "Thruster"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
       ],
     },
     front: {
       armor: 150,
       maxArmor: 150,
       health: 150,
-      slots: ["Radar", "Utility", "Utility"],
+      slots: ["Radar"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "neutron"
+            type: "neutron",
           },
           maxSize: "Medium",
           position: {
@@ -144,23 +156,39 @@ export const EnemyHeavy01: ShipTemplate = Object.seal({
             type: "dumbfire",
           },
         },
-      ]
+      ],
     },
     back: {
       armor: 140,
       maxArmor: 140,
       health: 140,
-      slots: ["Engine", "Afterburner", "Utility", "Utility"],
+      slots: ["Engine", "Afterburner"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+      ],
     },
     left: {
       armor: 100,
       maxArmor: 100,
       health: 100,
-      slots: ["Utility", "Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {
@@ -171,7 +199,7 @@ export const EnemyHeavy01: ShipTemplate = Object.seal({
         },
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {
@@ -186,11 +214,19 @@ export const EnemyHeavy01: ShipTemplate = Object.seal({
       armor: 100,
       maxArmor: 100,
       health: 100,
-      slots: ["Utility", "Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {
@@ -201,7 +237,7 @@ export const EnemyHeavy01: ShipTemplate = Object.seal({
         },
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {

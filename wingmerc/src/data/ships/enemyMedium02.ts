@@ -116,7 +116,12 @@ export const EnemyMedium02: ShipTemplate = Object.seal({
       armor: 90,
       maxArmor: 90,
       health: 90,
-      slots: ["Radar", "Utility"],
+      slots: ["Radar"],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
@@ -150,13 +155,26 @@ export const EnemyMedium02: ShipTemplate = Object.seal({
       armor: 100,
       maxArmor: 100,
       health: 100,
-      slots: ["Engine", "Afterburner", "Utility", "Utility"],
+      slots: ["Engine", "Afterburner",],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+        {
+          maxSize: "Small",
+        },
+      ],
     },
     left: {
       armor: 80,
       maxArmor: 80,
       health: 80,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
@@ -175,7 +193,12 @@ export const EnemyMedium02: ShipTemplate = Object.seal({
       armor: 80,
       maxArmor: 80,
       health: 80,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
