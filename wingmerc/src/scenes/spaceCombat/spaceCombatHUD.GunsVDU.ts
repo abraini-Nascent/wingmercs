@@ -29,7 +29,7 @@ export class GunsVDU {
     gunsPanel.width = "240px"
     gunsPanel.height = "240px"
     this.gunsPanel = gunsPanel
-    const title = this.GunText("title", "-=GUNS=-")
+    const title = this.GunText("title", "-=GUNS=-", true)
     this.title = title
     this.title.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     this.gunsPanel.addControl(title)
@@ -50,26 +50,39 @@ export class GunsVDU {
       }
       let selected = this.selected.has(parseInt(index))
       let name = selected ? `[${gun.name}]` : gun.name
-      this.setState(this.guns[index], name, selected, mount.currentHealth, gunStats.health)
+      let ammo: number = undefined
+      if (mount.ammo != undefined) {
+        const gunAmmo = playerEntity.gunAmmo
+        ammo = gunAmmo[mount.ammo] ?? 0
+      }
+      this.setState(this.guns[index], name, selected, mount.currentHealth, gunStats.health, ammo)
     }
   }
 
-  GunText(name: string, value: string): GUI.TextBlock {
+  GunText(name: string, value: string, title:boolean = false): GUI.TextBlock {
     const gunTextBlock = new GUI.TextBlock(name)
     gunTextBlock.fontFamily = "monospace"
     gunTextBlock.text = value
     gunTextBlock.color = "white"
-    gunTextBlock.fontSize = 24
-    gunTextBlock.height = "24px"
+    if (title) {
+      gunTextBlock.fontSize = 24
+      gunTextBlock.height = "24px"
+    } else {
+      gunTextBlock.fontSize = 12
+      gunTextBlock.height = "14px"
+    }
     gunTextBlock.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
     gunTextBlock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
     this.gunsPanel.addControl(gunTextBlock)
     return gunTextBlock
   }
 
-  setState(content: GUI.TextBlock, name: string, selected: boolean, value: number, base: number) {
+  setState(content: GUI.TextBlock, name: string, selected: boolean, value: number, base: number, ammo: number | undefined) {
     const percent = Math.round((value / base) * 100)
     content.text = `${name}`
+    if (ammo != undefined) {
+      content.text += ` rnds: ${Math.max(0, ammo)}`
+    }
     if (percent < 15) {
       content.color = "red"
     } else if (percent < 50) {

@@ -5,7 +5,7 @@ export type GunStats = {
     range: number,
     /** damage done on contact */
     damage: number,
-    /** energy consumer per shot */
+    /** energy or ammo consumed per shot */
     energy: number,
     /** delay in milliseconds */
     delay: number,
@@ -22,12 +22,17 @@ export type Gun = {
   name: string,
   /** hex color of the trail */
   color: {r: number, g: number, b: number, a: 1},
+  /** the type of ammo used */
+  ammo?: string,
+  /** the amount of ammo per utility slot */
+  ammoPerBin?: number,
   /** stats per tier */
   tiers: GunStats[]
 }
 
 export const GunType = {
   laser: "laser",
+  chemLaser: "chemLaser",
   massdriver: "massdriver",
   neutron: "neutron",
   particleCannon: "particleCannon",

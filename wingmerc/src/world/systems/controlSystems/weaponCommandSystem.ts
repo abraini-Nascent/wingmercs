@@ -46,16 +46,28 @@ export class WeaponCommandSystem implements IDisposable {
         const delay = applyModifier(gunStats.delay, affix?.delay)
         const speed = applyModifier(gunStats.speed, affix?.speed)
         const range = applyModifier(gunStats.range, affix?.range)
-        // check for energy
-        const { powerPlant } = entity;
-        if (powerPlant != undefined && powerPlant.currentCapacity < energy) {
-          // not enough energy to fire gun
-          continue
+        // check for energy or ammo
+        if (gun.ammo == undefined) {
+          const { powerPlant } = entity
+          if (powerPlant != undefined && powerPlant.currentCapacity < energy) {
+            // not enough energy to fire gun
+            continue
+          } else {
+            // reduce energy
+            powerPlant.currentCapacity -= energy
+            world.update(entity, "powerPlant", powerPlant)
+          }
+        } else {
+          const { gunAmmo } = entity
+          if (gunAmmo == undefined || gunAmmo[gun.ammo] == undefined || gunAmmo[gun.ammo] < 0) {
+            // not enough ammo to fire gun
+            continue
+          } else {
+            gunAmmo[gun.ammo] -= 1
+          }
         }
         // console.log(`firing gun ${gunIndex} !`)
-        // reduce energy
-        powerPlant.currentCapacity -= energy
-        world.update(entity, "powerPlant", powerPlant)
+        
         // set gun delta to delay
         gun.delta = delay
         world.update(entity, "guns", guns)

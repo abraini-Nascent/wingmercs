@@ -15,6 +15,7 @@ import { PilotAIType } from '../data/pilotAI/pilotAI';
 import { WeaponType } from '../data/weapons/weapon';
 import { GunStats } from '../data/guns/gun';
 import { GunAffix } from '../data/affixes/gunAffix';
+import { UtilityModifierDetails } from '../data/ships/shipTemplate';
 
 export type MovementCommand = {
   pitch: number
@@ -75,15 +76,23 @@ export type ShipGunsMount = {
   name: string
   stats: GunStats
   modifier?: GunAffix
+  ammo?: string
   delta: number
   possition: { x: number; y: number; z: number }
   currentHealth: number
 }
+export type ShipUtility = {
+  name: string
+  modifier: UtilityModifierDetails
+  currentHealth: number
+}
+export type ShipUtilities = ShipUtility[]
 export type ShipGuns = {
   mounts: { [gunId: number]: ShipGunsMount },
   selected: number,
   groups: number[][],
 }
+export type ShipGunAmmoCounts = { [type: string]: number }
 export type ShipWeaponMount = { type: WeaponType; count: number }
 export type ShipWeapons = {
   mounts: ShipWeaponMount[]
@@ -266,7 +275,9 @@ export type Entity = {
   targeting?: TargetState
   isTargetable?: "player" | "enemy" | "missile"
   guns?: ShipGuns
+  gunAmmo?: ShipGunAmmoCounts
   weapons?: ShipWeapons
+  utilities?: ShipUtilities
   engine?: ShipEngine
   powerPlant?: ShipPowerPlant
   shields?: ShipShields

@@ -103,13 +103,19 @@ export const Dirk: ShipTemplate = Object.seal({
   structure: {
     core: {
       health: 50,
-      slots: ["PowerPlant", "Shields", "Thruster", "Utility"],
+      slots: ["PowerPlant", "Shields", "Thruster"],
+      utilityMounts: [{
+        maxSize: "Small"
+      }]
     },
     front: {
       armor: 65,
       maxArmor: 65,
       health: 65,
-      slots: ["Radar", "Utility"],
+      slots: ["Radar"],
+      utilityMounts: [{
+        maxSize: "Small"
+      }]
     },
     back: {
       armor: 65,
@@ -121,7 +127,10 @@ export const Dirk: ShipTemplate = Object.seal({
       armor: 45,
       maxArmor: 45,
       health: 45,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [{
+        maxSize: "Small"
+      }],
       gunMounts: [
         {
           base: {
@@ -155,7 +164,10 @@ export const Dirk: ShipTemplate = Object.seal({
       armor: 45,
       maxArmor: 45,
       health: 45,
-      slots: ["Utility"],
+      slots: [],
+      utilityMounts: [{
+        maxSize: "Small"
+      }],
       gunMounts: [
         {
           base: {

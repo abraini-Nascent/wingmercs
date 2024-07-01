@@ -1,8 +1,8 @@
-import { ComponentModifier, GunMounts, GunSelection, GunTier, ShipStructureSection, StructureSections, WeaponMounts, WeaponSelection } from '../data/ships/shipTemplate';
+import { ComponentModifier, GunMounts, GunSelection, GunTier, ShipStructureSection, StructureSections, UtilityModifierDetails, WeaponMounts, WeaponSelection } from '../data/ships/shipTemplate';
 import { ShipTemplate } from "../data/ships/shipTemplate"
 import * as GunData from "../data/guns"
 import { Gun, GunStats, GunType, Guns } from "../data/guns/gun"
-import { Entity, FuelTank, ShipArmor, ShipEngine, ShipGuns, ShipGunsMount, ShipPowerPlant, ShipShields, ShipSystems, ShipThrusters, ShipWeaponMount, ShipWeapons, world } from "./world"
+import { Entity, FuelTank, ShipArmor, ShipEngine, ShipGunAmmoCounts, ShipGuns, ShipGunsMount, ShipPowerPlant, ShipShields, ShipSystems, ShipThrusters, ShipUtilities, ShipUtility, ShipWeaponMount, ShipWeapons, world } from "./world"
 import { net } from "../net"
 import * as WeaponData from '../data/weapons';
 import { Weapon, WeaponType } from '../data/weapons/weapon';
@@ -35,6 +35,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
           class: gunSelection.type,
           currentHealth: gunStats.health,
           name: gunTemplate.name,
+          ammo: gunTemplate.ammo,
           stats: {...gunStats},
           modifier: gunSelection.affix ? GunAffixes[gunSelection.affix] : undefined,
           delta: 0,
@@ -94,6 +95,38 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     mounts: weaponMounts,
     selected: 0
   }
+  const utilities: ShipUtilities = Object.values(StructureSections).reduce((allMounts, structureSection) => {
+    const structure: ShipStructureSection = ship.structure[structureSection]
+    const utilityMounts = structure.utilityMounts
+    if (utilityMounts != undefined) {
+      utilityMounts.forEach((mount) => {
+        if (mount.utility != undefined) {
+          allMounts.push({
+             name: mount.utility.name,
+             modifier: structuredClone(mount.utility),
+             currentHealth: 20,
+          } as ShipUtility)
+        }
+      })
+    }
+    return allMounts
+  }, [])
+  const gunAmmo: ShipGunAmmoCounts = Object.values(StructureSections).reduce((allAmmoCounts, structureSection) => {
+    const structure: ShipStructureSection = ship.structure[structureSection]
+    const utilityMounts = structure.utilityMounts
+    if (utilityMounts != undefined) {
+      utilityMounts.forEach((mount) => {
+        if (mount.utility != undefined && mount.utility.ammo != undefined) {
+          if (allAmmoCounts[mount.utility.ammo] == undefined) {
+            allAmmoCounts[mount.utility.ammo] = mount.utility.ammoCount
+          } else {
+            allAmmoCounts[mount.utility.ammo] += mount.utility.ammoCount
+          }
+        }
+      })
+    }
+    return allAmmoCounts
+  }, {})
   const shipPowerPlant: ShipPowerPlant = {
     currentCapacity: ship.powerPlantSlot.base.maxCapacity,
     maxCapacity: ship.powerPlantSlot.base.maxCapacity,
@@ -116,9 +149,44 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     shipShields.maxFore = applyModifier(shipShields.maxFore, ship.shieldsSlot.modifier.fore)
     shipShields.currentFore = shipShields.maxFore
     shipShields.maxAft = applyModifier(shipShields.maxAft, ship.shieldsSlot.modifier.aft)
-    shipShields.maxAft = shipShields.currentAft
+    shipShields.currentAft = shipShields.maxAft
     shipShields.energyDrain = applyModifier(shipShields.energyDrain, ship.shieldsSlot.modifier.energyDrain)
     shipShields.rechargeRate = applyModifier(shipShields.rechargeRate, ship.shieldsSlot.modifier.rechargeRate)
+  }
+  const fuelTank = {
+    maxCapacity: ship.fuelTankSlot.base.capacity,
+    currentCapacity: ship.fuelTankSlot.base.capacity
+  } as FuelTank
+  const extras: { energy: number, fuel: number, shields: number } = Object.values(StructureSections).reduce((extras, structureSection) => {
+    const structure: ShipStructureSection = ship.structure[structureSection]
+    const utilityMounts = structure.utilityMounts
+    if (utilityMounts != undefined) {
+      utilityMounts.forEach((mount) => {
+        if (mount.utility != undefined) {
+          if (mount.utility.energy) {
+            extras["energy"] += mount.utility.energy.value
+          }
+          if (mount.utility.fuel) {
+            extras["fuel"] += mount.utility.fuel.value
+          }
+          if (mount.utility.shields) {
+            extras["shields"] += mount.utility.shields.value
+          }
+        }
+      })
+    }
+    return extras
+  }, { energy: 0, fuel: 0, shields: 0 })
+  if (extras.shields) {
+    shipShields.maxAft += shipShields.maxAft * extras.shields
+  }
+  if (extras.energy) {
+    shipPowerPlant.maxCapacity += extras.energy
+    shipPowerPlant.currentCapacity += extras.energy
+  }
+  if (extras.fuel) {
+    fuelTank.maxCapacity += extras.fuel
+    fuelTank.currentCapacity += extras.fuel
   }
   const shipArmor: ShipArmor = {
     back: ship.structure.back.armor,
@@ -148,11 +216,6 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     shipEngine.afterburnerAccelleration = applyModifier(shipEngine.afterburnerAccelleration, ship.afterburnerSlot.modifier.accelleration)
     shipEngine.fuelConsumeRate = applyModifier(shipEngine.fuelConsumeRate, ship.afterburnerSlot.modifier.fuelConsumeRate)
   }
-  // TODO: this should include extra fuel tanks added to slots
-  const fuelTank = {
-    maxCapacity: ship.fuelTankSlot.base.capacity,
-    currentCapacity: ship.fuelTankSlot.base.capacity
-  } as FuelTank
   const shipThrusters: ShipThrusters = {
     pitch: applyModifier(ship.thrustersSlot.base.pitch, ship.thrustersSlot.modifier?.pitch),
     roll: applyModifier(ship.thrustersSlot.base.roll, ship.thrustersSlot.modifier?.roll),
@@ -225,7 +288,9 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     },
     totalScore: 0,
     guns: guns,
+    gunAmmo: gunAmmo,
     weapons: weapons,
+    utilities: utilities,
     engine: shipEngine,
     powerPlant: shipPowerPlant,
     shields: shipShields,
@@ -284,4 +349,23 @@ export function gunSelectionName(part: GunSelection): [id: string, name: string]
     name += ` tier ${part.tier ?? 1}`
   }
   return [id, name]
+}
+
+export function allAmmos(): UtilityModifierDetails[] {
+  let ammos = Object.values(GunData).reduce((allAmmo, gun) => {
+    console.log(gun.name, gun.ammo)
+    if (gun.ammo == undefined) {
+      return allAmmo
+    }
+    allAmmo.push({
+      name: `${gun.name} Ammo`,
+      id: `${gun.name}_ammo`,
+      type: "Utility",
+      ammo: gun.ammo,
+      ammoCount: gun.ammoPerBin
+    } as UtilityModifierDetails)
+    return allAmmo
+  }, [])
+
+  return ammos
 }

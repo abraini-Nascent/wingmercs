@@ -1,6 +1,7 @@
+import { Utilities } from './../../data/components/utility';
 import { Shields } from './../../data/components/shields';
 import { Engines } from './../../data/components/engines';
-import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, GunMounts, GunSelection, ModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, WeaponMounts } from '../../data/ships/shipTemplate';
+import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, GunMounts, GunSelection, ModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, UtilityModifierDetails, UtilityMounts, WeaponMounts } from '../../data/ships/shipTemplate';
 import { Color3, Observer, PointerEventTypes } from "@babylonjs/core";
 import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers";
 import { MercScreen } from "../screen";
@@ -13,11 +14,11 @@ import * as Guns from '../../data/guns';
 import * as Weapons from '../../data/weapons';
 import * as GunAffixes from '../../data/affixes/gunAffixes';
 import { Weapon } from '../../data/weapons/weapon';
-import { allGunSelections, gunSelectionName, applyModifier } from '../../world/factories';
+import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from '../../world/factories';
 import { GunAffix } from '../../data/affixes/gunAffix';
 
 
-type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters";
+type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "Utility";
 
 export class ShipCustomizerScreen extends MercScreen {
   root: FlexContainer
@@ -202,6 +203,18 @@ export class ShipCustomizerScreen extends MercScreen {
       parts: Object.entries(Shields),
       slot: "shieldsSlot",
     },
+    {
+      id: 'Utility' as ComponentType,
+      title: `-= Utilities =-`,
+      parts: Object.entries(Utilities),
+      slot: "",
+    },
+    {
+      id: 'Utility' as ComponentType,
+      title: `-= Ammo =-`,
+      parts: Object.entries(allAmmos()),
+      slot: "",
+    }
   ];
   selectComponent: (component: ModifierDetails) => void
   filterComponentsSection: (type: StructureSlotType | undefined) => void
@@ -262,6 +275,32 @@ export class ShipCustomizerScreen extends MercScreen {
           detailsSection.addControl(this.printComponentModifier("Energy Drain", shield.energyDrain))
         }
       }
+      if (component.type == "Utility") {
+        const utility = component as UtilityModifierDetails
+        detailsSection.addControl(this.textItem("name", `${utility.name}`))
+        if (utility.energy != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Energy", utility.energy))
+        }
+        if (utility.fuel != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Fuel", utility.fuel))
+        }
+        if (utility.shields != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Shields", utility.shields))
+        }
+        if (utility.ammoCount != undefined) {
+          detailsSection.addControl(this.textItem("ammo", `Ammo count: ${utility.ammoCount}`))
+        }
+        if (this.selectedShipSection != undefined) {
+          const itemData = this.selectedShipSection.item.metadata as { section: string, slotIndex: number }
+          if (itemData.slotIndex != undefined) {
+            const slots = this.ship.structure[itemData.section].utilityMounts as UtilityMounts[]
+            const slot = slots[itemData.slotIndex]
+            slot.utility = structuredClone(component)
+          }
+          this.clearSection(this.rightScroll)
+          this.addShipSections(this.rightScroll)
+        }
+      }
       scrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
           const button = child.item as GUI.Button
@@ -276,7 +315,7 @@ export class ShipCustomizerScreen extends MercScreen {
           const [name, component] = part
           const buttonItem = this.buttonItem(`${componentGroup.id}-${component.name}`, `${component.name}`, () => {
             this.selectComponent(component)
-            if (this.selectedShipSection != undefined) {
+            if (this.selectedShipSection != undefined && this.ship[componentGroup.slot] != undefined) {
               this.ship[componentGroup.slot].modifier = structuredClone(component)
               this.clearSection(this.rightScroll)
               this.addShipSections(this.rightScroll)
@@ -296,7 +335,9 @@ export class ShipCustomizerScreen extends MercScreen {
           },
           (flexItem) => {
             console.log("Dropped on item!")
-            this.ship[componentGroup.slot].modifier = structuredClone(component)
+            if (this.ship[componentGroup.slot] != undefined) {
+              this.ship[componentGroup.slot].modifier = structuredClone(component)
+            }
             this.clearSection(this.rightScroll)
             this.addShipSections(this.rightScroll)
           })
@@ -553,6 +594,7 @@ export class ShipCustomizerScreen extends MercScreen {
           return
         }
         if (proxy == undefined) {
+          console.log("creating proxy")
           proxy = proxyCreator()
           proxy.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
           proxy.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
@@ -586,8 +628,10 @@ export class ShipCustomizerScreen extends MercScreen {
       draggable.item.onPointerUpObservable.addOnce(() => {
         console.log("proxy up")
         dragging.remove()
-        this.gui.removeControl(proxy)
-        proxy.dispose
+        if (proxy != undefined) {
+          this.gui.removeControl(proxy)
+          proxy.dispose
+        }
         if (overTarget != undefined) {
           droppedOnTarget(overTarget)
         }
@@ -667,8 +711,9 @@ export class ShipCustomizerScreen extends MercScreen {
         }, 50, 50))
         sectionContainer.addControl(armorContainer)
       }
+
+      /// COMPONENTS
       const slots = this.ship.structure[sectionName.toLowerCase()].slots as StructureSlotType[]
-      // debugger
       for (let i = 0; i < slots.length; i += 1) {
         const slotType = slots[i]
         const slotIcon = slotType.charAt(0)
@@ -771,8 +816,58 @@ export class ShipCustomizerScreen extends MercScreen {
         }
       }
 
+      /// UTILITIES
+      const utilities = this.ship.structure[sectionName.toLowerCase()].utilityMounts as UtilityMounts[]
+      if (utilities) {
+        for (let i = 0; i < utilities.length; i += 1) {
+          const slotType = "Utility"
+          const slotIcon = "U"
+          const mount = utilities[i]
+          let slotTextItem: FlexItem
+          let slotTextBlock: GUI.TextBlock
+          let name = "Utility Slot"
+          let utility: UtilityModifierDetails
+          if (mount.utility != undefined) {
+            utility = mount.utility
+            name = utility.name
+          }
+          slotTextBlock = this.textblock(`${name}-${sectionName}-slot-${i}`, `- ${slotIcon}[ ${name}`)
+          slotTextBlock.resizeToFit = false
+          slotTextBlock.heightInPixels = 50
+          slotTextBlock.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_CENTER
+          const slotButton = new GUI.Button(`${name}-${sectionName}-slot-${i}`)
+          slotButton.addControl(slotTextBlock);
+          (slotButton as any)._textBlock = slotTextBlock
+          slotButton.heightInPixels = 50
+          slotTextItem = new FlexItem(`${name}-${sectionName}-slot-${i}`, slotButton)
+          slotTextItem.item.metadata = {
+            section: sectionName.toLowerCase(),
+            type: slotType,
+            slotIndex: i
+          }
+          this.observers.add(slotButton.onPointerClickObservable.add(() => {
+            this.selectShipSection(slotTextItem)
+            this.selectMenuSection(this.MenuSections.Components)
+            if (this.selectedShipSection != undefined) {
+              this.filterComponentsSection(slotType)
+              if (utility != undefined) {
+                // select modifier
+                this.selectComponent(utility)
+              }
+            }
+          }))
+          this.shipSlots.push(slotTextItem)
+          sectionContainer.addControl(slotTextItem)
+          if (this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
+            this.selectedShipSection?.item.metadata.type == slotType &&
+            this.selectedShipSection?.item.metadata.slotIndex == i) {
+            this.selectShipSection(slotTextItem)
+          }
+        }
+      }
+
+      /// GUNS
       const guns = this.ship.structure[sectionName.toLowerCase()].gunMounts as GunMounts[]
-      // debugger
       if (guns) {
         for (let i = 0; i < guns.length; i += 1) {
           const slotType = "Gun"
@@ -822,6 +917,8 @@ export class ShipCustomizerScreen extends MercScreen {
           }
         }
       }
+
+      /// WEAPONS
       const weapons = this.ship.structure[sectionName.toLowerCase()].weaponMounts as WeaponMounts[]
       if (weapons) {
         for (let i = 0; i < weapons.length; i += 1) {

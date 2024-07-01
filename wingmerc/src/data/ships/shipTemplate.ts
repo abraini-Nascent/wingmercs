@@ -112,6 +112,14 @@ export interface ModifierDetails {
   type: StructureSlotType
   name: string
 }
+export interface UtilityModifierDetails extends ModifierDetails {
+  ammo?: string
+  ammoCount?: number
+  health?: ComponentModifier;
+  fuel?: ComponentModifier;
+  energy?: ComponentModifier;
+  shields?: ComponentModifier;
+}
 export interface ShieldGeneratorBaseDetails {
   health: number;
   fore: number;
@@ -261,6 +269,11 @@ export interface GunMounts {
   }
 }
 
+export interface UtilityMounts {
+  maxSize: ShipComponentSize
+  utility?: UtilityModifierDetails
+}
+
 export const StructureSlotType = {
   Thruster: "Thruster",
   Afterburner: "Afterburner",
@@ -288,6 +301,7 @@ export type ShipStructureSection = {
   maxArmor?: number;
   health: number;
   slots: StructureSlotType[];
+  utilityMounts?: UtilityMounts[]; 
   gunMounts?: GunMounts[];
   weaponMounts?: WeaponMounts[];
 }

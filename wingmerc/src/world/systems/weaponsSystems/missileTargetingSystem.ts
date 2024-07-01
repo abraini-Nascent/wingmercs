@@ -25,12 +25,17 @@ export function missileTargetingSystem(dt: number) {
 
     // calculate time to intercept
     // TODO this should be it's own system
+    let particleSpeed = 2000;
+    const mount = entity.guns.mounts[entity.guns.selected]
+    if (mount != undefined) {
+      particleSpeed = mount.stats.speed
+    }
     const gunInterceptPosition = firstOrderIntercept(
       Vector3FromObj(entity.position),
       Vector3FromObj(entity.velocity),
       Vector3FromObj(targetEntity.position),
       Vector3FromObj(targetEntity.velocity),
-      (Guns[entity.guns.mounts[0].class] as Gun).speed) // TODO this should be the selected gun
+      particleSpeed)
     targeting.gunInterceptPosition = gunInterceptPosition
 
     // is entity's weapon a tracking weapon
