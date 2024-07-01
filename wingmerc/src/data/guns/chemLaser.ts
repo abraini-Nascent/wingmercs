@@ -6,7 +6,7 @@ export const chemLaser: Gun = Object.seal({
   /** display name */
   name: "Chemical Laser Cannon",
   ammo: "chemLaser",
-  ammoPerBin: 10,
+  ammoPerBin: 200,
   /** color of the trail */
   color: {r: 187/100, g: 30/100, b: 57/100, a: 1},
   /** stats per tier */

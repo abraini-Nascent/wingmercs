@@ -415,10 +415,19 @@ export class ShipCustomizerScreen extends MercScreen {
         const dpkj = damage/energy
         detailsScrollview.addControl(this.textItem("dps", `|| DPS: ${dps.toFixed(2)} cm/s`))
         detailsScrollview.addControl(this.textItem("dpkj", `|| DPkJ: ${dpkj.toFixed(2)} cm/kJ`))
+        if (gunData.ammo != undefined) {
+          let secondsOfAmmo = gunData.ammoPerBin * (delay / 1000)
+          detailsScrollview.addControl(this.textItem("s of ammo", `TTF: ${secondsOfAmmo.toFixed(2)} s`))
+        }
       } else {
         detailsScrollview.addControl(this.textItem("dps", `DPS: ${(((gunStats.damage/10)/gunStats.delay) * 1000).toFixed(2)} cm/s`))
         detailsScrollview.addControl(this.textItem("dpkj", `DPkJ: ${((gunStats.damage/10)/gunStats.energy).toFixed(2)} cm/kJ`))
+        if (gunData.ammo != undefined) {
+          let secondsOfAmmo = gunData.ammoPerBin * (gunStats.delay / 1000)
+          detailsScrollview.addControl(this.textItem("s of ammo", `TTF: ${secondsOfAmmo.toFixed(2)} s`))
+        }
       }
+      
       componentScrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
           const button = child.item as GUI.Button
