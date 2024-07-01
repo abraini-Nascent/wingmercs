@@ -66,7 +66,8 @@ export class ShipSelectionScreen extends MercScreen {
 
     const selectButton = this.shipButtonItem("select", "Select", () => {
       // navigate to next screen
-      const ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
+      let ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
+      ship = structuredClone(ship)
       let oldScene = AppContainer.instance.gameScene
       let nextScene = new ShipCustomizerScene(ship)
       AppContainer.instance.gameScene = nextScene

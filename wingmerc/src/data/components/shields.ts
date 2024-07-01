@@ -1,6 +1,8 @@
 import { ShieldGeneratorModifierDetails } from "../ships/shipTemplate";
 
 export const BasicShields = {
+  id: "BasicShields",
+  type: "Shields",
   name: "Basic Shield Booster",
   size: "Medium",
   cost: 10000,
@@ -12,7 +14,9 @@ export const BasicShields = {
   }
 } as ShieldGeneratorModifierDetails
 
-export const LightShields = {
+export const LightningShields = {
+  id: "LightningShields",
+  type: "Shields",
   name: "Lightning Shields",
   size: "Medium",
   cost: 10000,
@@ -26,7 +30,9 @@ export const LightShields = {
   },
 } as ShieldGeneratorModifierDetails
 
-export const MediumShields = {
+export const JellyShields = {
+  id: "JellyShields",
+  type: "Shields",
   name: "Jelly Shields",
   size: "Medium",
   cost: 10000,
@@ -40,7 +46,9 @@ export const MediumShields = {
   },
 } as ShieldGeneratorModifierDetails
 
-export const ThickShields = {
+export const SnapShields = {
+  id: "SnapShields",
+  type: "Shields",
   name: "SnapBack Shields",
   size: "Medium",
   cost: 10000,
@@ -63,6 +71,8 @@ export const ThickShields = {
 } as ShieldGeneratorModifierDetails
 
 export const HeavyShields = {
+  id: "HeavyShields",
+  type: "Shields",
   name: "Heavy Shields",
   size: "Large",
   cost: 10000,
@@ -85,12 +95,19 @@ export const HeavyShields = {
 } as ShieldGeneratorModifierDetails
 
 export const ShieldTypes = {
-  Basic: "Basic",
-  Light: "Light",
-  Medium: "Medium",
-  Thick: "Thick",
-  Heavy: "Heavy"
+  BasicShields: "BasicShields",
+  LightningShields: "LightningShields",
+  JellyShields: "JellyShields",
+  SnapShields: "SnapShields",
+  HeavyShields: "HeavyShields"
 } as const
 
 export type ShieldTypes = typeof ShieldTypes[keyof typeof ShieldTypes];
 export type Shields = { [shieldType in ShieldTypes]: ShieldGeneratorModifierDetails }
+export const Shields = {
+  BasicShields: BasicShields,
+  LightningShields: LightningShields,
+  JellyShields: JellyShields,
+  SnapShields: SnapShields,
+  HeavyShields: HeavyShields
+}

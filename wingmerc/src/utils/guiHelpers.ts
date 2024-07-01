@@ -134,7 +134,7 @@ export class DynamicTextureImage extends GUI.Rectangle {
   }
 }
 
-const debug = true
+const debug = false
 export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-layout';
 export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
 export class FlexContainer {
@@ -284,9 +284,12 @@ export class FlexContainer {
     // walk through child tree
     this.left = this._node.getComputedLeft()
     this.top = this._node.getComputedTop()
+    this.height = this._node.getComputedHeight()
+    this.width = this._node.getComputedWidth()
     this._updateBackground()
 
-    console.log(`${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`)
+    if (debug)
+      console.log(`${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`)
     const queue: {parent: FlexContainer, child: FlexContainer | FlexItem}[] = 
     this._children.map((child) => { return { parent: this, child } })
     while (queue.length > 0) {
@@ -304,7 +307,8 @@ export class FlexContainer {
         container.height = height
         container.width = width
         
-        console.log(`${container.name}-container, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
+        if (debug)
+          console.log(`${container.name}-container, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
         const newItems = container._children.map((item) => {
           return {
             parent: container as FlexContainer,
@@ -317,13 +321,54 @@ export class FlexContainer {
         const control = next.child.item
         control.topInPixels = next.child.node.getComputedTop()
         control.leftInPixels = next.child.node.getComputedLeft()
-        console.log(`${control.name}-parent-node, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
-        console.log(`${control.name}-child-node, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
-        console.log(`${control.name}-item, \r\ntop:${control.topInPixels} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
+        if (debug) {
+          console.log(`${control.name}-parent-node, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
+          console.log(`${control.name}-child-node, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
+          console.log(`${control.name}-item, \r\ntop:${control.topInPixels} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
+        }
       }
     }
   }
 
+  static CreateScrollView(name: string = "scrollViewContainer", parent: FlexContainer, direction: "vertical" |
+     "horizontal" | "both" = "vertical"
+  ): FlexContainer {
+    /**
+     * (parent)[container]
+     *  - (scrollviewContainer)[scrollView]
+     *   - [direct]
+     *    - (newRoot)[container]
+     */
+    const scrollView = new GUI.ScrollViewer(`${name}-scrollview`)
+    scrollView.wheelPrecision = 1
+    scrollView.freezeControls = false
+    const scrollviewContainer = new FlexContainer(`${name}-scrollview-felxcontainer`, undefined, scrollView)
+    scrollviewContainer.style.setFlex(1)
+    parent.addControl(scrollviewContainer)
+    const direct = new GUI.Container(`${name}-scrollview-direct-child`)
+    scrollView.addControl(direct)
+    const newRoot = new FlexContainer(`${name}-scrollview-direct-child-flexcontainer`, undefined)
+    newRoot.style.setFlexGrow(1)
+    direct.addControl(newRoot._container)
+    // layout on render
+    const beforeDrawObserver = direct.onBeforeDrawObservable.add(() => {
+      if (direction == "vertical") {
+        newRoot.width = scrollView.widthInPixels - 20
+      } else if (direction == "horizontal") {
+        newRoot.width = scrollView.heightInPixels - 20
+      }
+      newRoot.layout()
+      direct.heightInPixels = newRoot.height
+      direct.widthInPixels = newRoot.width
+    })
+    // continue the dispose chain since we decoupled from the flex container tree
+    scrollView.onDisposeObservable.addOnce(() => {
+      beforeDrawObserver.remove()
+      newRoot.dispose().dispose()
+    })
+    return newRoot
+  }
+  
   markDirty() {
     this._dirty = true
   }
@@ -413,5 +458,26 @@ export class FlexItem {
   }
   removeItem() {
     this.item = undefined
+  }
+}
+
+export class FlexScrollview {
+
+  constructor() {
+    const scrollView = new GUI.ScrollViewer("scroll1")
+    scrollView.wheelPrecision = 1
+    scrollView.freezeControls = false
+    const scrollviewContainer = new FlexContainer("child4", undefined, scrollView)
+    scrollviewContainer.style.setFlex(1)
+    const direct = new GUI.Container("direct")
+    scrollView.addControl(direct)
+    const parent = new FlexContainer("child5", undefined)
+    parent.style.setFlexGrow(1)
+    direct.addControl(parent._container)
+    direct.onBeforeDrawObservable.addOnce(() => {
+      parent.layout()
+      direct.heightInPixels = parent.height
+      direct.widthInPixels = parent.width
+    })
   }
 }

@@ -42,6 +42,7 @@ export class GunsVDU {
 
     for (const [index, mount] of Object.entries(playerEntity.guns.mounts)) {
       const gun = Guns[mount.class] as Gun
+      const gunStats = mount.stats
       if (this.guns[index] == undefined) {
         const gunText = this.GunText(gun.name, gun.name)
         this.guns[index] = gunText
@@ -49,7 +50,7 @@ export class GunsVDU {
       }
       let selected = this.selected.has(parseInt(index))
       let name = selected ? `[${gun.name}]` : gun.name
-      this.setState(this.guns[index], name, selected, mount.currentHealth, gun.health)
+      this.setState(this.guns[index], name, selected, mount.currentHealth, gunStats.health)
     }
   }
 

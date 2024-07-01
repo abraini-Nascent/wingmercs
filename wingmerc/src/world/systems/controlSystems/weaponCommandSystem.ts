@@ -7,6 +7,7 @@ import { Weapon } from '../../../data/weapons/weapon';
 import { SoundEffects } from "../../../utils/sounds/soundEffects";
 import { AppContainer } from '../../../app.container';
 import { QuaternionFromObj, ToDegree, Vector3FromObj } from '../../../utils/math';
+import { applyModifier } from "../../factories";
 
 export class WeaponCommandSystem implements IDisposable {
   
@@ -33,27 +34,35 @@ export class WeaponCommandSystem implements IDisposable {
       for (const gunIndex of guns.groups[guns.selected]) {
         const gun = guns.mounts[gunIndex]
         const gunClass: Gun = Guns[gun.class]
+        const gunStats = gun.stats
         if (gun.delta > 0) {
           // gun isn't ready to fire yet
           continue
         }
+        // get modifier stats
+        const affix = gun.modifier
+        const energy = applyModifier(gunStats.energy, affix?.energy)
+        const damage = applyModifier(gunStats.damage, affix?.damage)
+        const delay = applyModifier(gunStats.delay, affix?.delay)
+        const speed = applyModifier(gunStats.speed, affix?.speed)
+        const range = applyModifier(gunStats.range, affix?.range)
         // check for energy
         const { powerPlant } = entity;
-        if (powerPlant != undefined && powerPlant.currentCapacity < gunClass.energy) {
+        if (powerPlant != undefined && powerPlant.currentCapacity < energy) {
           // not enough energy to fire gun
           continue
         }
         // console.log(`firing gun ${gunIndex} !`)
         // reduce energy
-        powerPlant.currentCapacity -= gunClass.energy
+        powerPlant.currentCapacity -= energy
         world.update(entity, "powerPlant", powerPlant)
         // set gun delta to delay
-        gun.delta = gunClass.delay
+        gun.delta = delay
         world.update(entity, "guns", guns)
         // calculate velocity
         const { playerId, rotationQuaternion, position, direction } = entity
         const forward = new Vector3(0, 0, -1)
-        let burn = gunClass.speed
+        let burn = speed
         forward.multiplyInPlace(new Vector3(burn, burn, burn))
         forward.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
         // calcuate starting position
@@ -83,14 +92,14 @@ export class WeaponCommandSystem implements IDisposable {
           },
           acceleration: { x: 0, y: 0, z: 0 },
           particleRange: {
-            max: gunClass.range,
+            max: range,
             total: 0,
             lastPosition: { ...startPosition }
           },
-          damage: gunClass.damage,
+          damage: damage,
           trail: true,
           trailOptions: [{
-            color: {r: 100/255, g: 10/255, b: 10/255, a: 1},
+            color: {r: gunClass.color.r, g: gunClass.color.g, b: gunClass.color.b, a: 1},
             width: 1,
             length: 2,
           }],

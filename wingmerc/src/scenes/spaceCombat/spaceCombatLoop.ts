@@ -43,6 +43,7 @@ import { IDisposable, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
 import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
 import { MissionType } from '../../world/systems/ai/engagementState';
+import { ShipTemplate } from '../../data/ships/shipTemplate';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -79,7 +80,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
 
   combatEntities = new Set<Entity>()
 
-  constructor() {
+  constructor(private playerShip?: ShipTemplate) {
     console.log("[SpaceCombatLoop] created")
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisAgent(appContainer.scene)
@@ -91,7 +92,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     // queries.deathComes.onEntityAdded.subscribe(this.onDeath)
     this.hud = new CombatHud()
     this.readyTimer = 3000
-    appContainer.player = new PlayerAgent()
+    appContainer.player = new PlayerAgent(this.playerShip)
     const playerEntity = appContainer.player.playerEntity;
     playerEntity.score = { livesLeft: 1, timeLeft: 90, total: 1000 }
     this.score = playerEntity.score

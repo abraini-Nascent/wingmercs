@@ -39,6 +39,26 @@ export class FlexTestScreen extends MercScreen {
 </Layout>
  */
 
+    const scrollviewplain = new GUI.ScrollViewer("plain")
+    scrollviewplain.heightInPixels = 600
+    scrollviewplain.widthInPixels = 800
+    scrollviewplain.background = "red"
+    this.gui.addControl(scrollviewplain)
+    const singleContainer = new GUI.Container("single-container")
+    scrollviewplain.addControl(singleContainer)
+    let offset = 20
+    singleContainer.heightInPixels = 20
+    for (let i = 0; i < 20; i += 1) {
+      const textbox = new GUI.TextBlock(`text-${i}`, `TEXT TEST ${i}`)
+      textbox.fontFamily = "monospace"
+      textbox.topInPixels = offset
+      textbox.heightInPixels = 50
+      textbox.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+      offset += 50
+      singleContainer.addControl(textbox)
+    }
+    singleContainer.heightInPixels += offset + 50
+
     const root = new FlexContainer("root", this.gui, undefined, FlexDirection.Row)
     root.style.setPadding(Edge.All, 10)
     root.width = 250
@@ -62,41 +82,53 @@ export class FlexTestScreen extends MercScreen {
     child3.style.setMargin(Edge.Start, 10)
     child3.style.setMargin(Edge.End, 10)
     child3.style.setPadding(Edge.All, 10)
-    child3.clipChildren = true
+    // child3.clipChildren = true
     child0.addControl(child3)
 
-    const scrollView = new GUI.ScrollViewer("scroll1")
-    const child4 = new FlexContainer("child4", undefined, scrollView)
-    child4.style.setFlex(1)
-    child3.addControl(child4)
+    const child5 = FlexContainer.CreateScrollView("scroll-test", child3)
+    // const scrollView = new GUI.ScrollViewer("scroll1")
+    // scrollView.wheelPrecision = 1
+    // scrollView.freezeControls = false
+    // const child4 = new FlexContainer("child4", undefined, scrollView)
+    // child3.addControl(child4)
+    // const direct = new GUI.Container("direct")
+    // scrollView.addControl(direct)
 
-    const text1 = new GUI.TextBlock("text1", "Can we make a text block work with yoga flow so that they work and align correctly?")
-    text1.resizeToFit = true
-    text1.textWrapping = GUI.TextWrapping.WordWrap
-    text1.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
-    text1.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
-    text1.fontFamily = "monospace"
-    const text2 = new GUI.TextBlock("text2", "What if we make two text blocks, will they align properly in the parent container, and make it soo long that it will go past the container???")
-    text2.resizeToFit = true
-    text2.textWrapping = GUI.TextWrapping.WordWrap
-    text2.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
-    text2.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
-    text2.fontFamily = "monospace"
-    const text1FlexItem = new FlexItem("test1-flex", text1)
-    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
-      text1.widthInPixels = width
-      text1.heightInPixels = text1.computeExpectedHeight()
-      return { width: text1.widthInPixels, height: text1.computeExpectedHeight() }
+    // const child5 = new FlexContainer("child5", undefined)
+    // child5.style.setFlexGrow(1)
+    // direct.addControl(child5._container)
+    // direct.onBeforeDrawObservable.addOnce(() => {
+    //   child5.layout()
+    //   direct.heightInPixels = child5.height
+    //   direct.widthInPixels = child5.width
+    // })
+    // // child4.addControl(child5)
+    // child4.style.setFlex(1)
+    
+    let directOffset = 0
+    for (let i = 0; i < 20; i += 1) {
+      const text = new GUI.TextBlock(`text-${i+1}`, `I am item number: ${i + 1} !`)
+      text.resizeToFit = true
+      text.textWrapping = GUI.TextWrapping.WordWrap
+      text.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
+      text.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
+      text.fontFamily = "monospace"
+      text.topInPixels = directOffset
+      // directOffset += 50
+      // direct.addControl(text)
+      // continue;
+      const textFlexItem = new FlexItem(`text-${i+1}-flex`, text)
+      textFlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+        text.widthInPixels = width
+        text.heightInPixels = text.computeExpectedHeight()
+        const result = { width: text.widthInPixels, height: text.heightInPixels }
+        return result
+      }
+      child5.addControl(textFlexItem)
     }
-    const text2FlexItem = new FlexItem("test2-flex", text2)
-    text2FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
-      text2.widthInPixels = width
-      text2.heightInPixels = text2.computeExpectedHeight()
-      const result = { width: text2.widthInPixels, height: text2.heightInPixels }
-      return result
-    }
-    child4.addControl(text1FlexItem)
-    child4.addControl(text2FlexItem)
+    // direct.heightInPixels = offset
+    // console.log("direct heightinpixels", direct.heightInPixels)
+    // child5.style.setHeight(direct.heightInPixels)
 
     const bottomBar = new FlexContainer("bottomBar")
     bottomBar.style.setPosition(Edge.Bottom, 0)

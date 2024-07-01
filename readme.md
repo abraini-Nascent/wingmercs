@@ -88,10 +88,16 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] drop in system types (engines, power plants, shields)
 - [x] configurable ships
 - [] ship builder
-  - [ ] select ship
-  - [ ] add modifiers
-  - [ ] see stats
-  - [ ] launch ship
+  - [x] select ship
+  - [x] add modifiers
+  - [x] select guns
+  - [x] select weapons
+  - [ ] add extras
+  - [x] see stats
+  - [x] launch ship
+- [ ] utility items
+- [x] named guns like diablo (they are called "affixes")
+- [x] tiers for guns
 - [] models for weapons
 - [] models for guns
 - [] polish and juice
@@ -281,7 +287,7 @@ long hauling in space, in the endless expanse do I go
 the confed be damn, 'cause the miners demand
 that the beer in my cargo hold flow
 
-for my cargo hold's stash, is a contraband cache
+my cargo hold's stash, is a contraband cache
 and the pirates will eat my exhaust
 i'll do one more haul, just a quick 5 jump sprawl
 and maybe even cover the cost

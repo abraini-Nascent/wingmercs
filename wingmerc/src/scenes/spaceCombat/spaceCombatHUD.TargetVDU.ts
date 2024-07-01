@@ -246,10 +246,10 @@ class TargetBody {
       this.updateShield(entity.shields.currentAft/entity.shields.maxAft, this.shieldsAft)
     }
     if (entity.armor) {
-      this.updateArmor(entity.armor.front/planeClass.armor.front, this.armorFront, " ╦ ", " ┬ ", "   ")
-      this.updateArmor(entity.armor.back/planeClass.armor.back, this.armorAft, " ╩ ", " ┬ ", "   ")
-      this.updateArmor(entity.armor.left/planeClass.armor.left, this.armorLeft, "╠", "├", " ")
-      this.updateArmor(entity.armor.right/planeClass.armor.right, this.armorRight, "╣", "┤", " ")
+      this.updateArmor(entity.armor.front/entity.armor.base.front, this.armorFront, " ╦ ", " ┬ ", "   ")
+      this.updateArmor(entity.armor.back/entity.armor.base.back, this.armorAft, " ╩ ", " ┬ ", "   ")
+      this.updateArmor(entity.armor.left/entity.armor.base.left, this.armorLeft, "╠", "├", " ")
+      this.updateArmor(entity.armor.right/entity.armor.base.right, this.armorRight, "╣", "┤", " ")
     }
     if (entity.health != undefined) {
       this.updateHealth(entity.health.current/entity.health.base, this.health, "↑", "⇡", "*")

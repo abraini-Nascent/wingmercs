@@ -4,7 +4,7 @@ import { AngleBetweenVectors, DegreeToRadian, QuaternionFromObj, ToDegree, ToDeg
 import { AppContainer } from '../../../app.container';
 import { totalVelocityFrom } from '../../helpers';
 import * as Guns from '../../../data/guns';
-import { Gun } from '../../../data/guns/gun';
+import { Gun, GunStats } from '../../../data/guns/gun';
 import { randFloat } from '../../../utils/random';
 
 const PlanarUp = Vector3.Up()
@@ -162,8 +162,7 @@ export namespace SteeringBehaviours {
     const gunGroup = entity.guns.groups[entity.guns.selected]
     let gunsSpeed = 0
     for (let mountIdx of gunGroup) {
-      const gunClass = entity.guns.mounts[mountIdx].class
-      const gun = Guns[gunClass] as Gun
+      const gun = entity.guns.mounts[mountIdx].stats as GunStats
       gunsSpeed += gun.speed / gunGroup.length
     }
     gunsSpeed = Math.round(gunsSpeed)

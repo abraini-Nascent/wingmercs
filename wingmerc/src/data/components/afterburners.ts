@@ -7,8 +7,10 @@ import { AfterburnerModifierDetails } from "../ships/shipTemplate";
  * - has a lower top end and uses less fuel
  */
 /** consumes more fuel but has a higher top end */
-export const LightAfterburners = {
+export const HotAfterburners: AfterburnerModifierDetails = {
+  id: "HotAfterburners",
   name: "Hot",
+  type: "Afterburner",
   size: "Medium",
   cost: 10000,
   maxSpeed: {
@@ -22,7 +24,9 @@ export const LightAfterburners = {
 } as AfterburnerModifierDetails
 
 /** has a higher top end but slower accelleration */
-export const MediumAfterburners = {
+export const DragsterAfterburners = {
+  id: "DragsterAfterburners",
+  type: "Afterburner",
   name: "Dragster",
   size: "Medium",
   cost: 10000,
@@ -37,7 +41,9 @@ export const MediumAfterburners = {
 } as AfterburnerModifierDetails
 
 /** has a lower top end but a much faster accelleration */
-export const ThickAfterburners = {
+export const JackrabbitAfterburners = {
+  id: "JackrabbitAfterburners",
+  type: "Afterburner",
   name: "Jackrabbit",
   size: "Medium",
   cost: 10000,
@@ -52,7 +58,9 @@ export const ThickAfterburners = {
 } as AfterburnerModifierDetails
 
 /** has a lower top end and uses less fuel */
-export const HeavyAfterburners = {
+export const TurtleAfterburners = {
+  id: "TurtleAfterburners",
+  type: "Afterburner",
   name: "Turtle",
   size: "Large",
   cost: 10000,
@@ -67,18 +75,18 @@ export const HeavyAfterburners = {
 } as AfterburnerModifierDetails
 
 export const AfterburnerTypes = {
-  Light: "Light",
-  Medium: "Medium",
-  Thick: "Thick",
-  Heavy: "Heavy"
+  HotAfterburners: "HotAfterburners",
+  DragsterAfterburners: "DragsterAfterburners",
+  JackrabbitAfterburners: "JackrabbitAfterburners",
+  TurtleAfterburners: "TurtleAfterburners",
 } as const
 
 export type AfterburnerTypes = typeof AfterburnerTypes[keyof typeof AfterburnerTypes];
 export type Afterburners = { [engineType in AfterburnerTypes]: AfterburnerModifierDetails };
 
 export const Afterburners: Afterburners = {
-  Light: LightAfterburners,
-  Medium: MediumAfterburners,
-  Thick: ThickAfterburners,
-  Heavy: HeavyAfterburners
+  HotAfterburners: HotAfterburners,
+  DragsterAfterburners: DragsterAfterburners,
+  JackrabbitAfterburners: JackrabbitAfterburners,
+  TurtleAfterburners: TurtleAfterburners
 }

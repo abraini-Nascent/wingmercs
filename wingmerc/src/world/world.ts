@@ -12,6 +12,9 @@ import { World } from "miniplex"
 import { net } from "../net"
 import { AIType } from "./systems/ai/aiSystem"
 import { PilotAIType } from '../data/pilotAI/pilotAI';
+import { WeaponType } from '../data/weapons/weapon';
+import { GunStats } from '../data/guns/gun';
+import { GunAffix } from '../data/affixes/gunAffix';
 
 export type MovementCommand = {
   pitch: number
@@ -46,6 +49,12 @@ export type ShipArmor = {
   back: number
   left: number
   right: number
+  base: {
+    front: number
+    back: number
+    left: number
+    right: number
+  }
 }
 export type ShipEngine = {
   cruiseSpeed: number;
@@ -58,9 +67,14 @@ export type ShipThrusters = {
   pitch: number;
   roll: number;
   yaw: number;
+  breakingForce: number;
+  breakingLimit: number;
 }
 export type ShipGunsMount = {
   class: string
+  name: string
+  stats: GunStats
+  modifier?: GunAffix
   delta: number
   possition: { x: number; y: number; z: number }
   currentHealth: number
@@ -69,6 +83,12 @@ export type ShipGuns = {
   mounts: { [gunId: number]: ShipGunsMount },
   selected: number,
   groups: number[][],
+}
+export type ShipWeaponMount = { type: WeaponType; count: number }
+export type ShipWeapons = {
+  mounts: ShipWeaponMount[]
+  selected: number
+  delta: number
 }
 export type ShipSystems = {
   quadrant: {
@@ -246,11 +266,7 @@ export type Entity = {
   targeting?: TargetState
   isTargetable?: "player" | "enemy" | "missile"
   guns?: ShipGuns
-  weapons?: {
-    mounts: { type: string; count: number }[]
-    selected: number
-    delta: number
-  }
+  weapons?: ShipWeapons
   engine?: ShipEngine
   powerPlant?: ShipPowerPlant
   shields?: ShipShields

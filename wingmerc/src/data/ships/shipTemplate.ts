@@ -107,6 +107,11 @@ export interface ComponentModifier {
   value: number;
   percent?: boolean;
 }
+export interface ModifierDetails {
+  id: string
+  type: StructureSlotType
+  name: string
+}
 export interface ShieldGeneratorBaseDetails {
   health: number;
   fore: number;
@@ -114,7 +119,7 @@ export interface ShieldGeneratorBaseDetails {
   rechargeRate: number;
   energyDrain: number;
 }
-export interface ShieldGeneratorModifierDetails {
+export interface ShieldGeneratorModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -136,7 +141,7 @@ export interface AfterburnerBaseDetails {
   /** the rate at which the afterburner consumes fuel.  1 unit is 1 fuel per second */
   fuelConsumeRate: number;
 }
-export interface AfterburnerModifierDetails {
+export interface AfterburnerModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -154,7 +159,7 @@ export interface EngineBaseDetails {
   /** the max accelleration */
   accelleration: number;
 }
-export interface EngineModifierDetails {
+export interface EngineModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -163,7 +168,7 @@ export interface EngineModifierDetails {
   accelleration?: ComponentModifier;
 }
 
-export interface PowerPlantModifierDetails {
+export interface PowerPlantModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -181,7 +186,7 @@ export interface PowerPlantBaseDetails {
   maxCapacity: number;
 }
 
-export interface FuelTankModifierDetails {
+export interface FuelTankModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -195,7 +200,7 @@ export interface FuelTankBaseDetails {
   capacity: number;
 }
 
-export interface ThrustersModifierDetails {
+export interface ThrustersModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
@@ -232,6 +237,7 @@ export type WeaponSelection = {
 export interface WeaponMounts {
   maxSize: ShipComponentSize
   maxCount: number
+  base: WeaponSelection
   position: {
     x: number;
     y: number;
@@ -239,10 +245,15 @@ export interface WeaponMounts {
   }
 }
 
-export type GunSelection = GunType[]
+export type GunTier = 0 | 1 | 2 | 3 | 4 | 5
+export type GunSelection = {
+  type: GunType
+  tier?: GunTier
+  affix?: string
+}
 export interface GunMounts {
   maxSize: ShipComponentSize
-  maxCount: number
+  base?: GunSelection
   position: {
     x: number;
     y: number;
@@ -259,9 +270,28 @@ export const StructureSlotType = {
   Radar: "Radar",
   Gun: "Gun",
   Weapon: "Weapon",
-  Generic: "Generic",
+  Utility: "Utility",
 } as const
 export type StructureSlotType = typeof StructureSlotType[keyof typeof StructureSlotType];
+
+export const StructureSections = {
+  front: "front",
+  back: "back",
+  left: "left",
+  right: "right",
+  core: "core",
+} as const
+export type StructureSections = typeof StructureSections[keyof typeof StructureSections];
+
+export type ShipStructureSection = {
+  armor?: number;
+  maxArmor?: number;
+  health: number;
+  slots: StructureSlotType[];
+  gunMounts?: GunMounts[];
+  weaponMounts?: WeaponMounts[];
+}
+
 /**
  * Ship details:
  * We want ships to feel unique but also be customizable with components.
@@ -338,34 +368,11 @@ export interface ShipTemplate {
     base: ThrustersBaseDetails;
   };
   structure: {
-    core: {
-      health: number;
-      slots: StructureSlotType[];
-    }
-    front: {
-      armor: number;
-      maxArmor: number;
-      health: number;
-      slots: StructureSlotType[];
-    }
-    back: {
-      armor: number;
-      maxArmor: number;
-      health: number;
-      slots: StructureSlotType[];
-    }
-    left: {
-      armor: number;
-      maxArmor: number;
-      health: number;
-      slots: StructureSlotType[];
-    }
-    right: {
-      armor: number;
-      maxArmor: number;
-      health: number;
-      slots: StructureSlotType[];
-    }
+    core: ShipStructureSection
+    front: ShipStructureSection
+    back: ShipStructureSection
+    left: ShipStructureSection
+    right: ShipStructureSection
   };
   systems: {
     quadrant: {
@@ -391,8 +398,4 @@ export interface ShipTemplate {
         weapons: number;
     };
   };
-  guns: GunSelection;
-  gunMounts: GunMounts[];
-  weapons: WeaponSelection[];
-  weaponMounts: WeaponMounts[];
 }

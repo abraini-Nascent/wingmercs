@@ -11,11 +11,9 @@ import { QuaternionFromObj } from '../../../utils/math';
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moveCommanded) {
-    const { systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel, engine } = entity;
+    const { systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel, engine, thrusters } = entity;
     let { setSpeed } = entity;
     const { movementCommand } = entity;
-    const shipTemplateName = entity.planeTemplate
-    const shipTemplate: { pitch: number, yaw: number, roll: number, breakingForce: number, breakingLimit: number } = Ships[shipTemplateName] ?? Ships.Dirk
 
     // scale back speeds based on damage, minimum 20% capability even if destroyed
     const maxDamagedSpeed = engine.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
@@ -37,9 +35,9 @@ export function moveCommandSystem(dt: number) {
       //// change direction of the ship...
       if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
 
-        let pitchSpeed = Math.max(40, entity.thrusters.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
-        let yawSpeed   = Math.max(40, entity.thrusters.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
-        let rollSpeed  = Math.max(40, entity.thrusters.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
+        let pitchSpeed = Math.max(40, thrusters.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
+        let yawSpeed   = Math.max(40, thrusters.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
+        let rollSpeed  = Math.max(40, thrusters.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
         // Positive for roll left, negative for roll right
         const deltaRoll = (((rollSpeed * (movementCommand.roll ?? 0))) / 1000) * dt;
         // Positive for down, negative for up
@@ -57,7 +55,7 @@ export function moveCommandSystem(dt: number) {
       //// change speed of the ship
       const cruiseAcceleration = (engine.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       const afterburnerAcceleration = (engine.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
-      const breakAcceleration = (shipTemplate.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
+      const breakAcceleration = (thrusters.breakingForce * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
       const canAfterburner = fuel == undefined ? true : fuel.currentCapacity > (dt / 1000) // TODO burn rate should scale, there should be enough fuel to match afterburner's burn rate
       if (movementCommand.afterburner && canAfterburner) {
 
@@ -105,7 +103,10 @@ export function moveCommandSystem(dt: number) {
       //// breaking
       let nextBreakingPower = 0
       if (!movementCommand.afterburner && movementCommand.brake) {
-        nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, shipTemplate.breakingLimit)
+        nextBreakingPower = Math.min((breakingPower ?? 0) + breakAcceleration, thrusters.breakingLimit)
+        if (isNaN(nextBreakingPower)) {
+          debugger
+        }
         world.update(entity, "breakingPower", nextBreakingPower)
         world.addComponent(entity, "brakingActive", true)
       } else if (breakingPower != undefined && breakingPower > 0) {

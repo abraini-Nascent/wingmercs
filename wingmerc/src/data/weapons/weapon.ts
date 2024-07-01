@@ -1,6 +1,6 @@
 export type Weapon = {
   /** id */
-  class: string,
+  class: WeaponType,
   /** type */
   type: WeaponType,
   /** display name */
