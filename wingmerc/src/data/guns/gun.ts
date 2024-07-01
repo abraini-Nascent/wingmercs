@@ -30,6 +30,8 @@ export const GunType = {
   laser: "laser",
   massdriver: "massdriver",
   neutron: "neutron",
+  particleCannon: "particleCannon",
+  plasma: "plasma",
 } as const
 
 export type GunType = typeof GunType[keyof typeof GunType];
