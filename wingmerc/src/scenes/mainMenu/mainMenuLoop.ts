@@ -77,7 +77,7 @@ export class MainMenuScene implements IDisposable {
     world.onEntityAdded.subscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.subscribe(this.onScreenEntityRemoved)
 
-    queries.deathComes.onEntityAdded.subscribe(this.onDeath)
+    queries.deathComes.onEntityRemoved.subscribe(this.onDeath)
 
     const teams = [this.teamA,this.teamB,this.teamB]
     teams.forEach((team, teamId) => {
