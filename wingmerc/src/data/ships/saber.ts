@@ -121,7 +121,7 @@ export const Saber: ShipTemplate = Object.seal({
           },
           base: {
             count: 4,
-            type: "dumbfire",
+            type: "imagerecognition",
           },
         },
       ],
@@ -188,7 +188,7 @@ export const Saber: ShipTemplate = Object.seal({
           },
           base: {
             count: 2,
-            type: "heatseeking",
+            type: "friendorfoe",
           },
         },
       ],
@@ -238,7 +238,7 @@ export const Saber: ShipTemplate = Object.seal({
           },
           base: {
             count: 2,
-            type: "heatseeking",
+            type: "dumbfire",
           },
         },
       ],

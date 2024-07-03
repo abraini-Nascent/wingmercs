@@ -82,20 +82,20 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 ## TODO:
 
 ### next demo
-- [] fullish weapons list
-- [] fullish guns list
-- [] fullish ships list (add more player ships)
+- [x] fullish weapons list
+- [x] fullish guns list
+- [x] fullish ships list (add more player ships)
 - [x] drop in system types (engines, power plants, shields)
 - [x] configurable ships
-- [] ship builder
+- [x] ship builder
   - [x] select ship
   - [x] add modifiers
   - [x] select guns
   - [x] select weapons
-  - [ ] add extras
+  - [x] add extras
   - [x] see stats
   - [x] launch ship
-- [ ] utility items
+- [x] utility items
 - [x] named guns like diablo (they are called "affixes")
 - [x] tiers for guns
 - [] models for weapons

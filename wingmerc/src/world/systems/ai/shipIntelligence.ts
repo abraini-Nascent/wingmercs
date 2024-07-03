@@ -605,7 +605,7 @@ function pickManeuverType(taskOptions: [weight: number, maneuver: ManeuverType[]
   return maneuver
 }
 
-function nearestEnemy(entity: Entity, threshold: number = Number.MAX_SAFE_INTEGER): Entity | undefined {
+export function nearestEnemy(entity: Entity, threshold: number = Number.MAX_SAFE_INTEGER): Entity | undefined {
   // check State of Confrontation
   const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
   /// Enemy Distances

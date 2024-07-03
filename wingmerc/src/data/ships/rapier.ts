@@ -122,7 +122,7 @@ export const Rapier: ShipTemplate = Object.seal({
       }],
       weaponMounts: [
         {
-          maxCount: 1,
+          maxCount: 2,
           maxSize: "Medium",
           position: {
             x: 0,
@@ -130,7 +130,7 @@ export const Rapier: ShipTemplate = Object.seal({
             z: 0.5,
           },
           base: {
-            count: 1,
+            count: 2,
             type: "dumbfire",
           },
         },
@@ -244,7 +244,7 @@ export const Rapier: ShipTemplate = Object.seal({
           },
           base: {
             count: 2,
-            type: "dumbfire",
+            type: "friendorfoe",
           },
         },
       ],

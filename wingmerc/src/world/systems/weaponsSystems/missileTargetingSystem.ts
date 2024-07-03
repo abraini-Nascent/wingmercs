@@ -45,11 +45,11 @@ export function missileTargetingSystem(dt: number) {
       continue
     }
     const weaponClass = Weapons[selectedWeapon.type] as Weapon
-    if (weaponClass.type == "dumbfire") {
+    if (weaponClass.type == "dumbfire" || weaponClass.type == "friendorfoe") {
       continue
     }
     if (targeting.target == -1) {
-      // move to the front of the plane
+      // reset targeting time
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
       targeting.gunInterceptPosition = undefined
@@ -61,9 +61,10 @@ export function missileTargetingSystem(dt: number) {
     // check if target is within locking cone
     const entityPosition = new Vector3(position.x, position.y, position.z)
     const entityDirection = new Vector3(direction.x, direction.y, direction.z)
-    const targetDirection = targetPosition.subtract(entityPosition).normalize()
-    targetDirection.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion).invert())
-    const delta = AngleBetweenVectors(Vector3.Forward(true), targetDirection)
+    const directionToTarget = targetPosition.subtract(entityPosition).normalize()
+    const targetDirection = Vector3FromObj(targetEntity.direction)
+    directionToTarget.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion).invert())
+    const delta = AngleBetweenVectors(Vector3.Forward(true), directionToTarget)
     if (ToDegree(delta) > 45) {
       // target is out of cone of fire, reset
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
@@ -74,7 +75,14 @@ export function missileTargetingSystem(dt: number) {
     }
     // start adding time to target lock
     targeting.targetingTime += dt
-    const missileLocked = targeting.targetingTime > 3000 // three seconds to lock, this should come from the selected weapon
+    if (weaponClass.class == "heatseeking") {
+      const facingDelta = AngleBetweenVectors(directionToTarget, targetDirection)
+      if (ToDegree(facingDelta) < 45) {
+        // we are behind the target, locking is 3x faster
+        targeting.targetingTime += (dt * 2)
+      }
+    }
+    const missileLocked = targeting.targetingTime > weaponClass.timeToLock
     targeting.missileLocked = missileLocked
     
     //// old radar tracking code to move from current targetingDirection towards target

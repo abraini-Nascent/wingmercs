@@ -1,3 +1,5 @@
 export * from "./heatseeking"
 export * from "./dumbfire"
 export * from "./enemyDumbfire"
+export * from "./friendorfoe"
+export * from "./imagerecognition"

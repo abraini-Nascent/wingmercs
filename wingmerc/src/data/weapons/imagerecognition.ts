@@ -16,7 +16,7 @@ export const imagerecognition: Weapon = Object.seal({
   /** delay in milliseconds */
   delay: 250,
   /** time to lock in milliseconds */
-  timeToLock: 3000,
+  timeToLock: 2000,
   /** travel speed in mps */
   speed: 800,
   /** the yaw turn rate in degrees per second */

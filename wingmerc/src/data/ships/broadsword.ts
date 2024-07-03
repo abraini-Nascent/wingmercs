@@ -149,6 +149,21 @@ export const Broadsword: ShipTemplate = Object.seal({
           },
         },
       ],
+      weaponMounts: [
+        {
+          maxCount: 1,
+          maxSize: "Medium",
+          position: {
+            x: -2.5,
+            y: -2.5,
+            z: 0.5,
+          },
+          base: {
+            count: 1,
+            type: "friendorfoe",
+          },
+        },
+      ],
     },
     back: {
       armor: 400,
@@ -181,7 +196,7 @@ export const Broadsword: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
-          maxCount: 2,
+          maxCount: 1,
           maxSize: "Medium",
           position: {
             x: -2.5,
@@ -189,8 +204,8 @@ export const Broadsword: ShipTemplate = Object.seal({
             z: 0.5,
           },
           base: {
-            count: 2,
-            type: "heatseeking",
+            count: 1,
+            type: "friendorfoe",
           },
         },
       ],
@@ -220,16 +235,16 @@ export const Broadsword: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
-          maxCount: 2,
+          maxCount: 1,
           maxSize: "Medium",
           position: {
-            x: 2.5,
+            x: -2.5,
             y: -2.5,
             z: 0.5,
           },
           base: {
-            count: 2,
-            type: "heatseeking",
+            count: 1,
+            type: "friendorfoe",
           },
         },
       ],
