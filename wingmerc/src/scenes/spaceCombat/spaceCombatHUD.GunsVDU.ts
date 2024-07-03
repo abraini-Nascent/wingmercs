@@ -53,7 +53,7 @@ export class GunsVDU {
       let ammo: number = undefined
       if (mount.ammo != undefined) {
         const gunAmmo = playerEntity.gunAmmo
-        ammo = gunAmmo[mount.ammo] ?? 0
+        ammo = gunAmmo[mount.ammo]?.current ?? 0
       }
       this.setState(this.guns[index], name, selected, mount.currentHealth, gunStats.health, ammo)
     }

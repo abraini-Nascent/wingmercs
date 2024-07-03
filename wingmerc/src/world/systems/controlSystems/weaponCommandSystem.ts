@@ -59,11 +59,11 @@ export class WeaponCommandSystem implements IDisposable {
           }
         } else {
           const { gunAmmo } = entity
-          if (gunAmmo == undefined || gunAmmo[gun.ammo] == undefined || gunAmmo[gun.ammo] < 0) {
+          if (gunAmmo == undefined || gunAmmo[gun.ammo] == undefined || gunAmmo[gun.ammo]?.current < 0) {
             // not enough ammo to fire gun
             continue
           } else {
-            gunAmmo[gun.ammo] -= 1
+            gunAmmo[gun.ammo].current -= 1
           }
         }
         // console.log(`firing gun ${gunIndex} !`)

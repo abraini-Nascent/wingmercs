@@ -1,110 +1,136 @@
-import { GunMounts, ShipTemplate, WeaponMounts } from "./shipTemplate"
+import { ShipDetails, ShipTemplate } from "./shipTemplate"
 
-// based on the Epee
-export const Epee: ShipTemplate = Object.seal({
-  name: "Epee",
-  class: "Epee",
-  weightClass: "Light",
-  maxWeight: 15,
-  // ai
-  pilot: "Light01",
-  // 3d model
+/// based on the Saber
+export const Saber: ShipTemplate = Object.seal({
+  name: "Saber",
+  class: "Saber",
+  weightClass: "Heavy",
+  maxWeight: 35,
   modelDetails: {
-    base: "spaceCraft5",
-    physics: "spaceCraft5Hull",
-    shield: "spaceCraft5Hull",
+    base: "spaceCraft3",
+    physics: "spaceCraft3Hull",
+    shield: "spaceCraft3Hull",
     trails: [
       {
         start: {
-          x: 0,
-          y: 0,
-          z: 0,
+          x: 3.75,
+          y: 1,
+          z: 5,
         },
-        color: { r: 1, g: 0, b: 0 },
+        color: {
+          r: 1,
+          g: 0,
+          b: 0,
+        },
+      },
+      {
+        start: {
+          x: -3.75,
+          y: 1,
+          z: 5,
+        },
+        color: {
+          r: 1,
+          g: 0,
+          b: 0,
+        },
       },
     ],
   },
-
-  // configuration
+  pilot: "Light01",
   afterburnerSlot: {
-    maxSize: "Small",
+    maxSize: "Medium",
     base: {
-      size: "Small",
-      health: 15,
-      maxSpeed: 1360,
-      boostSpeed: 880,
+      health: 10,
       accelleration: 300,
+      boostSpeed: 900,
+      maxSpeed: 1200,
       fuelConsumeRate: 1,
     },
   },
-  engineSlot: {
-    maxSize: "Small",
-    base: {
-      accelleration: 250,
-      cruiseSpeed: 480,
-      health: 15,
-    },
-  },
-  fuelTankSlot: {
-    maxSize: "Small",
+  shieldsSlot: {
+    maxSize: "Medium",
     base: {
       health: 10,
-      capacity: 150,
+      fore: 80,
+      aft: 80,
+      rechargeRate: 2,
+      energyDrain: 2,
+    },
+  },
+  engineSlot: {
+    maxSize: "Medium",
+    base: {
+      health: 10,
+      cruiseSpeed: 400,
+      accelleration: 250,
     },
   },
   powerPlantSlot: {
-    maxSize: "Small",
+    maxSize: "Medium",
     base: {
       health: 10,
       rate: 20,
-      maxCapacity: 200,
+      maxCapacity: 250,
     },
   },
   radarSlot: {
-    maxSize: "Small",
+    maxSize: "Medium",
     base: {
-      health: 15,
+      health: 10,
+      maxDistance: 10000,
       friendOrFoe: true,
-      itts: true,
+      fofDetail: true,
       locking: true,
-      maxDistance: 15000,
     },
   },
-  shieldsSlot: {
-    maxSize: "Small",
+  fuelTankSlot: {
+    maxSize: "Medium",
     base: {
-      fore: 60,
-      aft: 60,
-      energyDrain: 5,
-      rechargeRate: 5,
-      health: 20,
+      health: 10,
+      capacity: 200,
     },
   },
   thrustersSlot: {
     base: {
-      health: 10,
-      pitch: 100,
-      roll: 100,
-      yaw: 100,
+      health: 0,
+      pitch: 80,
+      roll: 80,
+      yaw: 80,
       breakingForce: 225,
       breakingLimit: 200,
     },
   },
   structure: {
     core: {
-      health: 10,
+      health: 50,
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
           maxSize: "Small",
         },
       ],
+      weaponMounts: [
+        {
+          maxCount: 4,
+          maxSize: "Medium",
+          position: {
+            x: 0,
+            y: -2.5,
+            z: 0.5,
+          },
+          base: {
+            count: 4,
+            type: "dumbfire",
+          },
+        },
+      ],
     },
     front: {
-      armor: 35,
-      maxArmor: 35,
-      health: 35,
-      slots: [],
+      armor: 200,
+      maxArmor: 200,
+      health: 200,
+      slots: ["Radar"],
       utilityMounts: [
         {
           maxSize: "Small",
@@ -112,15 +138,15 @@ export const Epee: ShipTemplate = Object.seal({
       ],
     },
     back: {
-      armor: 35,
-      maxArmor: 35,
-      health: 35,
+      armor: 200,
+      maxArmor: 200,
+      health: 200,
       slots: ["Engine", "Afterburner"],
     },
     left: {
-      armor: 30,
-      maxArmor: 30,
-      health: 30,
+      armor: 180,
+      maxArmor: 180,
+      health: 180,
       slots: [],
       utilityMounts: [
         {
@@ -139,13 +165,24 @@ export const Epee: ShipTemplate = Object.seal({
             z: 0.5,
           },
         },
+        {
+          base: {
+            type: "massdriver",
+          },
+          maxSize: "Medium",
+          position: {
+            x: -2.5,
+            y: -2.5,
+            z: 0.5,
+          },
+        },
       ],
       weaponMounts: [
         {
           maxCount: 2,
           maxSize: "Medium",
           position: {
-            x: -2.5,
+            x: -4.5,
             y: -2.5,
             z: 0.5,
           },
@@ -157,9 +194,9 @@ export const Epee: ShipTemplate = Object.seal({
       ],
     },
     right: {
-      armor: 30,
-      maxArmor: 30,
-      health: 30,
+      armor: 180,
+      maxArmor: 180,
+      health: 180,
       slots: [],
       utilityMounts: [
         {
@@ -178,6 +215,17 @@ export const Epee: ShipTemplate = Object.seal({
             z: 0.5,
           },
         },
+        {
+          base: {
+            type: "massdriver",
+          },
+          maxSize: "Medium",
+          position: {
+            x: 4.5,
+            y: -2.5,
+            z: 0.5,
+          },
+        },
       ],
       weaponMounts: [
         {
@@ -190,7 +238,7 @@ export const Epee: ShipTemplate = Object.seal({
           },
           base: {
             count: 2,
-            type: "dumbfire",
+            type: "heatseeking",
           },
         },
       ],

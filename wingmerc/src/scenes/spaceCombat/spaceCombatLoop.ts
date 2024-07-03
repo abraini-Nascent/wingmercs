@@ -195,8 +195,13 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       playerEntity.shields.currentAft = playerEntity.shields.maxAft
       playerEntity.shields.currentFore = playerEntity.shields.maxFore
       playerEntity.weapons.mounts.forEach((mount, index) => {
-        mount.count = shipTemplate.weapons[index].count
+        mount.count = mount.baseCount
       })
+      if (playerEntity.gunAmmo != undefined) {
+        Object.keys(playerEntity.gunAmmo).forEach((ammoType) => {
+          playerEntity.gunAmmo[ammoType].current = playerEntity.gunAmmo[ammoType].base
+        })
+      }
       // TODO: play a healing sound or triumph music note or something
     }
     if (shouldSpawnShips) {

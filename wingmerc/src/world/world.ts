@@ -92,8 +92,8 @@ export type ShipGuns = {
   selected: number,
   groups: number[][],
 }
-export type ShipGunAmmoCounts = { [type: string]: number }
-export type ShipWeaponMount = { type: WeaponType; count: number }
+export type ShipGunAmmoCounts = { [type: string]: { base: number, current: number } }
+export type ShipWeaponMount = { type: WeaponType; count: number, baseCount: number }
 export type ShipWeapons = {
   mounts: ShipWeaponMount[]
   selected: number

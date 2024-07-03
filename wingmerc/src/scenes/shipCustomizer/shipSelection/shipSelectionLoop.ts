@@ -48,7 +48,7 @@ export class ShipSelectionScene implements GameScene, IDisposable {
 
   setup() {
     
-    const ships = ["Dirk", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
+    const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
     for (const ship of ships) {
       const shipData = Ships[ship] as ShipDetails
       this.shipModels[ship] = world.add({

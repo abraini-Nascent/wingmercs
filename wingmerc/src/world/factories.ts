@@ -83,6 +83,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
         const weaponTemplate: Weapon = WeaponData[weaponClass.type]
         return {
           count: weaponClass.count,
+          baseCount: weaponClass.count,
           type: weaponClass.type
         }
       })
@@ -118,9 +119,13 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       utilityMounts.forEach((mount) => {
         if (mount.utility != undefined && mount.utility.ammo != undefined) {
           if (allAmmoCounts[mount.utility.ammo] == undefined) {
-            allAmmoCounts[mount.utility.ammo] = mount.utility.ammoCount
+            allAmmoCounts[mount.utility.ammo] = {
+              base: mount.utility.ammoCount,
+              current: mount.utility.ammoCount
+            }
           } else {
-            allAmmoCounts[mount.utility.ammo] += mount.utility.ammoCount
+            allAmmoCounts[mount.utility.ammo].base += mount.utility.ammoCount
+            allAmmoCounts[mount.utility.ammo].current += mount.utility.ammoCount
           }
         }
       })

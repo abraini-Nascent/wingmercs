@@ -7,7 +7,7 @@ import { ArcRotateCamera, DeviceSourceManager, DeviceType, IDisposable, Mesh, Ra
 import { ToRadians } from '../../utils/math';
 import { Entity, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
-import { Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02 } from '../../data/ships';
+import { Broadsword, Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02, Rapier, Saber } from '../../data/ships';
 import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
 import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
 import { powerPlantRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
@@ -119,10 +119,9 @@ export class ModelViewerScene implements GameScene, IDisposable {
 
   setup() {
 
-    let epee = structuredClone(Epee)
-    epee.afterburnerSlot.modifier = structuredClone(Afterburners.Light)
+    let ship = structuredClone(Broadsword)
     // let model1 = createCustomShip(Dirk, -100, 0, -1000, 2, 1);
-    let model1 = createCustomShip(epee, -100, 0, -1000, 2, 1);
+    let model1 = createCustomShip(ship, -100, 0, -1000, 2, 1);
     world.addComponent(model1, "missionDetails", {
       patrolPoints: [Vector3.Zero()],
       mission: "Patrol"

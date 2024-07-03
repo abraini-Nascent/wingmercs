@@ -1,21 +1,33 @@
 import { ShipDetails, ShipTemplate } from "./shipTemplate"
 
-/// based on the Ferret
-export const Dirk: ShipTemplate = Object.seal({
-  name: "Dirk",
-  class: "Dirk",
-  weightClass: "Light",
+/// based on the Papier
+export const Rapier: ShipTemplate = Object.seal({
+  name: "Rapier",
+  class: "Rapier",
+  weightClass: "Medium",
   maxWeight: 14,
   modelDetails: {
-    base: "craftMiner",
-    physics: "craftMinerHull",
-    shield: "craftMinerHull",
+    base: "spaceCraft2",
+    physics: "spaceCraft2Hull",
+    shield: "spaceCraft2Hull",
     trails: [
       {
         start: {
           x: 5,
-          y: -5,
-          z: -5,
+          y: 0,
+          z: 5,
+        },
+        color: {
+          r: 1,
+          g: 0,
+          b: 0,
+        },
+      },
+      {
+        start: {
+          x: 0,
+          y: 0,
+          z: 5,
         },
         color: {
           r: 1,
@@ -26,8 +38,8 @@ export const Dirk: ShipTemplate = Object.seal({
       {
         start: {
           x: -5,
-          y: -5,
-          z: -5,
+          y: 0,
+          z: 5,
         },
         color: {
           r: 1,
@@ -42,9 +54,9 @@ export const Dirk: ShipTemplate = Object.seal({
     maxSize: "Small",
     base: {
       health: 10,
-      accelleration: 350,
+      accelleration: 600,
       boostSpeed: 900,
-      maxSpeed: 1400,
+      maxSpeed: 1300,
       fuelConsumeRate: 1,
     },
   },
@@ -52,9 +64,9 @@ export const Dirk: ShipTemplate = Object.seal({
     maxSize: "Small",
     base: {
       health: 10,
-      fore: 60,
-      aft: 60,
-      rechargeRate: 2,
+      fore: 115,
+      aft: 115,
+      rechargeRate: 3,
       energyDrain: 2,
     },
   },
@@ -62,8 +74,8 @@ export const Dirk: ShipTemplate = Object.seal({
     maxSize: "Small",
     base: {
       health: 10,
-      cruiseSpeed: 500,
-      accelleration: 150,
+      cruiseSpeed: 450,
+      accelleration: 300,
     },
   },
   powerPlantSlot: {
@@ -85,18 +97,18 @@ export const Dirk: ShipTemplate = Object.seal({
     },
   },
   fuelTankSlot: {
-    maxSize: "Small",
+    maxSize: "Medium",
     base: {
       health: 10,
-      capacity: 90,
+      capacity: 140,
     },
   },
   thrustersSlot: {
     base: {
       health: 0,
-      pitch: 80,
-      roll: 90,
-      yaw: 80,
+      pitch: 100,
+      roll: 100,
+      yaw: 100,
       breakingForce: 225,
       breakingLimit: 200,
     },
@@ -107,27 +119,66 @@ export const Dirk: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [{
         maxSize: "Small"
-      }]
+      }],
+      weaponMounts: [
+        {
+          maxCount: 1,
+          maxSize: "Medium",
+          position: {
+            x: 0,
+            y: -2.5,
+            z: 0.5,
+          },
+          base: {
+            count: 1,
+            type: "dumbfire",
+          },
+        },
+      ],
     },
     front: {
-      armor: 65,
-      maxArmor: 65,
-      health: 65,
+      armor: 60,
+      maxArmor: 60,
+      health: 60,
       slots: ["Radar"],
       utilityMounts: [{
         maxSize: "Small"
-      }]
+      }],
+      gunMounts: [
+        {
+          base: {
+            type: "laser"
+          },
+          maxSize: "Medium",
+          position: {
+            x: -1.5,
+            y: -2.5,
+            z: 0.5,
+          },
+        },
+        {
+          base: {
+            type: "laser"
+          },
+          maxSize: "Medium",
+          position: {
+            x: 1.5,
+            y: -2.5,
+            z: 0.5,
+          },
+        },
+      ],
     },
     back: {
-      armor: 65,
-      maxArmor: 65,
-      health: 65,
+      armor: 55,
+      maxArmor: 55,
+      health: 55,
       slots: ["Engine", "Afterburner"],
     },
     left: {
-      armor: 45,
-      maxArmor: 45,
-      health: 45,
+      armor: 50,
+      maxArmor: 50,
+      health: 50,
       slots: [],
       utilityMounts: [{
         maxSize: "Small"
@@ -135,11 +186,11 @@ export const Dirk: ShipTemplate = Object.seal({
       gunMounts: [
         {
           base: {
-            type: "massdriver"
+            type: "particleCannon"
           },
           maxSize: "Medium",
           position: {
-            x: -2.5,
+            x: -3.5,
             y: -2.5,
             z: 0.5,
           },
@@ -147,7 +198,7 @@ export const Dirk: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
-          maxCount: 1,
+          maxCount: 2,
           maxSize: "Medium",
           position: {
             x: -2.5,
@@ -155,16 +206,16 @@ export const Dirk: ShipTemplate = Object.seal({
             z: 0.5,
           },
           base: {
-            count: 1,
+            count: 2,
             type: "heatseeking",
           },
         }
       ],
     },
     right: {
-      armor: 45,
-      maxArmor: 45,
-      health: 45,
+      armor: 50,
+      maxArmor: 50,
+      health: 50,
       slots: [],
       utilityMounts: [{
         maxSize: "Small"
@@ -172,11 +223,11 @@ export const Dirk: ShipTemplate = Object.seal({
       gunMounts: [
         {
           base: {
-            type: "massdriver"
+            type: "particleCannon"
           },
           maxSize: "Medium",
           position: {
-            x: 2.5,
+            x: 3.5,
             y: -2.5,
             z: 0.5,
           },
@@ -184,7 +235,7 @@ export const Dirk: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
-          maxCount: 1,
+          maxCount: 2,
           maxSize: "Medium",
           position: {
             x: 2.5,
@@ -192,8 +243,8 @@ export const Dirk: ShipTemplate = Object.seal({
             z: 0.5,
           },
           base: {
-            count: 1,
-            type: "heatseeking",
+            count: 2,
+            type: "dumbfire",
           },
         },
       ],
@@ -262,158 +313,5 @@ export const Dirk: ShipTemplate = Object.seal({
       guns: 50,
       weapons: 50,
     },
-  },
-})
-
-const DirkOld: ShipDetails = Object.seal({
-  name: "Dirk",
-  class: "Dirk",
-  pilot: "Light01",
-  modelDetails: {
-    base: "craftMiner",
-    physics: "craftMinerHull",
-    shield: "craftMinerHull",
-    trails: [
-      {
-        start: {
-          x: 5,
-          y: -5,
-          z: -5,
-        },
-        color: { r: 1, g: 0, b: 0 },
-      },
-      {
-        start: {
-          x: -5,
-          y: -5,
-          z: -5,
-        },
-        color: { r: 1, g: 0, b: 0 },
-      },
-    ],
-  },
-  shields: {
-    fore: 60,
-    aft: 60,
-    rechargeRate: 2,
-    energyDrain: 2,
-  },
-  armor: {
-    front: 65,
-    back: 65,
-    left: 45,
-    right: 45,
-  },
-  systems: {
-    quadrant: {
-      fore: [
-        {
-          system: "guns",
-          weight: 1,
-        },
-        {
-          system: "radar",
-          weight: 1,
-        },
-        {
-          system: "thrusters",
-          weight: 1,
-        },
-        {
-          system: "targeting",
-          weight: 1,
-        },
-        {
-          system: "weapons",
-          weight: 1,
-        },
-      ],
-      aft: [
-        {
-          system: "afterburners",
-          weight: 1,
-        },
-        {
-          system: "thrusters",
-          weight: 1,
-        },
-        {
-          system: "engines",
-          weight: 1,
-        },
-        {
-          system: "battery",
-          weight: 1,
-        },
-        {
-          system: "shield",
-          weight: 1,
-        },
-        {
-          system: "power",
-          weight: 1,
-        },
-      ],
-    },
-    base: {
-      afterburners: 50,
-      thrusters: 50,
-      engines: 50,
-      power: 50,
-      battery: 50,
-      shield: 50,
-      radar: 50,
-      targeting: 50,
-      guns: 50,
-      weapons: 50,
-    },
-  },
-  health: 50,
-  pitch: 80,
-  roll: 90,
-  yaw: 80,
-  accelleration: 150,
-  afterburnerAccelleration: 350,
-  breakingForce: 225,
-  breakingLimit: 200,
-  cruiseSpeed: 500,
-  maxSpeed: 1400,
-  guns: [
-    {
-      type: "laser",
-      position: {
-        x: -2.5,
-        y: -2.5,
-        z: 0.5,
-      },
-    },
-    {
-      type: "laser",
-      position: {
-        x: 2.5,
-        y: -2.5,
-        z: 0.5,
-      },
-    },
-  ],
-  // todo:
-  //  position on model
-  weapons: [
-    {
-      type: "heatseeking",
-      count: 2,
-    },
-    {
-      type: "dumbfire",
-      count: 2,
-    },
-  ],
-  // TODO: this should also act like guns and weapons where we pull in a type
-  engine: {
-    rate: 20,
-    maxCapacity: 200,
-  },
-  fuel: {
-    maxCapacity: 90,
   },
 })
