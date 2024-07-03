@@ -37,7 +37,7 @@ export const Broadsword: ShipTemplate = Object.seal({
       },
     ],
   },
-  pilot: "Light01",
+  pilot: "Heavy02",
   afterburnerSlot: {
     maxSize: "Medium",
     base: {

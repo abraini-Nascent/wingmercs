@@ -49,7 +49,7 @@ export const Rapier: ShipTemplate = Object.seal({
       },
     ],
   },
-  pilot: "Light01",
+  pilot: "Medium01",
   afterburnerSlot: {
     maxSize: "Small",
     base: {

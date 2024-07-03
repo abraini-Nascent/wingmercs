@@ -79,6 +79,9 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] rebuild ai:
   - [ ] test path following
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
+- [ ] chaff
+- [ ] fof targeting friend if radio damaged
+- [ ] heat tracking new target if stronger signal in range
 ## TODO:
 
 ### next demo

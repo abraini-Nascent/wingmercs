@@ -37,7 +37,7 @@ export const Saber: ShipTemplate = Object.seal({
       },
     ],
   },
-  pilot: "Light01",
+  pilot: "Heavy01",
   afterburnerSlot: {
     maxSize: "Medium",
     base: {
