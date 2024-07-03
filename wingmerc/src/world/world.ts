@@ -16,6 +16,7 @@ import { WeaponType } from '../data/weapons/weapon';
 import { GunStats } from '../data/guns/gun';
 import { GunAffix } from '../data/affixes/gunAffix';
 import { UtilityModifierDetails } from '../data/ships/shipTemplate';
+import { Voice } from '../utils/speaking';
 
 export type MovementCommand = {
   pitch: number
@@ -290,6 +291,7 @@ export type Entity = {
   hitsTaken?: HitsTracked
   vduState?: VDUState
   deathRattle?: boolean
+  voice?: Voice
   particleRange?: {
     max: number
     total: number

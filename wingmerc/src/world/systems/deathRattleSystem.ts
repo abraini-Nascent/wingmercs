@@ -1,5 +1,5 @@
 import { IDisposable } from '@babylonjs/core';
-import { queries, world } from "../world"
+import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { MercParticles } from "../../utils/particles/mercParticles"
 import { MercParticlePointEmitter, MercParticleSphereEmitter } from "../../utils/particles/mercParticleEmitters"
@@ -25,7 +25,7 @@ export class DeathRattleSystem implements IDisposable {
     queries.deathComes.onEntityAdded.unsubscribe(this.onEntityAdded)
   }
 
-  onEntityAdded = (entity) => {
+  onEntityAdded = (entity: Entity) => {
     console.log("[DeathRattle] entity died", entity)
 
     // simulating a spiral
@@ -42,8 +42,9 @@ export class DeathRattleSystem implements IDisposable {
     }
     world.removeComponent(entity, "trail")
     let bark: { english: string; ipa: string; sam: string; } = randomItem(barks.enemyDeath)
-    setTimeout(() => { 
-      const sound = VoiceSound(bark.ipa, SAM)
+    setTimeout(() => {
+      let voice = entity.voice ?? SAM 
+      const sound = VoiceSound(bark.ipa, voice)
       sound.maxDistance = 10000
       sound.spatialSound = true
       sound.attachToMesh(entity.node);

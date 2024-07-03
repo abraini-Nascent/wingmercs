@@ -8,6 +8,8 @@ import * as WeaponData from '../data/weapons';
 import { Weapon, WeaponType } from '../data/weapons/weapon';
 import * as GunAffixes from '../data/affixes/gunAffixes';
 import { GunAffix } from '../data/affixes/gunAffix';
+import { Voice } from '../utils/speaking';
+import { rand, random } from '../utils/random';
 
 
 export function applyModifier(value: number, modifier: ComponentModifier): number {
@@ -270,6 +272,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     teamId: teamId,
     groupId: groupId,
     ai: { type: "shipIntelegence", blackboard: {}, pilot: ship.pilot },
+    voice: randomVoice(),
     meshName: ship.modelDetails.base,
     shieldMeshName: ship.modelDetails.shield,
     physicsMeshName: ship.modelDetails.physics,
@@ -373,4 +376,44 @@ export function allAmmos(): UtilityModifierDetails[] {
   }, [])
 
   return ammos
+}
+
+export function randomVoice(): Voice {
+  /** PITCH
+    00-20 impractical
+    20-30 very high
+    30-40 high
+    40-50 high normal
+    50-70 normal
+    70-80 low normal
+    80-90 low
+    90-255 very low
+    default = 64	
+   */
+  /** SPEED
+    0-20 impractical
+    20-40 very fast
+    40-60 fast
+    60-70 fast conversational
+    70-75 normal conversational
+    75-90 narrative
+    90-100 slow
+    100-225 very slow
+   */
+  const mouth = 110 + rand(0, 35)
+  const throat = 110 + rand(0, 35)
+  // Use something like a dice roll to skew the distribution towards the middle
+  const speed = 60 + rand(0, 15) + rand(0, 15)
+  const randPitch = random(); // Get a random number between 0 and 1
+  // Apply a quadratic transformation to skew the distribution towards the edges
+  const weightedRandPitch = randPitch < 0.5 ? 2 * Math.pow(randPitch, 2) : 1 - 2 * Math.pow(1 - randPitch, 2);
+  // Scale the result to the desired range
+  const pitch = 60 + Math.floor(weightedRandPitch * (30 - 0 + 1)) + 0;
+  const voice: Voice = {
+    pitch, 
+    speed,
+    mouth,
+    throat
+  }
+  return voice
 }

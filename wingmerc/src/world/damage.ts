@@ -130,8 +130,9 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           if (hitEntity.barkedSpooked == undefined && Scalar.RandomRange(0, 1) > 0.5) {
             world.addComponent(hitEntity, "barkedSpooked", true)
             let bark: { english: string; ipa: string; sam?: string; } = randomItem(barks.enemySpooked)
+            let voice = hitEntity.voice ?? SAM
             setTimeout(() => { 
-              const sound = VoiceSound(bark.ipa, SAM)
+              const sound = VoiceSound(bark.ipa, voice)
               sound.maxDistance = 10000
               sound.spatialSound = true
               sound.attachToMesh(hitEntity.node);
