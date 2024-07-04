@@ -1,6 +1,6 @@
 import { Color3, IDisposable, Scalar, StandardMaterial, TmpColors } from "@babylonjs/core"
 import { AppContainer } from "../../../app.container"
-import { queries } from "../../world"
+import { Entity, queries } from "../../world"
 
 export class AfterburnerTrailsSystem implements IDisposable {
   
@@ -14,7 +14,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
     queries.afterburnerTrails.onEntityRemoved.unsubscribe(this.afterburnerTrailsOnEntityRemoved)
   }
 
-  afterburnerTrailsOnEntityAdded = (entity) => {
+  afterburnerTrailsOnEntityAdded = (entity: Entity) => {
     const {trailMeshs, trailOptions} = entity
     let entityHidden = entity as any
     if (entityHidden.afterburnerAnimation) {
@@ -31,7 +31,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
       for (let i = 0; i < trailMeshs.trails.length; i += 1) {
         const trailMesh = trailMeshs.trails[i]
         const trailOption = trailOptions[i]
-        let mat = trailMesh.material as StandardMaterial
+        let mat = trailMesh.trail.material as StandardMaterial
         
         let target = TmpColors.Color3[0]
         target.set(235/255, 113/255, 52/255)
@@ -42,7 +42,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
         Color3.LerpToRef(start, target, scale, result)
 
         mat.emissiveColor.copyFrom(result)
-        trailMesh.diameter = Scalar.Lerp(0.2, 1, scale)
+        trailMesh.trail.diameter = Scalar.Lerp(0.2, 1, scale)
         if (entity.engineMesh != undefined) {
           const engineMat = entity.engineMesh.material as StandardMaterial
           if (mat.emissiveColor) {
@@ -61,7 +61,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
     entityHidden.afterburnerAnimation = observer
   }
 
-  afterburnerTrailsOnEntityRemoved = (entity) => {
+  afterburnerTrailsOnEntityRemoved = (entity: Entity) => {
     const {trailMeshs, trailOptions} = entity
     let entityHidden = entity as any
     if (entityHidden.afterburnerAnimation) {
@@ -77,7 +77,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
       for (let i = 0; i < trailMeshs.trails.length; i += 1) {
         const trailMesh = trailMeshs.trails[i]
         const trailOption = trailOptions[i]
-        let mat = trailMesh.material as StandardMaterial
+        let mat = trailMesh.trail.material as StandardMaterial
         let start = TmpColors.Color3[0]
         start.set(235/255, 113/255, 52/255)
         let target = TmpColors.Color3[1]
@@ -87,7 +87,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
         let result = TmpColors.Color3[2]
         Color3.LerpToRef(start, target, scale, result)
         mat.emissiveColor.copyFrom(result)
-        trailMesh.diameter = Scalar.Lerp(1, 0.2, scale)
+        trailMesh.trail.diameter = Scalar.Lerp(1, 0.2, scale)
         if (entity.engineMesh != undefined) {
           const engineMat = entity.engineMesh.material as StandardMaterial
           if (mat.emissiveColor) {

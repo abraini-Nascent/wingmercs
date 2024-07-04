@@ -1,17 +1,15 @@
 import { DeviceSourceManager, DeviceType, PointerInput, Scalar, TransformNode } from "@babylonjs/core"
 import { Display, FireCommand, MovementCommand, world } from "../../../world"
 import { KeyboardMap } from "../../../../utils/keyboard"
-import { Dirk } from "../../../../data/ships"
 import { Inspector } from "@babylonjs/inspector"
 import { AppContainer } from "../../../../app.container"
-import { DebounceTimed, DebounceTimedMulti } from "../../../../utils/debounce"
+import { DebounceTimedMulti } from "../../../../utils/debounce"
 
 const LeftDisplays: Display[] = ["damage", "guns", "weapons"]
 const RightDisplays: Display[] = ["target"]
 
 const FastThreshold = 333
 let dsm: DeviceSourceManager
-let vduDebounce = new DebounceTimed()
 let inputDebounce = new DebounceTimedMulti()
 let ramp = 0
 
@@ -60,24 +58,18 @@ export function combatKeyboardInput(dt: number) {
     left = 0,
     right = 0,
     rollLeft = 0,
-    rollRight = 0
+    rollRight = 0;
+  
+  const keyboard = dsm.getDeviceSource(DeviceType.Keyboard)
+  const mouse = dsm.getDeviceSource(DeviceType.Mouse)
+
   // "SHIFT" [16]
-  const mod = dsm
-    .getDeviceSource(DeviceType.Keyboard)
-    ?.getInput(KeyboardMap.SHIFT)
-    ? true
-    : false
+  const mod = keyboard?.getInput(KeyboardMap.SHIFT) ? true : false
   // "Z" [90]
-  const drift = dsm
-    .getDeviceSource(DeviceType.Keyboard)
-    ?.getInput(KeyboardMap.Z)
-    ? true
-    : false
+  const drift = keyboard?.getInput(KeyboardMap.Z) ? true : false
   if (drift) {
     movementCommand.drift = 1
   }
-  const keyboard = dsm.getDeviceSource(DeviceType.Keyboard)
-  const mouse = dsm.getDeviceSource(DeviceType.Mouse)
 
   /// capture mouse?!
   if (mouse.getInput(PointerInput.LeftClick) && captured == false) {
@@ -183,7 +175,7 @@ export function combatKeyboardInput(dt: number) {
       playerEntity.vduState.right = RightDisplays[displayIdx]
     }
   } else {
-    inputDebounce.clear(KeyboardMap.OPEN_BRACKET)
+    inputDebounce.clear(KeyboardMap.CLOSE_BRACKET)
   }
 
   // WEAPONS SELECT
@@ -204,6 +196,24 @@ export function combatKeyboardInput(dt: number) {
     let gunGroupCount = player.guns.groups.length
     if (player.guns.selected >= gunGroupCount) {
       player.guns.selected = 0
+    }
+  }
+  // VIEW SELECT
+  if (keyboard?.getInput(KeyboardMap.V) && inputDebounce.tryNow(KeyboardMap.V)) {
+    let follow = false
+    if (AppContainer.instance.player.playerEntity.camera == "follow") {
+      world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
+    } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
+      world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
+      follow = true
+    } else {
+      world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
+      follow = true
+    }
+    if (follow) {
+      world.update(AppContainer.instance.player.playerEntity, "visible", true)
+    } else {
+      world.update(AppContainer.instance.player.playerEntity, "visible", false)
     }
   }
 

@@ -17,7 +17,7 @@ import { updateRenderSystem } from "../../world/systems/renderSystems/updateRend
 import { SpaceDebrisAgent } from '../../agents/spaceDebrisAgent';
 import { Entity, NerdStats, Score, queries, world } from '../../world/world';
 import * as Ships from '../../data/ships';
-import { random } from '../../utils/random';
+import { rand, random } from '../../utils/random';
 import { CombatHud } from './spaceCombatHUD';
 import { radarTargetingSystem } from '../../world/systems/shipSystems/radarTargetingSystem';
 import { StatsScene } from '../statsScene/statsLoop';
@@ -25,7 +25,7 @@ import { damageSprayParticlePool, shieldPulserSystem } from '../../world/damage'
 import '../../world/systems/soundSystems/missileEngineSoundSystem';
 import { CombatControllerInput } from '../../world/systems/input/combatInput/combatControllerInput';
 import { combatKeyboardInput } from '../../world/systems/input/combatInput/combatKeyboardInput';
-import { createCustomShip } from '../../world/factories';
+import { createCustomShip, createSpaceBackgroundInterest } from '../../world/factories';
 import { PlayerAgent } from '../../agents/playerAgent';
 import { fuelConsumptionSystem } from '../../world/systems/shipSystems/fuelConsumptionSystem';
 import { MissileEngineSoundSystem } from '../../world/systems/soundSystems/missileEngineSoundSystem';
@@ -39,11 +39,13 @@ import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterbu
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
-import { IDisposable, Vector3 } from '@babylonjs/core';
+import { Axis, IDisposable, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
 import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
 import { MissionType } from '../../world/systems/ai/engagementState';
 import { ShipTemplate } from '../../data/ships/shipTemplate';
+import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
+import { ToRadians } from '../../utils/math';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -74,11 +76,13 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   trailersSystem = new TrailersSystem()
   afterburnerSoundsSystem = new AfterburnerSoundSystem()
   driftSoundSystem = new DriftSoundSystem()
+  driftTrailSystem = new DriftTrailSystem()
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
   hitTrackerSystem = new HitTrackerSystem()
 
   combatEntities = new Set<Entity>()
+  disposibles = new Set<IDisposable>()
 
   constructor(private playerShip?: ShipTemplate) {
     console.log("[SpaceCombatLoop] created")
@@ -90,6 +94,12 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(20)
     // queries.deathComes.onEntityAdded.subscribe(this.onDeath)
+    // create 2 to 3 random space background points of interest
+    let numberOfPoI = rand(2, 3)
+    for (let i = 0; i < numberOfPoI; i += 1) {
+      let plane = createSpaceBackgroundInterest()
+      this.disposibles.add(plane)
+    }
     this.hud = new CombatHud()
     this.readyTimer = 3000
     appContainer.player = new PlayerAgent(this.playerShip)
@@ -127,12 +137,18 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.trailersSystem.dispose()
     this.afterburnerSoundsSystem.dispose()
     this.driftSoundSystem.dispose()
+    this.driftTrailSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
     this.hitTrackerSystem.dispose()
 
     // reset cursor
     document.body.style.cursor = "auto";
+    // dispose disposibles
+    this.disposibles.forEach((disposible) => {
+      disposible.dispose()
+    })
+    this.disposibles.clear()
   }
 
   deinit() {

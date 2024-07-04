@@ -31,7 +31,7 @@ export class TrailersSystem implements IDisposable {
       disposables.push(node)
     }
     const scene = AppContainer.instance.scene
-    let trails: TrailMesh[] = []
+    let trails: {trail: TrailMesh, node: TransformNode}[] = []
     for (const trailOption of entity.trailOptions) {
       let trailNode = node
       if (trailOption.start) {
@@ -56,7 +56,7 @@ export class TrailersSystem implements IDisposable {
       entityMaterial.specularColor = Color3.Black()
       newTrail.material = entityMaterial
       disposables.push(entityMaterial)
-      trails.push(newTrail)
+      trails.push({ trail: newTrail, node: trailNode })
     }
     world.update(entity, {
       trailMeshs: {trails, disposables},

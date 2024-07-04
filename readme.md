@@ -82,6 +82,7 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] chaff
 - [ ] fof targeting friend if radio damaged
 - [ ] heat tracking new target if stronger signal in range
+- [ ] ship turrets
 ## TODO:
 
 ### next demo
@@ -101,11 +102,20 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] utility items
 - [x] named guns like diablo (they are called "affixes")
 - [x] tiers for guns
-- [] models for weapons
-- [] models for guns
 - [] polish and juice
+  - [x] individual voices for pilots
+  - [ ] ui for who is talking
+  - [x] dynamic backgrounds?
+    - [x] points of interest
+  - [x] hide trails when drifting
+- [ ] bugs
+  - [ ] eject warning not working
+  - [ ] incoming missile warning not working
+  - [ ] selection ships still visible after launch
+  - [ ] no way back from ship selection and ship customization
 ### next demo
 - [] dynamic missions - instant action mode
+- [] command wingmen
 - [] polish and juice
 ### next demo
 - [] purchase and maintain ships
@@ -113,6 +123,8 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [] polish and juice
 ### next demo
 - [] ai nuance
+  - [] personalities
+  - [] stats that affect combat
 - [] polish and juice
 ### next demo
 - [] capitol ships

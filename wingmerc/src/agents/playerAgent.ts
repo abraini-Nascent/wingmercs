@@ -44,6 +44,7 @@ export class PlayerAgent {
       local: true,
       owner: net.id,
       totalScore: 0,
+      visible: false,
       score: { livesLeft: 0, timeLeft: 0, total: 0 } as Score,
       vduState: {
         left: "weapons",

@@ -3,7 +3,7 @@ import { DebounceTimedMulti } from './../../utils/debounce';
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
 import { ModelViewerScreen } from './modelViewerScreen';
-import { ArcRotateCamera, DeviceSourceManager, DeviceType, IDisposable, Mesh, Ray, Sound,  Vector3 } from '@babylonjs/core';
+import { ArcRotateCamera, Axis, Color3, DeviceSourceManager, DeviceType, IDisposable, Material, Mesh, MeshBuilder, Ray, Sound,  Space,  StandardMaterial,  Texture,  Vector3 } from '@babylonjs/core';
 import { ToRadians } from '../../utils/math';
 import { Entity, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
@@ -39,6 +39,8 @@ import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSys
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { Epee } from '../../data/ships/epee';
+import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
+import { TextureUrls } from '../../assetLoader/textures';
 
 const divFps = document.getElementById("fps");
 
@@ -64,6 +66,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
   trailersSystem = new TrailersSystem()
   afterburnerSoundsSystem = new AfterburnerSoundSystem()
   driftSoundSystem = new DriftSoundSystem()
+  dirsftTrailSystem = new DriftTrailSystem()
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
@@ -113,6 +116,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     this.trailersSystem.dispose()
     this.afterburnerSoundsSystem.dispose()
     this.driftSoundSystem.dispose()
+    this.dirsftTrailSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
   }
@@ -136,6 +140,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
       mission: "Patrol"
     })
 
+    
     this.ship = model1
 
     // let model3 = createCustomShip(EnemyMedium02, 0, 0, 2000, 1, 1);

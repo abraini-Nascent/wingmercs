@@ -250,7 +250,7 @@ export type Entity = {
     start?: { x: number; y: number; z: number }
   }[]
   trailMeshs?: {
-    trails: TrailMesh[]
+    trails: {trail: TrailMesh, node: TransformNode}[]
     disposables: IDisposable[]
   }
   bodyType?: "animated" | "static" | "dynamic"

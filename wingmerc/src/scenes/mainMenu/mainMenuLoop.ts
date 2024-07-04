@@ -1,3 +1,4 @@
+import { DriftTrailSystem } from './../../world/systems/renderSystems/driftTrailSystem';
 import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { MainMenuScreen } from "./mainMenuScreen";
@@ -55,6 +56,7 @@ export class MainMenuScene implements IDisposable {
   trailersSystem = new TrailersSystem()
   afterburnerSoundsSystem = new AfterburnerSoundSystem()
   driftSoundSystem = new DriftSoundSystem()
+  driftTrailSystem = new DriftTrailSystem()
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
 
@@ -118,6 +120,7 @@ export class MainMenuScene implements IDisposable {
     this.trailersSystem.dispose()
     this.afterburnerSoundsSystem.dispose()
     this.driftSoundSystem.dispose()
+    this.driftTrailSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
   }

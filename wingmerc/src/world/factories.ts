@@ -9,7 +9,10 @@ import { Weapon, WeaponType } from '../data/weapons/weapon';
 import * as GunAffixes from '../data/affixes/gunAffixes';
 import { GunAffix } from '../data/affixes/gunAffix';
 import { Voice } from '../utils/speaking';
-import { rand, random } from '../utils/random';
+import { RNG, rand, random, randomItem } from '../utils/random';
+import { Axis, Color3, Mesh, MeshBuilder, Space, StandardMaterial, Texture, Vector3 } from '@babylonjs/core';
+import { SpaceInterestTextures, TextureUrls } from '../assetLoader/textures';
+import { ToRadians } from '../utils/math';
 
 
 export function applyModifier(value: number, modifier: ComponentModifier): number {
@@ -340,6 +343,70 @@ export function allGunSelections(): GunSelection[] {
     return selections
   }, [] as GunSelection[])
   return selections
+}
+
+const poiRandom = new RNG(Date.now())
+const poiScales = {
+  blackhole1Animated: 2,
+  galaxy1Animated: 1,
+  asteroid1Single: 0.5,
+  asteroid2Single: 0.5
+}
+const poiStatic = {
+  asteroid1Single: true,
+  asteroid2Single: true
+}
+export function createSpaceBackgroundInterest(type?: SpaceInterestTextures | undefined): Mesh {
+  const textureName = type ?? poiRandom.randomItem(Object.keys(SpaceInterestTextures))
+  const scale = poiScales[textureName] ?? 1
+  const planet = MeshBuilder.CreatePlane(`si-${textureName}`, {
+    size: 1000 * scale
+  })
+  // Rotate the plane by 180 degrees around the Y axis to flip it
+  planet.rotate(Axis.Y, Math.PI, Space.LOCAL);
+
+  // Bake the rotation into the mesh
+  planet.bakeCurrentTransformIntoVertices();
+  
+  const planetTexture = new Texture(TextureUrls[textureName], undefined, undefined, false)
+  planetTexture.onLoadObservable.addOnce((texture) => {
+    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE)
+    texture.hasAlpha = true
+  })
+  if (!poiStatic[textureName]) {
+    planetTexture.uScale = 1 / 24
+  }
+  
+  const planetMat = new StandardMaterial(`si-${textureName}-mat`)
+  // planetMat.backFaceCulling = false;
+  // planetMat.disableLighting = true;
+  planetMat.diffuseTexture = planetTexture
+  planetMat.emissiveTexture = planetTexture
+  planetMat.specularColor = Color3.Black()
+  planet.material = planetMat
+  planet.billboardMode = Mesh.BILLBOARDMODE_X & Mesh.BILLBOARDMODE_Y
+  planet.onAfterRenderObservable.addOnce(() => {
+    planet.position.setAll(1500)
+    planet.lookAt(Vector3.Zero())
+    planet.rotateAround(Vector3.Zero(), Axis.Y, ToRadians(poiRandom.rand(0, 359)))
+    planet.infiniteDistance = true
+  })
+  if (!poiStatic[textureName]) {
+    let accu = 0
+    let observer = planet.onBeforeRenderObservable.add(() => {
+      if (planet.isDisposed()) {
+        observer.remove()
+        return
+      }
+      let dt = planet.getEngine().getDeltaTime()
+      accu += dt
+      if (accu > (60000 / 24)) {
+        planetTexture.uOffset += 1 / 24
+        accu -= (60000 / 24)
+      }
+    })
+  }
+  return planet
 }
 
 export function gunSelectionName(part: GunSelection): [id: string, name: string] {
