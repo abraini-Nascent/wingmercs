@@ -108,6 +108,10 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
   - [x] dynamic backgrounds?
     - [x] points of interest
   - [x] hide trails when drifting
+  - [ ] color code slot types in ship customization
+  - [ ] better chiptune music
+  - [ ] pixelated texture mapped to spaceships?
+  - [ ] pixelated textures mapped to particles?
 - [ ] bugs
   - [ ] eject warning not working
   - [ ] incoming missile warning not working

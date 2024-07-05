@@ -4,6 +4,7 @@ import { PlayerAgent } from "./agents/playerAgent"
 import { HavokPhysicsWithBindings } from "@babylonjs/havok"
 import { GameScene } from "./scenes/gameScene"
 import { EventPipeline } from './utils/pipeline';
+import { DebugConsole } from './app.debugConsole';
 
 export class AppContainer {
   static instance: AppContainer = new AppContainer()
@@ -42,6 +43,7 @@ export class AppContainer {
   world = world
   queries = queries
   debug: boolean = false
+  debugConsole = new DebugConsole()
   get havokPlugin(): HavokPlugin {
     return this._havokPlugin
   }

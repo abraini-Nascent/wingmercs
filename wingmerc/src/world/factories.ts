@@ -12,7 +12,9 @@ import { Voice } from '../utils/speaking';
 import { RNG, rand, random, randomItem } from '../utils/random';
 import { Axis, Color3, Mesh, MeshBuilder, Space, StandardMaterial, Texture, Vector3 } from '@babylonjs/core';
 import { SpaceInterestTextures, TextureUrls } from '../assetLoader/textures';
-import { ToRadians } from '../utils/math';
+import { QuaternionFromObj, ToRadians, Vector3FromObj } from '../utils/math';
+import { nearestEnemy } from './systems/ai/shipIntelligence';
+import { SoundEffects } from '../utils/sounds/soundEffects';
 
 
 export function applyModifier(value: number, modifier: ComponentModifier): number {
@@ -321,6 +323,85 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     // scale: { x: 2, y: 2, z: 2 }
   })
   return enemyEntity
+}
+
+export function createLiveWeapon(weaponClass: Weapon, firingEntity: Entity, startPosition: { x: number, y: number, z: number }): Entity {
+  console.log("[Weapons] !!Missile Away!!")
+  const { targeting, rotationQuaternion, direction, rotation } = firingEntity
+  const forward = new Vector3(0, 0, -1)
+  let burn = weaponClass.speed
+  forward.multiplyInPlace(new Vector3(burn, burn, burn))
+  forward.applyRotationQuaternionInPlace(
+    QuaternionFromObj(rotationQuaternion)
+  )
+  if (firingEntity.nerdStats) {
+    firingEntity.nerdStats.missilesLaunched += 1
+  }
+  SoundEffects.MissileLaunch(Vector3FromObj(startPosition))
+
+  let target = targeting.target
+  if (target == undefined && weaponClass.type == "friendorfoe") {
+    // find nearest enemy
+    const nearestTarget = nearestEnemy(firingEntity, weaponClass.range)
+    console.log("[weaponCommandSystem] targeting nearest enemy", target)
+    target = world.id(nearestTarget)
+  }
+  // create missile
+  let entity = world.add({
+    targetName: `${weaponClass.name} missile`,
+    originatorId: "" + world.id(firingEntity),
+    position: { ...startPosition },
+    direction: {
+      x: direction.x,
+      y: direction.y,
+      z: direction.z,
+    },
+    velocity: {
+      x: forward.x,
+      y: forward.y,
+      z: forward.z,
+    },
+    rotationQuaternion: {
+      x: rotationQuaternion.x,
+      y: rotationQuaternion.y,
+      z: rotationQuaternion.z,
+      w: rotationQuaternion.w,
+    },
+    rotation: {
+      x: rotation.x,
+      y: rotation.y,
+      z: rotation.z,
+    },
+    acceleration: { x: 0, y: 0, z: 0 },
+    missileRange: {
+      type: weaponClass.class,
+      target: target,
+      max: weaponClass.range,
+      total: 0,
+      lastPosition: { ...startPosition },
+    },
+    missileEngine: true,
+    damage: weaponClass.damage,
+    trail: true,
+    trailOptions: [
+      {
+        start: { x: 0, y: 0, z: 0 },
+        color: { r: 200 / 255, g: 20 / 255, b: 20 / 255, a: 1 },
+        width: 0.2,
+        length: 20,
+      },
+      {
+        start: { x: 0, y: 0, z: 20 },
+        color: { r: 200 / 255, g: 200 / 255, b: 200 / 255, a: 1 },
+        width: 0.4,
+        length: 4000,
+      },
+    ],
+    // camera: true,
+    isTargetable: "missile",
+    // bodyType: "animated"
+  })
+  return entity
 }
 
 export function allGunSelections(): GunSelection[] {

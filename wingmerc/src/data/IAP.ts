@@ -171,7 +171,3 @@ export function translateIPA(sentence: string, log: boolean = false): string {
   log && console.log(`[translateIPA] translation: "${translated.join(" ")}"`)
   return translated.join(" ")
 }
-
-if (window != undefined) {
-  (window as any).tranlateIPA = translateIPA
-}

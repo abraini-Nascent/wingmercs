@@ -282,7 +282,6 @@ export class WeaponCommandSystem implements IDisposable {
           isTargetable: "missile",
           // bodyType: "animated"
         })
-        world
       }
     }
     // locking

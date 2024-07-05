@@ -288,7 +288,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
         divFps.innerHTML = engine.getFps().toFixed() + " fps";
         return
       } else {
-        this.spawnShips()
+        // this.spawnShips()
         this.hud.getReady = false
       }
     }

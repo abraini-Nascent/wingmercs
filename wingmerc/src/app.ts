@@ -24,7 +24,6 @@ import "./world/systems/deathRattleSystem";
 import { loadAssets } from "./assetLoader/assetLoader";
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
 import { FlexTestScene } from "./scenes/flexTest/flexTest"
-import { convert, setup } from "./data/ships/tools"
 
 class App {
   assetsManager: AssetsManager
@@ -33,20 +32,6 @@ class App {
   constructor() {
 
     (window as any).appContainer = AppContainer.instance;
-    setup()
-
-    ;(window as any).vector45DegreesUpForward = ():Vector3 =>  {
-      // Define the forward direction (assumed to be Vector3.Forward())
-      const forward = Vector3.Forward();
-    
-      // Calculate the rotation quaternion for 45 degrees around the horizontal axis
-      const rotation = Quaternion.RotationAxis(Vector3.Right(), Math.PI / 4); // 45 degrees in radians
-    
-      // Rotate the forward vector by the rotation quaternion
-      const vector45DegreesUpForward = forward.rotateByQuaternionToRef(rotation, TmpVectors.Vector3[0]);
-    
-      return vector45DegreesUpForward;
-    }
 
     // create the canvas html element and attach it to the webpage
     const canvas = document.createElement("canvas")

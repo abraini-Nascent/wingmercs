@@ -2,6 +2,9 @@ import { TextBlock } from "@babylonjs/gui";
 import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../app.container";
 import { barPercent } from './spaceCombatHUD.helpers';
+import { Sound } from "@babylonjs/core";
+import { SoundEffects } from "../../utils/sounds/soundEffects";
+import { VoiceSound } from "../../utils/speaking";
 
 export class StatsVDU {
 
@@ -13,6 +16,7 @@ export class StatsVDU {
   armorRight: TextBlock
   armorLeft: TextBlock
   fuel: TextBlock
+  ejectWarning: Sound
   flash: boolean = false
   flashAcc: number = 0
   flashLimit: number = 333
@@ -31,6 +35,10 @@ export class StatsVDU {
     this.armorRight.dispose()
     this.armorLeft.dispose()
     this.fuel.dispose()
+    if (this.ejectWarning != undefined) {
+      SoundEffects.Silience(this.ejectWarning)
+      this.ejectWarning = undefined
+    }
   }
   setupComponents() {
 
@@ -66,7 +74,7 @@ export class StatsVDU {
     const armorFront = new GUI.TextBlock("ArmorFront")
     this.armorFront = armorFront
     armorFront.fontFamily = "monospace"
-    armorFront.text = "↓║▉▉▉"
+    armorFront.text = "↑║▉▉▉"
     armorFront.color = "orange"
     armorFront.fontSize = 24
     armorFront.height = "24px"
@@ -77,7 +85,7 @@ export class StatsVDU {
     const armorBack = new GUI.TextBlock("ArmorBack")
     this.armorBack = armorBack
     armorBack.fontFamily = "monospace"
-    armorBack.text = "↑║▉▉▉"
+    armorBack.text = "↓║▉▉▉"
     armorBack.color = "orange"
     armorBack.fontSize = 24
     armorBack.height = "24px"
@@ -97,7 +105,7 @@ export class StatsVDU {
     statsPanel.addControl(armorLeft)
 
     const armorRight = new GUI.TextBlock("ArmorRight")
-    this.armorRight = armorLeft
+    this.armorRight = armorRight
     armorRight.fontFamily = "monospace"
     armorRight.text = "→║▉▉▉"
     armorRight.color = "orange"
@@ -110,7 +118,7 @@ export class StatsVDU {
     const fuel = new GUI.TextBlock("Fuel")
     this.fuel = fuel
     fuel.fontFamily = "monospace"
-    fuel.text = "→║▉▉▉"
+    fuel.text = "F║▉▉▉"
     fuel.color = "orange"
     fuel.fontSize = 24
     fuel.height = "24px"
@@ -132,6 +140,7 @@ export class StatsVDU {
     this.leftArmorBar()
     this.rightArmorBar()
     this.fuelBar()
+    this.ejectWarn()
   }
 
   foreShieldBar() {
@@ -159,7 +168,7 @@ export class StatsVDU {
   }
   frontArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    let f = playerEntity.armor.front / playerEntity.armor.front
+    let f = playerEntity.armor.front / playerEntity.armor.base.front
     f = Math.round(f * 100)
     this.armorFront.text = `↑║${barPercent(f)}`
     if (f == 0) {
@@ -168,7 +177,7 @@ export class StatsVDU {
   }
   backArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    let f = playerEntity.armor.back / playerEntity.armor.back
+    let f = playerEntity.armor.back / playerEntity.armor.base.back
     f = Math.round(f * 100)
     this.armorBack.text = `↓║${barPercent(f)}`
     if (f == 0) {
@@ -179,7 +188,7 @@ export class StatsVDU {
   }
   leftArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    let f = playerEntity.armor.left / playerEntity.armor.left
+    let f = playerEntity.armor.left / playerEntity.armor.base.left
     f = Math.round(f * 100)
     this.armorLeft.text = `←║${barPercent(f)}`
     if (f == 0) {
@@ -190,7 +199,7 @@ export class StatsVDU {
   }
   rightArmorBar() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    let f = playerEntity.armor.right / playerEntity.armor.right
+    let f = playerEntity.armor.right / playerEntity.armor.base.right
     f = Math.round(f * 100)
     this.armorRight.text = `→║${barPercent(f)}`
     if (f == 0) {
@@ -210,5 +219,22 @@ export class StatsVDU {
     } else {
       this.fuel.isVisible = true
     }
+  }
+
+  ejectWarn() {
+    const playerEntity = AppContainer.instance.player.playerEntity
+    if (playerEntity.health.current < (playerEntity.health.base / 2)) {
+      if (this.ejectWarning == undefined) {
+        this.ejectWarning = VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt bɑmp bɑmp", undefined)
+        this.ejectWarning.loop = true
+        // this.ejectWarning.onended = () => {
+        //   setTimeout(() => {
+        //     this.ejectWarning.play()
+        //   }, 100);
+        // }
+        this.ejectWarning.play()
+      }
+    }
+    
   }
 }

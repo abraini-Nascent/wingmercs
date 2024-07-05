@@ -146,10 +146,3 @@ export function convert(ship: ShipDetails): ShipTemplate {
   }
   return newShip
 }
-
-export function setup() {
-  ;(window as any).convert = () => {
-    // console.log(convert(EnemyMedium02))
-    // return convert(Dirk)
-  }
-}
