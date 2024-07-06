@@ -137,6 +137,14 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
               sound.spatialSound = true
               sound.attachToMesh(hitEntity.node);
               sound.play()
+              world.addComponent(hitEntity, "speaking", sound)
+              sound.onEndedObservable.addOnce(() => {
+                if (hitEntity.speaking == sound) {
+                  world.removeComponent(hitEntity, "speaking")
+                }
+                sound.detachFromMesh()
+                sound.dispose()
+              })
             }, 1)
           }
           /*

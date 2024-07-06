@@ -2,7 +2,7 @@ import { Utilities } from './../../data/components/utility';
 import { Shields } from './../../data/components/shields';
 import { Engines } from './../../data/components/engines';
 import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, GunMounts, GunSelection, ModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, UtilityModifierDetails, UtilityMounts, WeaponMounts } from '../../data/ships/shipTemplate';
-import { Color3, Observer, PointerEventTypes } from "@babylonjs/core";
+import { Axis, Color3, Observer, PointerEventTypes, Vector3 } from "@babylonjs/core";
 import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers";
 import { MercScreen } from "../screen";
 import * as GUI from "@babylonjs/gui"
@@ -16,6 +16,10 @@ import * as GunAffixes from '../../data/affixes/gunAffixes';
 import { Weapon } from '../../data/weapons/weapon';
 import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from '../../world/factories';
 import { GunAffix } from '../../data/affixes/gunAffix';
+import { world } from '../../world/world';
+import { Button, ButtonItem, TextBlock } from '../components';
+import { ShipSelectionScene } from './shipSelection/shipSelectionLoop';
+import { ToRadians } from '../../utils/math';
 
 
 type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "Utility";
@@ -40,6 +44,9 @@ export class ShipCustomizerScreen extends MercScreen {
     this.ship = ship
     this.gunSelections = allGunSelections()
     this.setupMain()
+    queueMicrotask(() => {
+      this.setupModel()
+    })
   }
   dispose(): void {
     this.root.dispose()
@@ -49,6 +56,31 @@ export class ShipCustomizerScreen extends MercScreen {
     }
     this.observers.clear()
     super.dispose()
+  }
+
+  setupModel() {
+    let ship = world.add({
+      meshName: this.ship.modelDetails.base,
+      position: { x: 0, y: 0, z: -50 }
+    })
+    queueMicrotask(() => {
+      console.log("-=ship=-", ship)
+      ship.node.rotate(Axis.Y, ToRadians(180))
+      ship.node.position.set(0, 0, -50)
+      let camera = AppContainer.instance.camera
+      camera.position.setAll(0)
+      camera.position.y = 25
+      camera.setTarget(new Vector3(0, 0, -50))
+      let observer = ship.node.getScene().onBeforeRenderObservable.add(() => {
+        const rotationPerMs = ToRadians(360) / 10000
+        const dt = ship.node.getEngine().getDeltaTime()
+        ship.node.rotate(Axis.Y, rotationPerMs * dt)
+        ship.node.onDisposeObservable.addOnce(() => {
+          observer.remove()
+          observer = undefined
+        })
+      })
+    })
   }
 
   setupMain(): void {
@@ -78,18 +110,34 @@ export class ShipCustomizerScreen extends MercScreen {
     center.style.setGap(Gutter.Row, 15)
     center.style.setPadding(Edge.All, 15)
     root.addControl(center)
-    this.centerScroll = center
+    const spacer = new FlexContainer("spacer")
+    spacer.style.setFlex(1.5)
+    spacer.style.setJustifyContent(Justify.FlexEnd)
+    center.addControl(spacer)
+    this.centerScroll = spacer
 
-    const selectButton = this.buttonItem("select", "Select", () => {
+    const bottomButtonSection = new FlexContainer("bottomButtonSection")
+    bottomButtonSection.style.setFlexDirection(FlexDirection.Row)
+    bottomButtonSection.style.setJustifyContent(Justify.SpaceEvenly)
+    spacer.addControl(bottomButtonSection)
+
+    const back = ButtonItem(Button(TextBlock("back", "Back"), () => {
+      // navigate to previous screen
+      let oldScene = AppContainer.instance.gameScene
+      let nextScene = new ShipSelectionScene()
+      AppContainer.instance.gameScene = nextScene
+      oldScene.dispose()
+    }), 120)
+    bottomButtonSection.addControl(back)
+
+    const select = ButtonItem(Button(TextBlock("select", "Select", true), () => {
       // navigate to next screen
       let oldScene = AppContainer.instance.gameScene
-      // TODO send the ship to the combat scene
       let nextScene = new SpaceCombatScene(this.ship)
       AppContainer.instance.gameScene = nextScene
       oldScene.dispose()
-    });
-    (selectButton.item as GUI.Button).textBlock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
-    center.addControl(selectButton)
+    }), 120)
+    bottomButtonSection.addControl(select)
 
     const statsScroll = FlexContainer.CreateScrollView("right-scroll-view", root)
     statsScroll.style.setFlex(1)
@@ -995,7 +1043,6 @@ export class ShipCustomizerScreen extends MercScreen {
     const button1 = this.button(name, text, onClick, height)
     const button1FlexItem = new FlexItem(`${name}-flex`, button1)
     const buttonWidth = width
-    GUI.Button.CreateImageWithCenterTextButton
     button1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
       if (buttonWidth != undefined) {
         button1.widthInPixels = buttonWidth

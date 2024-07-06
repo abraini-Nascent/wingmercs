@@ -4,6 +4,7 @@ import {
   InstancedMesh,
   Mesh,
   PhysicsBody,
+  Sound,
   TrailMesh,
   TransformNode,
   Vector3,
@@ -292,6 +293,7 @@ export type Entity = {
   vduState?: VDUState
   deathRattle?: boolean
   voice?: Voice
+  speaking?: Sound
   particleRange?: {
     max: number
     total: number

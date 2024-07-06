@@ -44,6 +44,12 @@ export class AppContainer {
   queries = queries
   debug: boolean = false
   debugConsole = new DebugConsole()
+  volumes = {
+    global: 0.80,
+    sound: 0.80,
+    music: 0.80,
+    voice: 0.80,
+  }
   get havokPlugin(): HavokPlugin {
     return this._havokPlugin
   }

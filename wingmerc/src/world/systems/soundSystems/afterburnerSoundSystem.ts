@@ -27,7 +27,7 @@ export class AfterburnerSoundSystem implements IDisposable {
       sound.loop = true
       sound.play()
       sound.setVolume(0)
-      sound.setVolume(1, 3)
+      sound.setVolume(SoundEffects.effectsVolume(), 3)
       this.afterburnerSounds.set(entity, sound)
     }
   }

@@ -26,13 +26,18 @@ export class ShipSelectionScene implements GameScene, IDisposable {
     world.onEntityAdded.subscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.subscribe(this.onScreenEntityRemoved)
 
-    this.setup()
+    queueMicrotask(() => {
+      this.setup()
+    })
   }
 
   dispose() {
     world.onEntityAdded.unsubscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onScreenEntityRemoved)
 
+    this.screenEntities.forEach((entity) => {
+      world.remove(entity)
+    })
     this.screen.dispose()
     this.screen = undefined
     this.meshedSystem.dispose()
@@ -40,6 +45,7 @@ export class ShipSelectionScene implements GameScene, IDisposable {
 
   onScreenEntityAdded = (entity: Entity) => {
     this.screenEntities.add(entity)
+    console.log("[task] ship entity added")
   }
 
   onScreenEntityRemoved = (entity: Entity) => {
@@ -47,7 +53,6 @@ export class ShipSelectionScene implements GameScene, IDisposable {
   }
 
   setup() {
-    
     const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
     for (const ship of ships) {
       const shipData = Ships[ship] as ShipDetails

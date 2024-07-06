@@ -1,5 +1,5 @@
-import { Animation, Color3, Observer, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
-import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../../utils/guiHelpers";
+import { Animation, Color3, IDisposable, Observer, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
+import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify, resizeToFitTextBlock } from "../../../utils/guiHelpers";
 import { MercScreen } from "../../screen";
 import * as GUI from "@babylonjs/gui"
 import * as Ships from "../../../data/ships"
@@ -8,6 +8,8 @@ import { AngleBetweenVectors, ToDegree, generatePointsOnCircle } from "../../../
 import { AppContainer } from "../../../app.container";
 import { ShipCustomizerScene } from "../shipCustomizerLoop";
 import { ShipDetails, ShipTemplate } from "../../../data/ships/shipTemplate";
+import { Button, ButtonItem, TextBlock } from "../../components";
+import { MainMenuScene } from "../../mainMenu/mainMenuLoop";
 
 export class ShipSelectionScreen extends MercScreen {
   shipsRoot: FlexContainer
@@ -17,6 +19,7 @@ export class ShipSelectionScreen extends MercScreen {
   carouselNames: string[] = []
   carouselNode: TransformNode
   currentIndex: number = 0
+  disposibles = new Set<IDisposable>()
 
   // GUI Nodes
   scrollView: FlexContainer
@@ -35,6 +38,10 @@ export class ShipSelectionScreen extends MercScreen {
     }
     this.observers.clear()
     this.shipsRoot.dispose()
+    this.disposibles.forEach((disposible) => {
+      disposible.dispose()
+    })
+    this.disposibles.clear()
   }
 
   setupMain(): void {
@@ -64,17 +71,29 @@ export class ShipSelectionScreen extends MercScreen {
     spacer.style.setJustifyContent(Justify.FlexEnd)
     shipsRoot.addControl(spacer)
 
-    const selectButton = this.shipButtonItem("select", "Select", () => {
-      // navigate to next screen
+    const bottomButtonSection = new FlexContainer("bottomButtonSection")
+    bottomButtonSection.style.setFlexDirection(FlexDirection.Row)
+    bottomButtonSection.style.setJustifyContent(Justify.SpaceEvenly)
+    spacer.addControl(bottomButtonSection)
+
+    const back = ButtonItem(Button(TextBlock("back", "Back", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
+      // navigate to previous screen
+      let oldScene = AppContainer.instance.gameScene
+      let nextScene = new MainMenuScene()
+      AppContainer.instance.gameScene = nextScene
+      oldScene.dispose()
+    }), 120)
+    bottomButtonSection.addControl(back)
+
+    const select = ButtonItem(Button(TextBlock("select", "Select", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
       let ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
       ship = structuredClone(ship)
       let oldScene = AppContainer.instance.gameScene
       let nextScene = new ShipCustomizerScene(ship)
       AppContainer.instance.gameScene = nextScene
       oldScene.dispose()
-    });
-    (selectButton.item as GUI.Button).textBlock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
-    spacer.addControl(selectButton)
+    }), 120)
+    bottomButtonSection.addControl(select)
 
     const statsScrollView = new GUI.ScrollViewer("scroll2")
     const statsScroll = new FlexContainer("scroll2", undefined, statsScrollView)

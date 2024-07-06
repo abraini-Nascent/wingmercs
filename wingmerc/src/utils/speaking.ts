@@ -1,6 +1,7 @@
 import SamJs from 'sam-js';
 import { Engine, Sound } from '@babylonjs/core';
 import { translateIPA } from '../data/IAP';
+import { AppContainer } from '../app.container';
 /**
    * Test if a bit is set.
    * @param {Number} bits The bits.
@@ -75,6 +76,7 @@ export function VoiceSound(phoneticSentence: string, voice: Voice): Sound | unde
     // const audioBuffer = RenderAudioBuffer(result)
     const audioBuffer = CreatAudioSource(result)
     let sound = new Sound(phoneticSentence, audioBuffer, undefined, undefined)
+    sound.setVolume(AppContainer.instance.volumes.global * AppContainer.instance.volumes.voice)
     return sound
   } else {
     return undefined

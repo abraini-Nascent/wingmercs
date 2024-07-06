@@ -1,7 +1,12 @@
 import { AudioEngine, Engine, Sound } from "@babylonjs/core"
 import { randomItem } from "../random"
 import { MercStorage } from "../storage"
+import { AppContainer } from "../../app.container"
 
+
+const MainThemeSongFile = [
+  "assets/music/GalacticDreams.mp3"
+]
 const ActionSongFile = [
   "assets/music/ActionSong_1.mp3",
 ]
@@ -25,7 +30,7 @@ const EncounterStingerFile = [
   "assets/music/EncounterStinger_2.wav",
 ]
 
-const BaseVolume = 0.1
+const BaseVolume = 0.2
 
 export class MusicPlayer {
 
@@ -55,7 +60,13 @@ export class MusicPlayer {
     MercStorage.instance.setValue("wingmercs_musicEnabled", value ? "1" : "0")
   }
 
-  playSong(type: "happy" | "action") {
+  updateVolume(volume: number) {
+    if (this.currentSong != undefined) {
+      this.currentSong.setVolume(volume)
+    }
+  }
+
+  playSong(type: "happy" | "action" | "theme") {
     if (this.musicEnabled == false) {
       return
     }
@@ -63,11 +74,22 @@ export class MusicPlayer {
       this.currentSong.setVolume(0, 1)
       this.currentSong.loop = false
     }
-    let song = type == "happy" ? HappySongFile[0] : ActionSongFile[0]
+    let song: String 
+    switch (type) {
+      case "happy":
+        song = HappySongFile[0]
+        break;
+      case "action":
+        song = ActionSongFile[0]
+        break;
+      case "theme":
+        song = MainThemeSongFile[0]
+        break;
+    }
     this.currentSong = new Sound(type, song, undefined, undefined, {
       autoplay: true,
       loop: true,
-      volume: BaseVolume
+      volume: AppContainer.instance.volumes.music
     })
     console.log("[Music Player] playing song", type)
   }
@@ -96,11 +118,11 @@ export class MusicPlayer {
     let stinger = new Sound(type, song, undefined, undefined, {
       autoplay: true,
       loop: false,
-      volume: BaseVolume,
+      volume: AppContainer.instance.volumes.music,
     })
     stinger.onEndedObservable.addOnce(() => {
       if (this.currentSong) {
-        this.currentSong.setVolume(BaseVolume, 1)
+        this.currentSong.setVolume(AppContainer.instance.volumes.music, 1)
       }
     })
     console.log("[Music Player] playing stinger", type)

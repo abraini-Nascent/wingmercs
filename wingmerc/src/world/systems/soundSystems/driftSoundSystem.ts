@@ -29,7 +29,7 @@ export class DriftSoundSystem implements IDisposable {
     sound.loop = true
     sound.play()
     sound.setVolume(0)
-    sound.setVolume(1, 1)
+    sound.setVolume(SoundEffects.effectsVolume(), 1)
     this.driftSounds.set(entity, sound)
   }
   driftOnEntityRemoved = (entity) => {

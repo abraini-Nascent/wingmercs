@@ -49,6 +49,21 @@ export class DeathRattleSystem implements IDisposable {
       sound.spatialSound = true
       sound.attachToMesh(entity.node);
       sound.play()
+      if (entity.speaking != undefined) {
+        entity.speaking.detachFromMesh()
+        entity.speaking.dispose()
+        world.removeComponent(entity, "speaking")
+        queueMicrotask(() => {
+          world.addComponent(entity, "speaking", sound)
+          sound.onEndedObservable.addOnce(() => {
+            if (entity.speaking == sound) {
+              world.removeComponent(entity, "speaking")
+            }
+            sound.detachFromMesh()
+            sound.dispose()
+          })
+        })
+      }
     }, 1)
     let sps = MercParticles.fireSmokeTrail(`death-rattle-${i}`, scene, pointEmitter)
     sps.begin()

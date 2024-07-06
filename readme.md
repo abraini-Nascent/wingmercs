@@ -104,19 +104,25 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] tiers for guns
 - [] polish and juice
   - [x] individual voices for pilots
-  - [ ] ui for who is talking
+  - [ ] rebuild hud indicators
+    - [ ] target / lock box
+    - [ ] missile lock indicator
+    - [ ] ITTS indicator
+    - [ ] Fire Reticle
+    - [ ] ui for who is talking
   - [x] dynamic backgrounds?
     - [x] points of interest
   - [x] hide trails when drifting
   - [ ] color code slot types in ship customization
-  - [ ] better chiptune music
+  - [x] better chiptune music
   - [ ] pixelated texture mapped to spaceships?
   - [ ] pixelated textures mapped to particles?
 - [ ] bugs
-  - [ ] eject warning not working
-  - [ ] incoming missile warning not working
-  - [ ] selection ships still visible after launch
-  - [ ] no way back from ship selection and ship customization
+  - [x] eject warning not working
+  - [x] incoming missile warning not working
+  - [x] selection ships still visible after launch
+    - [ ] customization ship not appearing
+  - [x] no way back from ship selection and ship customization
 ### next demo
 - [] dynamic missions - instant action mode
 - [] command wingmen

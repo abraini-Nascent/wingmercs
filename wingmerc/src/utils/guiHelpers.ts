@@ -481,3 +481,12 @@ export class FlexScrollview {
     })
   }
 }
+
+export function resizeToFitTextBlock(flexItem: FlexItem, textBlock?: GUI.TextBlock) {
+  const text = textBlock ?? flexItem.item as GUI.TextBlock
+  text.resizeToFit = true
+  text.forceResizeWidth = true
+  text.onAfterDrawObservable.addOnce(() => {
+    textBlock.markAsDirty()
+  })
+}

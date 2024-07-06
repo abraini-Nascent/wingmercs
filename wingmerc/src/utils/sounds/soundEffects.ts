@@ -1,5 +1,6 @@
 import { Sound, Vector3 } from "@babylonjs/core"
 import { randomItem } from "../random";
+import { AppContainer } from "../../app.container";
 
 const LaserFiles = [
   "assets/sounds/LaserShoot01.wav",
@@ -91,16 +92,24 @@ const DriftFiles = [
 const BrakeFiles = [
   "assets/sounds/Brake01.wav",
 ]
+
 export namespace SoundEffects {
   let _idx = 0
   function idx() {
     return _idx++;
   }
+  export function effectsVolume(): number {
+    let volume = AppContainer.instance.volumes.global * AppContainer.instance.volumes.sound
+    console.log("[SoundEffects] using volume", volume)
+    return volume
+  }
   export function Laser(): Sound {
-    return new Sound(`Laser-${idx()}`, randomItem(LaserFiles), undefined, undefined,
+    let sound = new Sound(`Laser-${idx()}`, randomItem(LaserFiles), undefined, undefined,
     {
       maxDistance: 4000,
     })
+    sound.setVolume(AppContainer.instance.volumes.sound)
+    return sound
   }
   export function ShieldHit(position?: Vector3 | undefined, player: boolean = false): Sound {
     let sound = new Sound(`ShieldHit-${idx()}`, randomItem(player ? PlayerShieldHitFiles : ShieldHitFiles), undefined, undefined,
@@ -111,6 +120,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -125,6 +135,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -139,6 +150,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -153,6 +165,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -167,6 +180,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -182,7 +196,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
-    sound.setVolume(0.25)
+    sound.setVolume(0.25 * effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -197,7 +211,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
-    sound.setVolume(0.25)
+    sound.setVolume(0.25 * effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -212,7 +226,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
-    sound.setVolume(0.25)
+    sound.setVolume(0.25 * effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -227,6 +241,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -241,6 +256,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -255,6 +271,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -269,6 +286,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound
@@ -283,6 +301,7 @@ export namespace SoundEffects {
       sound.spatialSound = true
       sound.setPosition(position)
     }
+    sound.setVolume(effectsVolume())
     sound.autoplay = true
     sound.play()
     return sound

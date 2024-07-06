@@ -87,7 +87,7 @@ export class MainMenuScene implements IDisposable {
         team.add(this.addShip(teamId + 1))
       }
     })
-    MusicPlayer.instance.playSong("happy")
+    MusicPlayer.instance.playSong("theme")
   }
 
   dispose(): void {

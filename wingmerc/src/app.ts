@@ -121,7 +121,7 @@ class App {
     // load the assets and physics engine
     const onFinishedLoading = () => {
       engine.hideLoadingUI()
-      Engine.audioEngine.setGlobalVolume(0.1);
+      Engine.audioEngine.setGlobalVolume(0.5);
       if (AppContainer.instance.debug) {
         AppContainer.instance.gameScene = new MainMenuScene()
         // AppContainer.instance.gameScene = new FlexTestScene()
@@ -142,6 +142,9 @@ class App {
       if (Engine.audioEngine && Engine.audioEngine.canUseWebAudio && Engine.audioEngine.unlocked == false) {
         Engine.audioEngine.audioContext.resume().then(function () {
           console.log('[APP] Audio context is now unlocked');
+          queueMicrotask(() => {
+            Engine.audioEngine.setGlobalVolume(0.5);
+          })
         });
       }
   });

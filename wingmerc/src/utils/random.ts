@@ -23,14 +23,13 @@ function rand(min: number, max: number): number {
 function randFloat(min: number, max: number): number {
   return random() * (max - min) + min
 }
-
 function randomItem<T>(array: T[]) {
   return array[Math.floor(random() * array.length)]
 }
-function chance(chance) {
+function chance(chance): boolean {
   return rand(0, 100) <= chance
 }
-function coinFlip() {
+function coinFlip(): boolean {
   return rand(0, 1) == 1
 }
 
@@ -53,7 +52,7 @@ class RNG {
     }
     return hash;
   }
-
+  /** a number between 0 and 1 inclusive */
   random() {
     var x = Math.sin(this.seed++) * 10000;
     return x - Math.floor(x);
@@ -61,25 +60,28 @@ class RNG {
   /**
    * returns a random int between min inclusive and max inclusive
    */
-  rand(min, max) {
+  rand(min: number, max:number): number {
     return Math.floor(this.random() * (max - min + 1)) + min
   }
   /**
    * returns a random float between min inclusive and max exclusive
    */
-  randFloat(min, max) {
+  randFloat(min: number, max: number): number {
     return this.random() * (max - min) + min
   }
-  randomItem(array) {
+  randomItem<T>(array:T[]): T {
     return array[Math.floor(this.random() * array.length)]
   }
-  chance(chance) {
+  /** a 1-100% chance, "roll under" */
+  chance(chance: number): boolean {
     return this.rand(0, 100) <= chance
   }
-  coinFlip() {
+  /** a 50/50 chance, "coin flip" */
+  coinFlip(): boolean {
     return this.rand(0, 1) == 1
   }
-  shuffle(array) {
+  /** return a new randomly shuffled array */
+  shuffle<T>(array: T[]): T[] {
     let shuffled = array.map(i => i)
     let currentIndex = shuffled.length, temporaryValue, randomIndex
     // While there remain elements to shuffle...

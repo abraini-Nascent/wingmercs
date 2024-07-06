@@ -9,6 +9,9 @@ import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
 export class SettingsMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
   soundSliderOnValueChangedObserver: Observer<number>
+  effectsSliderOnValueChangedObserver: Observer<number>
+  musicSliderOnValueChangedObserver: Observer<number>
+  voiceSliderOnValueChangedObserver: Observer<number>
 
   constructor() {
     super("MainMenuScreen")
@@ -31,7 +34,7 @@ export class SettingsMenuScreen extends MercScreen {
     mainPanel.paddingLeftInPixels = 24
     mainPanel.paddingTopInPixels = 128
     mainPanel.spacing = 24
-    mainPanel.topInPixels = 164
+    mainPanel.topInPixels = 124
     this.gui.addControl(mainPanel)
     
     const title = new GUI.TextBlock()
@@ -48,27 +51,55 @@ export class SettingsMenuScreen extends MercScreen {
     title.paddingTopInPixels = 24
     this.gui.addControl(title)
 
-    const soundLabel = this.createLabel("Sound Label", "Sound Volume")
+    const soundLabel = this.createLabel("Sound Label", "Global Sound Volume")
     mainPanel.addControl(soundLabel)
-    const soundSlider = new GUI.Slider("Sound")
-    soundSlider.minimum = 0
-    soundSlider.maximum = 100
-    let volume = Engine.audioEngine.getGlobalVolume()
-    if (volume == -1) {
-      volume = 100
-    } else {
-      volume = Math.round(volume * 100)
-    }
-    soundSlider.widthInPixels = 240
-    soundSlider.heightInPixels = 24
-    soundSlider.value = volume
-    let soundSliderOnValueChangedObserver = soundSlider.onValueChangedObservable.add((value, event) => {
+    //
+    let wholePercent = (volume) => { return Math.round(volume * 100) }
+    const globalSlider = this.createSlider("Sound", "Sound", wholePercent(Engine.audioEngine.getGlobalVolume()))
+    let soundSliderOnValueChangedObserver = globalSlider.onValueChangedObservable.add((value, event) => {
       const newVolume = value / 100
-      console.log("[Settings] new volume", newVolume)
+      console.log("[Settings] new sound volume", newVolume)
       Engine.audioEngine.setGlobalVolume(newVolume);
     })
     this.soundSliderOnValueChangedObserver = soundSliderOnValueChangedObserver
-    mainPanel.addControl(soundSlider)
+    mainPanel.addControl(globalSlider)
+
+    let volumes = AppContainer.instance.volumes
+    const effectsLabel = this.createLabel("Effects Label", "Effects Volume")
+    mainPanel.addControl(effectsLabel)
+    const effectsSlider = this.createSlider("Effects", "Effects", wholePercent(volumes.sound))
+    let effectsSliderOnValueChangedObserver = effectsSlider.onValueChangedObservable.add((value, event) => {
+      const newVolume = value / 100
+      console.log("[Settings] new effects volume", newVolume)
+      volumes.sound = newVolume
+    })
+    this.effectsSliderOnValueChangedObserver = effectsSliderOnValueChangedObserver
+    mainPanel.addControl(effectsSlider)
+
+    const musicLabel = this.createLabel("Music Label", "Music Volume")
+    mainPanel.addControl(musicLabel)
+    const musicSlider = this.createSlider("Music", "Music", wholePercent(volumes.music))
+    let musicSliderOnValueChangedObserver = musicSlider.onValueChangedObservable.add((value, event) => {
+      AppContainer.instance.volumes.music
+      const newVolume = value / 100
+      console.log("[Settings] new music volume", newVolume)
+      volumes.music = newVolume
+      MusicPlayer.instance.updateVolume(newVolume)
+    })
+    this.musicSliderOnValueChangedObserver = musicSliderOnValueChangedObserver
+    mainPanel.addControl(musicSlider)
+
+    const voiceLabel = this.createLabel("Voice Label", "Voice Volume")
+    mainPanel.addControl(voiceLabel)
+    const voiceSlider = this.createSlider("Voice", "Voice", wholePercent(volumes.voice))
+    let voiceSliderOnValueChangedObserver = voiceSlider.onValueChangedObservable.add((value, event) => {
+      AppContainer.instance.volumes.music
+      const newVolume = value / 100
+      console.log("[Settings] new volume", newVolume)
+      volumes.voice = value
+    })
+    this.voiceSliderOnValueChangedObserver = voiceSliderOnValueChangedObserver
+    mainPanel.addControl(voiceSlider)
 
     let musicStackPanel = this.createCheckBoxWithHeader("Music", MusicPlayer.instance.musicEnabled, (value) => {
       MusicPlayer.instance.musicEnabled = value
@@ -95,6 +126,15 @@ export class SettingsMenuScreen extends MercScreen {
     mainPanel.addControl(backButton)
   }
 
+  private createSlider(name: string, text: string, value: number): GUI.Slider {
+    const slider = new GUI.Slider(`${name}-Slider`)
+    slider.minimum = 0
+    slider.maximum = 100
+    slider.widthInPixels = 240
+    slider.heightInPixels = 24
+    slider.value = value
+    return slider
+  }
   private createMainMenuButton(name: string, text: string): GUI.Button {
     let button = GUI.Button.CreateSimpleButton(name, text);
     button.textBlock.fontFamily = "monospace"
