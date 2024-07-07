@@ -34,10 +34,10 @@ export class ShipCustomizerScene implements GameScene, IDisposable {
     this.screen.dispose()
     this.screen = undefined
 
-    this.meshedSystem.dispose()
     this.screenEntities.forEach((entity) => {
       world.remove(entity)
     })
+    this.meshedSystem.dispose()
   }
 
   onScreenEntityAdded = (entity: Entity) => {

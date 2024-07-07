@@ -8,11 +8,13 @@ const MainThemeSongFile = [
   "assets/music/GalacticDreams.mp3"
 ]
 const ActionSongFile = [
-  "assets/music/ActionSong_1.mp3",
+  "assets/music/GlitchyGroove.mp3",
+  "assets/music/HaircutsAndPixels.mp3",
+  "assets/music/GlitchInTheMachine.mp3",
 ]
 
 const HappySongFile = [
-  "assets/music/HappySong_1.mp3",
+  "assets/music/NebulaDreams.mp3",
 ]
 
 const WinStingerFile = [
@@ -30,7 +32,7 @@ const EncounterStingerFile = [
   "assets/music/EncounterStinger_2.wav",
 ]
 
-const BaseVolume = 0.2
+const BaseVolume = 0.5
 
 export class MusicPlayer {
 
@@ -62,7 +64,7 @@ export class MusicPlayer {
 
   updateVolume(volume: number) {
     if (this.currentSong != undefined) {
-      this.currentSong.setVolume(volume)
+      this.currentSong.setVolume(volume * BaseVolume)
     }
   }
 
@@ -89,7 +91,7 @@ export class MusicPlayer {
     this.currentSong = new Sound(type, song, undefined, undefined, {
       autoplay: true,
       loop: true,
-      volume: AppContainer.instance.volumes.music
+      volume: AppContainer.instance.volumes.music * BaseVolume
     })
     console.log("[Music Player] playing song", type)
   }
@@ -118,11 +120,11 @@ export class MusicPlayer {
     let stinger = new Sound(type, song, undefined, undefined, {
       autoplay: true,
       loop: false,
-      volume: AppContainer.instance.volumes.music,
+      volume: AppContainer.instance.volumes.music * BaseVolume,
     })
     stinger.onEndedObservable.addOnce(() => {
       if (this.currentSong) {
-        this.currentSong.setVolume(AppContainer.instance.volumes.music, 1)
+        this.currentSong.setVolume(AppContainer.instance.volumes.music * BaseVolume, 1)
       }
     })
     console.log("[Music Player] playing stinger", type)

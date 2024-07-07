@@ -23,7 +23,30 @@ import { ToRadians } from '../../utils/math';
 
 
 type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "Utility";
-
+const ComponentColours = {
+  Thruster: { r: 1.0, g: 0.0, b: 0.0 },    // Bright red
+  Afterburner: { r: 1.0, g: 0.5, b: 0.0 }, // Orange
+  Shields: { r: 0.0, g: 0.5, b: 1.0 },     // Sky blue
+  Engine: { r: 0.0, g: 0.8, b: 0.4 },      // Grey
+  PowerPlant: { r: 1.0, g: 1.0, b: 0.0 },  // Yellow
+  Radar: { r: 0.0, g: 1.0, b: 0.0 },       // Green
+  Gun: { r: 0.5, g: 0.0, b: 0.5 },         // Purple
+  Weapon: { r: 0.0, g: 0.0, b: 1.0 },      // Blue
+  Utility: { r: 0.75, g: 0.75, b: 0.75 }   // Light grey
+};
+const BackgroundColour = { r: 0.75, g: 0.75, b: 0.75 }
+const rgbToHex = (colour: {r: number, g: number, b: number}, alpha: number = 1): string => {
+  const { r, g, b } = colour
+  const toHex = (value: number) => {
+      const hex = Math.round(value * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+  };
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(alpha)}`;
+};
+const rgbToRGBAColor = (colour: {r: number, g: number, b: number}, alpha: number = 1) => {
+  const { r, g, b } = colour
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 export class ShipCustomizerScreen extends MercScreen {
   root: FlexContainer
   ship: ShipTemplate
@@ -75,10 +98,10 @@ export class ShipCustomizerScreen extends MercScreen {
         const rotationPerMs = ToRadians(360) / 10000
         const dt = ship.node.getEngine().getDeltaTime()
         ship.node.rotate(Axis.Y, rotationPerMs * dt)
-        ship.node.onDisposeObservable.addOnce(() => {
-          observer.remove()
-          observer = undefined
-        })
+      })
+      ship.node.onDisposeObservable.addOnce(() => {
+        observer.remove()
+        observer = undefined
       })
     })
   }
@@ -133,9 +156,9 @@ export class ShipCustomizerScreen extends MercScreen {
     const select = ButtonItem(Button(TextBlock("select", "Select", true), () => {
       // navigate to next screen
       let oldScene = AppContainer.instance.gameScene
+      oldScene.dispose()
       let nextScene = new SpaceCombatScene(this.ship)
       AppContainer.instance.gameScene = nextScene
-      oldScene.dispose()
     }), 120)
     bottomButtonSection.addControl(select)
 
@@ -189,23 +212,26 @@ export class ShipCustomizerScreen extends MercScreen {
     container.addControl(detailsSection)
   }
   statsSection(container: FlexContainer) {
-    container.addControl(this.textItem("name", `Ship Name: ${this.ship.name}`))
-    container.addControl(this.textItem("class", `Ship Class: ${this.ship.weightClass}`))
-    container.addControl(this.textItem("weight", `Ship Weight: ${this.ship.maxWeight} / ${this.ship.maxWeight}`))
+    let contentContainer = new FlexContainer()
+    contentContainer.background = rgbToHex(BackgroundColour, 0.25)
+    container.addControl(contentContainer)
+    contentContainer.addControl(this.textItem("name", `Ship Name: ${this.ship.name}`))
+    contentContainer.addControl(this.textItem("class", `Ship Class: ${this.ship.weightClass}`))
+    contentContainer.addControl(this.textItem("weight", `Ship Weight: ${this.ship.maxWeight} / ${this.ship.maxWeight}`))
     let row = new FlexContainer()
     row.style.setFlexDirection(FlexDirection.Row)
     row.addControl(this.textItem("cruise-label", `Cruise Speed:`, true))
     row.addControl(this.textItem("cruis-speed", `${this.ship.engineSlot.base.cruiseSpeed}.mps`, true))
-    container.addControl(row)
-    container.addControl(this.textItem("cruise", `Cruise Speed: ${this.ship.engineSlot.base.cruiseSpeed}.mps`))
-    container.addControl(this.textItem("max", `Max Speed: ${this.ship.afterburnerSlot.base.maxSpeed}.mps`))
-    container.addControl(this.textItem("flight", `-= Flight =-`))
-    container.addControl(this.textItem("pitch", `Pitch: ${this.ship.thrustersSlot.base.pitch}.dps`))
-    container.addControl(this.textItem("yaw", `Yaw: ${this.ship.thrustersSlot.base.yaw}.dps`))
-    container.addControl(this.textItem("roll", `Roll: ${this.ship.thrustersSlot.base.roll}.dps`))
-    container.addControl(this.textItem("durability", `-= Durability =-`))
-    container.addControl(this.textItem("shields fore", `Shields Fore: ${this.ship.shieldsSlot.base.fore/10}(cm)`))
-    container.addControl(this.textItem("shields aft",  `Shields Aft:  ${this.ship.shieldsSlot.base.aft/10}(cm)`))
+    contentContainer.addControl(row)
+    contentContainer.addControl(this.textItem("cruise", `Cruise Speed: ${this.ship.engineSlot.base.cruiseSpeed}.mps`))
+    contentContainer.addControl(this.textItem("max", `Max Speed: ${this.ship.afterburnerSlot.base.maxSpeed}.mps`))
+    contentContainer.addControl(this.textItem("flight", `-= Flight =-`))
+    contentContainer.addControl(this.textItem("pitch", `Pitch: ${this.ship.thrustersSlot.base.pitch}.dps`))
+    contentContainer.addControl(this.textItem("yaw", `Yaw: ${this.ship.thrustersSlot.base.yaw}.dps`))
+    contentContainer.addControl(this.textItem("roll", `Roll: ${this.ship.thrustersSlot.base.roll}.dps`))
+    contentContainer.addControl(this.textItem("durability", `-= Durability =-`))
+    contentContainer.addControl(this.textItem("shields fore", `Shields Fore: ${this.ship.shieldsSlot.base.fore/10}(cm)`))
+    contentContainer.addControl(this.textItem("shields aft",  `Shields Aft:  ${this.ship.shieldsSlot.base.aft/10}(cm)`))
   }
   printComponentModifier(name: string, modifier: ComponentModifier): FlexContainer {
     const container = new FlexContainer(`modifier-${name}`)
@@ -268,11 +294,13 @@ export class ShipCustomizerScreen extends MercScreen {
   filterComponentsSection: (type: StructureSlotType | undefined) => void
   componentsSection(container: FlexContainer) {
     const detailsSection = new FlexContainer("details")
+    detailsSection.background = rgbToHex(BackgroundColour, 0.25)
     detailsSection.style.setFlex(0.5)
     detailsSection.style.setGap(Gutter.Row, 15)
     detailsSection.style.setPadding(Edge.All, 15)
     container.addControl(detailsSection)
     const scrollview = FlexContainer.CreateScrollView("component-scrollview", container)
+    scrollview.background = rgbToHex(BackgroundColour, 0.25)
     this.selectComponent = (component: ModifierDetails) => {
       detailsSection.children.forEach((child) => {
         child.dispose().dispose()
@@ -325,7 +353,11 @@ export class ShipCustomizerScreen extends MercScreen {
       }
       if (component.type == "Utility") {
         const utility = component as UtilityModifierDetails
-        detailsSection.addControl(this.textItem("name", `${utility.name}`))
+        const utilityLabel = this.textblock("name", `${utility.name}`)
+        utilityLabel.heightInPixels = utilityLabel.fontSizeInPixels * 3
+        const utilityLabelItem = new FlexItem("name", utilityLabel)
+        utilityLabel.horizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER;
+        detailsSection.addControl(utilityLabelItem)
         if (utility.energy != undefined) {
           detailsSection.addControl(this.printComponentModifier("Energy", utility.energy))
         }
@@ -352,13 +384,15 @@ export class ShipCustomizerScreen extends MercScreen {
       scrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
           const button = child.item as GUI.Button
-          button.background = button.metadata == component.id ? "blue" : "gray"
+          button.background = button.metadata.id == component.id ? "blue" : rgbToHex(ComponentColours[button.metadata.type], 0.25)
         }
       })
     }
     const renderComponentGroups = (componentGroups: any) => {
       for (const componentGroup of componentGroups) {
-        scrollview.addControl(this.textItem(componentGroup.id, componentGroup.title))
+        const componentGroupName = this.textblock(componentGroup.id, componentGroup.title)
+        componentGroupName.heightInPixels = componentGroupName.fontSizeInPixels * 3
+        scrollview.addControl(new FlexItem(componentGroup.id, componentGroupName))
         for (const part of componentGroup.parts) {
           const [name, component] = part
           const buttonItem = this.buttonItem(`${componentGroup.id}-${component.name}`, `${component.name}`, () => {
@@ -369,7 +403,12 @@ export class ShipCustomizerScreen extends MercScreen {
               this.addShipSections(this.rightScroll)
             }
           }, 50)
-          buttonItem.item.metadata = name
+          buttonItem.item.metadata = {
+            id: name,
+            type: componentGroup.id
+          }
+          let componentButton = buttonItem.item as GUI.Button
+          componentButton.background = rgbToHex(ComponentColours[componentGroup.id], 0.25)
           this.draggableFlexItem(buttonItem, [this.centerScroll, this.shipSlotContainer], this.shipSlots, () => {
             this.selectComponent(component)
             let proxy = new GUI.Rectangle(`${name}-proxy`);
@@ -724,23 +763,29 @@ export class ShipCustomizerScreen extends MercScreen {
     const sections = ["Front", "Core", "Left", "Right", "Back"]
     this.shipSlots = []
     this.shipSlotContainer = container
+    container.style.setJustifyContent(Justify.Center)
     sections.forEach((sectionName, index) => {
       const rectangle = new GUI.Rectangle(`${sectionName}-rectangle`)
       const sectionContainer = new FlexContainer(`${sectionName}-container`, undefined, rectangle)
+      sectionContainer.background = rgbToHex(BackgroundColour, 0.25)
+      sectionContainer.style.setJustifyContent(Justify.Center)
       rectangle.thickness = 1
       
       const armor = this.ship.structure[sectionName.toLowerCase()].armor
-      const sectionNameTextItem = this.textItem(sectionName, sectionName)
-      const sectionTextblock = sectionNameTextItem.item as GUI.TextBlock
-      sectionTextblock.resizeToFit = true
-      sectionTextblock.forceResizeWidth = true
-      sectionTextblock.onAfterDrawObservable.addOnce(() => {
-        sectionTextblock.markAsDirty()
-      })
+      const sectionTextblock = this.textblock(sectionName, sectionName)
+      sectionTextblock.heightInPixels = sectionTextblock.fontSizeInPixels * 3
+      const sectionNameTextItem = new FlexItem(sectionName, sectionTextblock)
+      sectionTextblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+      // sectionTextblock.resizeToFit = true
+      // sectionTextblock.forceResizeWidth = true
+      // sectionTextblock.onAfterDrawObservable.addOnce(() => {
+        // sectionTextblock.markAsDirty()
+      // })
       sectionContainer.addControl(sectionNameTextItem)
       if (armor != undefined) {
         const armorContainer = new FlexContainer(`${sectionName}-armor-container`, undefined, undefined, FlexDirection.Row)
         armorContainer.style.setAlignItems(Align.Center)
+        armorContainer.style.setJustifyContent(Justify.Center)
         
         const armorTextBlock: GUI.TextBlock = this.textblock(`${sectionName}-armor`, `${armor}(cm)`)
         const armorTextItem = new FlexItem(`${sectionName}-armor`, armorTextBlock)
@@ -844,6 +889,8 @@ export class ShipCustomizerScreen extends MercScreen {
         slotTextBlock.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_CENTER
         const slotButton = new GUI.Button(`${sectionName}-slot-${i}`)
         slotButton.heightInPixels = 50
+        const slotShadowBlock = this.shadowblock(slotTextBlock)
+        slotButton.addControl(slotShadowBlock);
         slotButton.addControl(slotTextBlock);
         (slotButton as any)._textBlock = slotTextBlock
         slotTextItem = new FlexItem(`${sectionName}-slot-${i}`, slotButton)
@@ -852,6 +899,8 @@ export class ShipCustomizerScreen extends MercScreen {
           type: slotType,
           slotIndex: i
         }
+        const slotColor = ComponentColours[slotType]
+        slotButton.background = rgbToHex(slotColor, 0.25)
         const listener = slotButton.onPointerClickObservable.add(() => {
           this.selectShipSection(slotTextItem)
           this.selectMenuSection(this.MenuSections.Components)
@@ -889,10 +938,15 @@ export class ShipCustomizerScreen extends MercScreen {
             name = utility.name
           }
           slotTextBlock = this.textblock(`${name}-${sectionName}-slot-${i}`, `- ${slotIcon}[ ${name}`)
+          slotTextBlock.shadowColor = "black"
           slotTextBlock.resizeToFit = false
           slotTextBlock.heightInPixels = 50
           slotTextBlock.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_CENTER
           const slotButton = new GUI.Button(`${name}-${sectionName}-slot-${i}`)
+          const slotColor = ComponentColours[slotType]
+          slotButton.background = rgbToHex(slotColor, 0.25)
+          const slotShadowBlock = this.shadowblock(slotTextBlock)
+          slotButton.addControl(slotShadowBlock);
           slotButton.addControl(slotTextBlock);
           (slotButton as any)._textBlock = slotTextBlock
           slotButton.heightInPixels = 50
@@ -945,7 +999,11 @@ export class ShipCustomizerScreen extends MercScreen {
           slotTextBlock.resizeToFit = false
           slotTextBlock.heightInPixels = 50
           slotTextBlock.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_CENTER
+          const slotShadowBlock = this.shadowblock(slotTextBlock)
           const slotButton = new GUI.Button(`${name}-${sectionName}-slot-${i}`)
+          const slotColor = ComponentColours[slotType]
+          slotButton.background = rgbToHex(slotColor, 0.25)
+          slotButton.addControl(slotShadowBlock);
           slotButton.addControl(slotTextBlock);
           (slotButton as any)._textBlock = slotTextBlock
           slotButton.heightInPixels = 50
@@ -995,8 +1053,12 @@ export class ShipCustomizerScreen extends MercScreen {
           slotTextBlock.resizeToFit = false
           slotTextBlock.heightInPixels = 50
           slotTextBlock.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_CENTER
+          const slotShadowBlock = this.shadowblock(slotTextBlock)
           const slotButton = new GUI.Button(`${name}-${sectionName}-slot-${i}`)
+          const slotColor = ComponentColours[slotType]
+          slotButton.background = rgbToHex(slotColor, 0.25)
           slotButton.heightInPixels = 50
+          slotButton.addControl(slotShadowBlock);
           slotButton.addControl(slotTextBlock);
           (slotButton as any)._textBlock = slotTextBlock
           slotTextItem = new FlexItem(`${name}-${sectionName}-slot-${i}`, slotButton)
@@ -1140,6 +1202,22 @@ export class ShipCustomizerScreen extends MercScreen {
       text1.resizeToFit = true
       // text1.forceResizeWidth = true
     }
+    return text1
+  }
+  shadowblock(textBlock: GUI.TextBlock): GUI.TextBlock {
+    const text1 = new GUI.TextBlock(textBlock.name, textBlock.text)
+    text1.textWrapping = GUI.TextWrapping.WordWrap
+    text1.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
+    // text1.textVerticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_TOP
+    text1.fontFamily = "Regular5"
+    text1.fontSizeInPixels = 15
+    text1.color = "black"
+    if (textBlock.resizeToFit) {
+      text1.resizeToFit = true
+      // text1.forceResizeWidth = true
+    }
+    text1.topInPixels = 2
+    text1.leftInPixels = 2
     return text1
   }
 }

@@ -26,7 +26,7 @@ export function Button(textBlock: GUI.TextBlock, onClick: () => void, height: nu
   const button = new GUI.Button(`${textBlock.name}-button`);
   (button as any)._textBlock = textBlock
   button.addControl(textBlock)
-  textBlock.leftInPixels = 15
+  // textBlock.leftInPixels = 15
   button.heightInPixels = height
   let observer = button.onPointerClickObservable.add(() => {
     onClick()
