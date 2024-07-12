@@ -10,7 +10,7 @@ const hitWorldResult = new ShapeCastResult()
 const DEFAULT_ROTATION = Quaternion.Zero()
 export function particleSystem() {
   for (const entity of queries.particle) {
-    const { position, particleRange } = entity
+    const { position, particleRange, body } = entity
     if (position == undefined) {
       // lul wut
       world.removeComponent(entity, "particleRange")
@@ -20,6 +20,10 @@ export function particleSystem() {
       console.log("[Particle System] dead particle found and removed")
       queries.particle.remove(entity)
       // skipping dead particle
+      continue
+    }
+    if (body == undefined) {
+      // mesh system hasn't gotten to the entity yet
       continue
     }
     shapeLocalResult.reset()

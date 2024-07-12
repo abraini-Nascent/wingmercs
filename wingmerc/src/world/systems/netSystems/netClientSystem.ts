@@ -55,7 +55,7 @@ export function netSyncClientSystem(dt: number) {
       }
       PERFTEST || console.timeEnd("[net] client frame decode")
     }
-    net.onData = onIncData
+    net.onData(onIncData)
   }
   acc += dt
   if (acc < NetTikMili) {

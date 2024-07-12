@@ -1,8 +1,6 @@
-import { Entity, FuelTank, NerdStats, Score, ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "../world/world";
+import { Entity, NerdStats, Score, world } from "../world/world";
 import { net } from "../world/systems/netSystems/net";
 import { Dirk } from "../data/ships";
-import * as Guns from "../data/guns";
-import { Gun } from "../data/guns/gun";
 import { createCustomShip } from "../world/factories";
 import { ShipTemplate } from "../data/ships/shipTemplate";
 
@@ -46,13 +44,14 @@ export class PlayerAgent {
       owner: net.id,
       totalScore: 0,
       visible: false,
+      setSpeed: 0,
       score: { livesLeft: 0, timeLeft: 0, total: 0 } as Score,
       vduState: {
         left: "weapons",
         right: "target"
       },
       isTargetable: "player",
-    })
+    } as Partial<Entity>)
 
     // remove ai components
     world.removeComponent(playerEntity, "ai") // do friendly ai wingmen need to player to have this?

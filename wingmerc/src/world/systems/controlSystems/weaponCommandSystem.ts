@@ -1,5 +1,5 @@
 import { IDisposable, Vector3 } from "@babylonjs/core"
-import { CreateEntity, Entity, EntityUUID, queries, world } from "../../world"
+import { CreateEntity, Entity, EntityUUID, HandoffEntity, queries, world } from "../../world"
 import * as Guns from "../../../data/guns"
 import * as Weapons from "../../../data/weapons"
 import { Gun } from "../../../data/guns/gun"
@@ -13,6 +13,7 @@ import {
 } from "../../../utils/math"
 import { applyModifier } from "../../factories"
 import { nearestEnemy } from "../ai/shipIntelligence"
+import { net } from "../netSystems/net"
 
 export class WeaponCommandSystem implements IDisposable {
   constructor() {
@@ -104,7 +105,7 @@ export class WeaponCommandSystem implements IDisposable {
           z: position.z + gunPosition.z,
         }
         // create particle
-        CreateEntity({
+        let particle = CreateEntity({
           // meshName: "meteor", // use meteor for now
           targetName: "",
           meshColor: { r: 100 / 255, g: 10 / 255, b: 10 / 255, a: 1 },
@@ -143,6 +144,9 @@ export class WeaponCommandSystem implements IDisposable {
           physicsRadius: .5,
           bodyType: "animated",
         })
+        if (AppContainer.instance.multiplayer && AppContainer.instance.server == false) {
+          HandoffEntity(particle)
+        }
         let laserSound = SoundEffects.Laser()
         laserSound.spatialSound = true
         laserSound.setPosition(
@@ -228,7 +232,7 @@ export class WeaponCommandSystem implements IDisposable {
           target = nearestTarget.id
         }
         // create missile
-        CreateEntity({
+        const weaponEntity = CreateEntity({
           targetName: `${weaponClass.name} missile`,
           originatorId: entity.id,
           position: { ...startPosition },
@@ -282,6 +286,9 @@ export class WeaponCommandSystem implements IDisposable {
           isTargetable: "missile",
           // bodyType: "animated"
         })
+        if (AppContainer.instance.multiplayer && AppContainer.instance.server == false) {
+          HandoffEntity(weaponEntity)
+        }
       }
     }
     // locking

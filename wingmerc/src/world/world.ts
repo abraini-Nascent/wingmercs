@@ -384,6 +384,17 @@ export const CreateEntity = (entity: Partial<Entity>): Entity => {
   world.add(entity as Entity)
   return entity as Entity
 }
+export const HandoffEntity = (entity: Entity): Entity => {
+  entity.local = true
+  entity.relinquish = true
+  entity.owner = net.id
+  return entity
+}
+export const LocalEntity = (entity: Entity): Entity => {
+  entity.local = true
+  entity.owner = net.id
+  return entity
+}
 export const EntityForId = (id: string) => {
   return worldIds.get(id) as Entity
 }
@@ -395,7 +406,7 @@ const DeepCloneTransform = (value) => { return structuredClone(value) }
 SerializableType("GFrame")
 // net code components
 SerializeAs("GFrame", "id")
-SerializeAs("GFrame", "local")
+// SerializeAs("GFrame", "local") // local belongs to the client only
 SerializeAs("GFrame", "owner")
 SerializeAs("GFrame", "relinquish")
 
@@ -438,11 +449,12 @@ SerializeAs("GFrame", "movementCommand")
 SerializeAs("GFrame", "fireCommand")
 
 // Modeling and Rendering Components
-SerializeAs("GFrame", "visible")
+// SerializeAs("GFrame", "visible") // only used in local game to hide cockpit
 SerializeAs("GFrame", "scale")
 SerializeAs("GFrame", "shieldMeshName")
 SerializeAs("GFrame", "physicsMeshName")
 SerializeAs("GFrame", "physicsRadius")
+SerializeAs("GFrame", "bodyType")
 SerializeAs("GFrame", "meshName")
 SerializeAs("GFrame", "meshColor")
 SerializeAs("GFrame", "nerdStats")
