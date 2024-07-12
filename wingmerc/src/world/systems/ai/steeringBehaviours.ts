@@ -174,7 +174,7 @@ export namespace SteeringBehaviours {
       gunsSpeed) ?? Vector3FromObj(targetEntity.position)
     const directionToIntercept = targetInterceptPosition.subtractToRef(currentPosition, TmpVectors.Vector3[0]).normalizeToRef(TmpVectors.Vector3[0])
     const angleToIntercept = AngleBetweenVectors(currentDirection, directionToIntercept)
-    // console.log(`[SteeringBehaviours] Ship ${world.id(entity)} angle to intercept`, ToDegree(angleToIntercept))
+    // console.log(`[SteeringBehaviours] Ship ${entity.id} angle to intercept`, ToDegree(angleToIntercept))
     const firePosition = angleToIntercept < ToRadians(2.5)
     const result = seek(dt, currentPosition, currentRotation, targetInterceptPosition, targetUp, clampStrategy)
     result.firePosition = firePosition
@@ -204,20 +204,20 @@ export namespace SteeringBehaviours {
       Vector3FromObj(targetEntity.velocity),
       Vector3FromObj(entity.velocity).length()) ?? Vector3FromObj(targetEntity.position) // is this right?
     if (AppContainer.instance.debug) {
-      let mesh = firstOrderInterceptDebugBoxes[world.id(entity)]
+      let mesh = firstOrderInterceptDebugBoxes[entity.id]
       if (mesh == undefined) {
         mesh = MeshBuilder.CreateBox("firstOrderInterceptPosition", {size: 1})
-        firstOrderInterceptDebugBoxes[world.id(entity)] = mesh
+        firstOrderInterceptDebugBoxes[entity.id] = mesh
       }
       mesh.position.copyFrom(targetInterceptPosition)
     }
     
     const offsetPosition = calculateOffsetTargetPosition(targetInterceptPosition, targetRotation, offset)
     if (AppContainer.instance.debug) {
-      let mesh = offsetPursuitDebugBoxes[world.id(entity)]
+      let mesh = offsetPursuitDebugBoxes[entity.id]
       if (mesh == undefined) {
         mesh = MeshBuilder.CreateBox("offsetPursuitOffsetPosition", {size: 1})
-        offsetPursuitDebugBoxes[world.id(entity)] = mesh
+        offsetPursuitDebugBoxes[entity.id] = mesh
       }
       mesh.position.copyFrom(offsetPosition)
     }
@@ -348,7 +348,7 @@ export namespace SteeringBehaviours {
       const avoidanceForce = avoidanceDirection.scale(entityVelocity.length());
 
       // If we are going to run into something in two seconds, turn
-      console.log("[SteeringBehaviours] !!! Avoid Avoid Avoid !!!", world.id(entity), closestCollisionTime)
+      console.log("[SteeringBehaviours] !!! Avoid Avoid Avoid !!!", entity.id, closestCollisionTime)
       return {
         pitch: 1,
         yaw: 1,

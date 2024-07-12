@@ -1,5 +1,5 @@
 import { Entity, FuelTank, NerdStats, Score, ShipArmor, ShipGuns, ShipShields, ShipSystems, world } from "../world/world";
-import { net } from "../net";
+import { net } from "../world/systems/netSystems/net";
 import { Dirk } from "../data/ships";
 import * as Guns from "../data/guns";
 import { Gun } from "../data/guns/gun";
@@ -8,6 +8,7 @@ import { ShipTemplate } from "../data/ships/shipTemplate";
 
 export class PlayerAgent {
   playerEntity: Entity
+  static playerName: string = "Player"
 
   constructor(planeTemplate?: ShipTemplate) {
 
@@ -40,7 +41,7 @@ export class PlayerAgent {
     // world.addComponent(ship, "playerId", net.id)
     world.update(playerEntity, {
       nerdStats: stats,
-      targetName: "player",
+      targetName: PlayerAgent.playerName,
       local: true,
       owner: net.id,
       totalScore: 0,

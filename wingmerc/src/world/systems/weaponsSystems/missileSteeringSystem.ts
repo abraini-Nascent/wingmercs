@@ -1,7 +1,7 @@
 import * as Weapons from "../../../data/weapons"
 import { Weapon } from '../../../data/weapons/weapon';
 import { Vector3 } from "@babylonjs/core"
-import { queries, world } from "../../world"
+import { EntityForId, queries, world } from "../../world"
 import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../../utils/math";
 import { SoundEffects } from "../../../utils/sounds/soundEffects";
 import { registerHit } from "../../damage";
@@ -30,7 +30,7 @@ export function missileSteeringSystem(dt: number) {
     const weaponClass = Weapons[missileRange.type] as Weapon
     if (missileRange.total > 200) { // minimum range before warhead is active
       for (const possibleTarget of queries.damageable) {
-        if (""+world.id(possibleTarget) != entity.originatorId) {
+        if (possibleTarget.id != entity.originatorId) {
           const possibleTargetPosition = Vector3FromObj(possibleTarget.position)
           const distance = end.subtract(possibleTargetPosition).length()
 
@@ -41,7 +41,7 @@ export function missileSteeringSystem(dt: number) {
             if (possibleTarget.nerdStats) {
               possibleTarget.nerdStats.missilesEaten += 1
             }
-            const shooter = world.entity(parseInt(entity.originatorId))
+            const shooter = EntityForId(entity.originatorId)
             if (shooter?.nerdStats) {
               shooter.nerdStats.missilesHit += 1
             }
@@ -58,7 +58,7 @@ export function missileSteeringSystem(dt: number) {
     // steer the missile
     // TODO: I think this should be a generic "guided" property
     if (weaponClass.type == "heatseeking") {
-      const target = world.entity(missileRange.target)
+      const target = EntityForId(missileRange.target)
       if (target == undefined) {
         // maybe the target deaded?
         console.log("[MissileSystem] exploded")
@@ -93,7 +93,7 @@ export function missileSteeringSystem(dt: number) {
     missileRange.total += delta
     missileRange.lastPosition = { x: position.x, y: position.y, z: position.z }
     if (missileRange.total >= missileRange.max) {
-      const dodger = world.entity(entity.targeting?.target)
+      const dodger = EntityForId(entity.targeting?.target)
       if (dodger?.nerdStats) {
         dodger.nerdStats.missilesDodged += 1
       }

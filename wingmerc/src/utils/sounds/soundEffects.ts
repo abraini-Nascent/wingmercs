@@ -100,7 +100,6 @@ export namespace SoundEffects {
   }
   export function effectsVolume(): number {
     let volume = AppContainer.instance.volumes.global * AppContainer.instance.volumes.sound
-    console.log("[SoundEffects] using volume", volume)
     return volume
   }
   export function Laser(): Sound {

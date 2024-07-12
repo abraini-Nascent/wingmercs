@@ -1,12 +1,12 @@
 import { IDisposable, Mesh, PhysicsBody, PhysicsMotionType, PhysicsShapeContainer, PhysicsShapeConvexHull, PhysicsShapeMesh, PhysicsShapeSphere, Quaternion, TransformNode, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../../world"
+import { Entity, EntityUUID, queries, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { AppContainer } from "../../../app.container"
 import { ToRadians } from "../../../utils/math";
 
 declare module '@babylonjs/core' {
   interface PhysicsBody {
-    entityId: number;
+    entityId: EntityUUID;
   }
 }
 let i = 0
@@ -27,7 +27,7 @@ export class UpdatePhysicsSystem implements IDisposable {
 
   private physicsOnEntityAdded = (entity: Entity) => {
     const { node, bodyType } = entity
-    console.log(`[PhysicsSystem] creating body for [${world.id(entity)}]"${entity.targetName}"`)
+    console.log(`[PhysicsSystem] creating body for [${entity.id}]"${entity.targetName}"`)
     // create the body
     let physicsType = PhysicsMotionType.DYNAMIC
     if (bodyType == "static") {
@@ -74,7 +74,7 @@ export class UpdatePhysicsSystem implements IDisposable {
     }
     console.log(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
     body.shape = hullShape
-    body.entityId = world.id(entity)
+    body.entityId = entity.id
     body.setCollisionCallbackEnabled(true)
     setInterval(()=> {
       body.transformNode.rotate(Vector3.Forward(true), ToRadians(1))

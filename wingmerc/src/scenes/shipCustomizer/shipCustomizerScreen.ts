@@ -16,7 +16,7 @@ import * as GunAffixes from '../../data/affixes/gunAffixes';
 import { Weapon } from '../../data/weapons/weapon';
 import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from '../../world/factories';
 import { GunAffix } from '../../data/affixes/gunAffix';
-import { world } from '../../world/world';
+import { CreateEntity, world } from '../../world/world';
 import { Button, ButtonItem, TextBlock } from '../components';
 import { ShipSelectionScene } from './shipSelection/shipSelectionLoop';
 import { ToRadians } from '../../utils/math';
@@ -82,7 +82,7 @@ export class ShipCustomizerScreen extends MercScreen {
   }
 
   setupModel() {
-    let ship = world.add({
+    let ship = CreateEntity({
       meshName: this.ship.modelDetails.base,
       position: { x: 0, y: 0, z: -50 }
     })

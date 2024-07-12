@@ -8,8 +8,8 @@ import { AppContainer } from "./app.container";
 export class DebugConsole {
   constructor() {
   }
-  spawnMissile(target?: number) {
-    let toHit = target ?? world.id(AppContainer.instance.player.playerEntity)
+  spawnMissile(target?: string) {
+    let toHit = target ?? AppContainer.instance.player.playerEntity.id
     const firingEntity: Pick<Entity, "targeting" | "rotationQuaternion" | "direction" | "rotation" > = {
       direction: Vector3.Forward(),
       rotationQuaternion: Vector3.Forward().toQuaternion(),

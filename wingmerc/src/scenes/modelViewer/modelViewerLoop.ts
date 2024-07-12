@@ -5,7 +5,7 @@ import { AppContainer } from "../../app.container";
 import { ModelViewerScreen } from './modelViewerScreen';
 import { ArcRotateCamera, Axis, Color3, DeviceSourceManager, DeviceType, IDisposable, Material, Mesh, MeshBuilder, Ray, Sound,  Space,  StandardMaterial,  Texture,  Vector3 } from '@babylonjs/core';
 import { ToRadians } from '../../utils/math';
-import { Entity, world } from '../../world/world';
+import { CreateEntity, Entity, world } from '../../world/world';
 import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
 import { Broadsword, Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02, Rapier, Saber } from '../../data/ships';
 import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
@@ -90,7 +90,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
     // appContainer.camera = new ArcFollowCamera("ModelViewerCamera", ToRadians(45), 0, Radius, box, appContainer.scene)
     appContainer.camera.attachControl()
     appContainer.camera.maxZ = 50000
-    this.cameraEntity = world.add({
+    this.cameraEntity = CreateEntity({
       targetName: "debug camera",
       camera: "debug"
     })
@@ -224,7 +224,7 @@ export class ModelViewerScene implements GameScene, IDisposable {
         // const intersects = ray.intersectsMesh(this.ship.physicsMesh)
         if (pickedInfo.hit) {
           console.log(pickedInfo.pickedPoint)
-          registerHit(this.ship, {damage: 20, originatorId: "-1"}, pickedInfo.pickedPoint)
+          registerHit(this.ship, {damage: 20, originatorId: ""}, pickedInfo.pickedPoint)
           // let box = MeshBuilder.CreateBox("test box", { size: 1 })
           // box.position.copyFrom(pickedInfo.pickedPoint)
         }

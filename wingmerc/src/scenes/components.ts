@@ -1,6 +1,16 @@
 import * as GUI from "@babylonjs/gui"
 import { FlexContainer, FlexDirection, FlexItem } from "../utils/guiHelpers"
 
+export function MainMenuButton(name: string, text: string): GUI.Button {
+  let button = GUI.Button.CreateSimpleButton(name, text);
+  button.textBlock.fontFamily = "Regular5"
+  button.textBlock.color = "gold"
+  button.textBlock.fontSizeInPixels = 15
+  button.heightInPixels = 40
+  button.widthInPixels = 280
+  button.background = "dark blue"
+  return button
+}
 export function clearSection(section: FlexContainer) {
   section.children.forEach((child) => {
     console.log("removing", child)
@@ -41,7 +51,9 @@ export function Button(textBlock: GUI.TextBlock, onClick: () => void, height: nu
 export function TextItem(textBlock: GUI.TextBlock): FlexItem {
   const textFlexItem = new FlexItem(`${textBlock.name}-flex`, textBlock)
   textFlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
-    textBlock.widthInPixels = width
+    if (textBlock.resizeToFit == false) {
+      textBlock.widthInPixels = width
+    }
     textBlock.heightInPixels = textBlock.computeExpectedHeight()
     return { width: textBlock.widthInPixels, height: textBlock.computeExpectedHeight() }
   }
@@ -73,7 +85,7 @@ export function TextBlock(name: string, text: string, fit: boolean = false, styl
   text1.color = style.color
   if (fit) {
     text1.resizeToFit = true
-    // text1.forceResizeWidth = true
+    text1.forceResizeWidth = true
   }
   return text1
 }

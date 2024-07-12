@@ -2,8 +2,8 @@ import { ComponentModifier, GunMounts, GunSelection, GunTier, ShipStructureSecti
 import { ShipTemplate } from "../data/ships/shipTemplate"
 import * as GunData from "../data/guns"
 import { Gun, GunStats, GunType, Guns } from "../data/guns/gun"
-import { Entity, FuelTank, ShipArmor, ShipEngine, ShipGunAmmoCounts, ShipGuns, ShipGunsMount, ShipPowerPlant, ShipShields, ShipSystems, ShipThrusters, ShipUtilities, ShipUtility, ShipWeaponMount, ShipWeapons, world } from "./world"
-import { net } from "../net"
+import { CreateEntity, Entity, FuelTank, ShipArmor, ShipEngine, ShipGunAmmoCounts, ShipGuns, ShipGunsMount, ShipPowerPlant, ShipShields, ShipSystems, ShipThrusters, ShipUtilities, ShipUtility, ShipWeaponMount, ShipWeapons, world } from "./world"
+import { net } from "./systems/netSystems/net"
 import * as WeaponData from '../data/weapons';
 import { Weapon, WeaponType } from '../data/weapons/weapon';
 import * as GunAffixes from '../data/affixes/gunAffixes';
@@ -271,7 +271,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       weapons: ship.systems.base.weapons,
     }
   }
-  const enemyEntity = world.add({
+  const enemyEntity = CreateEntity({
     owner: net.id,
     local: true,
     teamId: teamId,
@@ -315,7 +315,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       missileLocked: false,
       targetingDirection: { x: 0, y: 0, z: -1 },
       gunInterceptPosition: undefined,
-      target: -1,
+      target: "",
       locked: false,
       targetingTime: 0,
     },
@@ -344,12 +344,12 @@ export function createLiveWeapon(weaponClass: Weapon, firingEntity: Entity, star
     // find nearest enemy
     const nearestTarget = nearestEnemy(firingEntity, weaponClass.range)
     console.log("[weaponCommandSystem] targeting nearest enemy", target)
-    target = world.id(nearestTarget)
+    target = nearestTarget.id
   }
   // create missile
-  let entity = world.add({
+  let entity = CreateEntity({
     targetName: `${weaponClass.name} missile`,
-    originatorId: "" + world.id(firingEntity),
+    originatorId: firingEntity.id,
     position: { ...startPosition },
     direction: {
       x: direction.x,

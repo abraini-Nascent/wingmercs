@@ -83,6 +83,9 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] fof targeting friend if radio damaged
 - [ ] heat tracking new target if stronger signal in range
 - [ ] ship turrets
+- [ ] performance
+  - [ ] world.update takes ~0.15ms when there are many entities. ship ai and movement command are the largest abusers of update. update should only be used when reindexing. none of our queries have a predicate. a simpler "add component if needed" might be better
+  - [ ] server net frame encode takes 0.398 ms, decode 0.033 ms
 ## TODO:
 
 ### next demo
@@ -102,19 +105,33 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] utility items
 - [x] named guns like diablo (they are called "affixes")
 - [x] tiers for guns
-- [] polish and juice
+- [x] polish and juice
   - [x] individual voices for pilots
   - [x] dynamic backgrounds?
     - [x] points of interest
   - [x] hide trails when drifting
   - [x] color code slot types in ship customization
   - [x] better chiptune music
-- [ ] bugs
+- [x] bugs
   - [x] eject warning not working
   - [x] incoming missile warning not working
   - [x] selection ships still visible after launch
     - [x] customization ship not appearing
   - [x] no way back from ship selection and ship customization
+
+### multiplayer detour
+- [x] fix net and sync systems
+- [x] support multiple clients (3+ players)
+- [ ] recreate multiplayer menu
+  - [ ] allow custom room names
+  - [ ] allow custom player names
+  - [ ] sync start game
+- [x] friendly players on same team
+  - [x] friendly players BLUE target box
+  - [x] friendly players no missile lock
+  - [x] friendly players name in target box
+- [ ] kill ship to revive downed friendly player
+
 ### next demo
 - [] dynamic missions - instant action mode
 - [] command wingmen

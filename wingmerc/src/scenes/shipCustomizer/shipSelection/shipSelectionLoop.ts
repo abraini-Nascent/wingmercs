@@ -4,7 +4,7 @@ import { AppContainer } from "../../../app.container";
 import { ShipSelectionScreen } from './shipSelectionScreen';
 import { IDisposable} from '@babylonjs/core';
 import { MeshedSystem } from '../../../world/systems/renderSystems/meshedSystem';
-import { Entity, world } from '../../../world/world';
+import { CreateEntity, Entity, world } from '../../../world/world';
 import * as Ships from "../../../data/ships";
 import { ShipDetails } from '../../../data/ships/shipTemplate';
 
@@ -56,7 +56,7 @@ export class ShipSelectionScene implements GameScene, IDisposable {
     const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
     for (const ship of ships) {
       const shipData = Ships[ship] as ShipDetails
-      this.shipModels[ship] = world.add({
+      this.shipModels[ship] = CreateEntity({
         meshName: shipData.modelDetails.base
       })
     }

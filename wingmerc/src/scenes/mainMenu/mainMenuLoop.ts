@@ -2,7 +2,7 @@ import { DriftTrailSystem } from './../../world/systems/renderSystems/driftTrail
 import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { MainMenuScreen } from "./mainMenuScreen";
-import { Entity, queries, world } from "../../world/world";
+import { CreateEntity, Entity, queries, world } from "../../world/world";
 import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
 import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
 import { powerPlantRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
@@ -71,7 +71,7 @@ export class MainMenuScene implements IDisposable {
 
     appContainer.camera.attachControl()
     appContainer.camera.maxZ = 50000
-    this.cameraEntity = world.add({
+    this.cameraEntity = CreateEntity({
       targetName: "debug camera",
       camera: "debug"
     })

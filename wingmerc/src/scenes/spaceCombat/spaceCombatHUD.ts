@@ -3,7 +3,7 @@ import { AdvancedDynamicTexture, Button, InputText, TextBlock } from "@babylonjs
 import * as GUI from "@babylonjs/gui"
 import { Color4, DynamicTexture, EngineStore, Frustum, ICanvasRenderingContext, IImage, Matrix, Observer, Quaternion, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
-import { Display, Entity, queries, world } from "../../world/world";
+import { Display, Entity, EntityUUID, queries, world } from "../../world/world";
 import * as Ships from "../../data/ships";
 import { QuaternionFromObj, ToDegree, ToDegree360, Vector3FromObj } from "../../utils/math";
 import { Interceptor } from "../../utils/pipeline";
@@ -49,7 +49,7 @@ export class CombatHud {
   rightVDU: Display = "target"
   statsVDU: StatsVDU
   registerHitInterceptor: InterceptorSubscription
-  hitPlayer: Set<number> = new Set()
+  hitPlayer: Set<EntityUUID> = new Set()
   flashTimer = 0
   gameover: boolean = false
   _getReady: boolean = false
@@ -57,8 +57,8 @@ export class CombatHud {
   constructor() {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
     this.gui = advancedTexture
-    this.registerHitInterceptor = interceptEvent("registerHit", (input: { victim: number, shooter: number }) => {
-      if (input.victim == world.id(AppContainer.instance.player.playerEntity)) {
+    this.registerHitInterceptor = interceptEvent("registerHit", (input: { victim: EntityUUID, shooter: EntityUUID }) => {
+      if (input.victim == AppContainer.instance.player.playerEntity.id) {
         this.hitPlayer.add(input.shooter)
       }
       return input

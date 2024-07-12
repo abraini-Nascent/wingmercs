@@ -1,7 +1,7 @@
 import { TextBlock } from "@babylonjs/gui";
 import * as GUI from "@babylonjs/gui"
 import { Vector3 } from "@babylonjs/core";
-import { Entity, world } from "../../world/world";
+import { Entity, EntityForId, world } from "../../world/world";
 import * as Ships from "../../data/ships";
 import { StaticVDU } from "./spaceCombatHUD.StaticVDU";
 import { rand, random } from "../../utils/random";
@@ -104,7 +104,7 @@ export class TargetVDU {
 
   update(playerEntity: Entity, dt: number) {
     
-    if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == -1) {
+    if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == "") {
       this.updateTargetType(playerEntity)
       this.lockName.text = "[ no target ]"
       this.lockDistance.text = "----- m"
@@ -114,7 +114,7 @@ export class TargetVDU {
       return 
     }
     this.updateTargetType(playerEntity)
-    let targetEntity = world.entity(playerEntity.targeting.target)
+    let targetEntity = EntityForId(playerEntity.targeting.target)
     if (targetEntity == undefined) {
       this.lockName.text = "[ no target ]"
       this.lockDistance.text = "----- m"

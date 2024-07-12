@@ -4,12 +4,18 @@ import { demoLeaderAI } from './demoLeaderAI';
 import { demoWingmanAI } from './demoWingmanAI';
 import { deathRattleAI } from './deathRattleAI';
 import { shipIntelligence } from "./shipIntelligence";
+import { AppContainer } from "../../../app.container";
+import { net } from "../netSystems/net";
 
 /**
  * 
  * @param dt delta time in milliseconds
  */
 export function aiSystem(dt: number) {
+  if (AppContainer.instance.multiplayer && AppContainer.instance.server == false) {
+    // only the server runs ai
+    return
+  }
   for (const entity of queries.ai) {
     const { ai } = entity
     // update delta time in blackboard

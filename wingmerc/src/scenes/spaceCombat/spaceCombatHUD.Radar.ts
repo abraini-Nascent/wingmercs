@@ -1,7 +1,7 @@
 import * as GUI from "@babylonjs/gui"
 import { Color3, Color4, DynamicTexture, Quaternion, Sound, TmpVectors, Vector2, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
-import { Entity, queries, world } from "../../world/world";
+import { Entity, EntityUUID, queries, world } from "../../world/world";
 import { QuaternionFromObj, ToDegree, ToDegree360, Vector3FromObj } from "../../utils/math";
 import { DynamicTextureImage, TextSizeAnimationComponent, TintedImage } from '../../utils/guiHelpers';
 import { SoundEffects } from "../../utils/sounds/soundEffects";
@@ -102,7 +102,7 @@ export class RadarDisplay {
     this.panel.addControl(radarImage)
   }
 
-  update(playerEntity: Entity, hitPlayer: Set<number>, dt: number) {
+  update(playerEntity: Entity, hitPlayer: Set<EntityUUID>, dt: number) {
     // we need player forward and up directions, and position
     const { direction, up, position, rotationQuaternion } = playerEntity
     
@@ -116,16 +116,16 @@ export class RadarDisplay {
     let frontHit = false, backHit = false, leftHit = false, topHit = false, rightHit = false, bottomHit = false
     const playerLock = AppContainer.instance.player.playerEntity.targeting.locked
     const lockedId = AppContainer.instance.player.playerEntity.targeting.target
-    const playerId = world.id(AppContainer.instance.player.playerEntity)
+    const playerId = AppContainer.instance.player.playerEntity.id
     let locked = false
     let missileIncoming = false
     for (const target of queries.targets) {
-      if (target.isTargetable == "player" || target.position == undefined) {
+      if (target.position == undefined || target == AppContainer.instance.player.playerEntity) {
         continue
       }
       const targetPosition = new Vector3(target.position.x, target.position.y, target.position.z)
       const distance = Vector3FromObj(position, TmpVectors.Vector3[3]).subtractInPlace(targetPosition).length()
-      let targetType: "enemy" | "missile" | "dead" = target.isTargetable
+      let targetType: "enemy" | "missile" | "dead" | "player" = target.isTargetable
       if (target.deathRattle) {
         targetType = "dead"
       }
@@ -135,7 +135,7 @@ export class RadarDisplay {
       const playerRadarQuality = playerSystems.state.radar / playerSystems.base.radar
       if (random() <= playerRadarQuality) {
         // flicker radar is radar damaged
-        this.drawPointOnDynamicTexture(targetType, distance, radarPosition, this.radarTexture, playerLock && world.id(target) == lockedId, false)
+        this.drawPointOnDynamicTexture(targetType, distance, radarPosition, this.radarTexture, playerLock && target.id == lockedId, false)
       }
 
       // update lock warning
@@ -156,7 +156,7 @@ export class RadarDisplay {
           this.missileLockWarning = undefined
         }
       }
-      if (hitPlayer.has(world.id(target))) {
+      if (hitPlayer.has(target.id)) {
         const positionHit = this.radarPositionToQuadrant(radarPosition)
         switch (positionHit) {
           case "front":
@@ -265,6 +265,10 @@ export class RadarDisplay {
       case "dead":
         colorClose.set(200, 200, 200);
         colorFar.set(100, 100, 100);
+        break;
+      case "player":
+        colorClose.set(0, 0, 255);
+        colorFar.set(0, 0, 55);
         break;
       default:
         colorClose.set(255, 0, 0);

@@ -37,7 +37,7 @@ export class SystemsDamagedSpraySystem implements IDisposable {
         return particle
       }
     )
-    let entityId = world.id(entity)
+    let entityId = entity.id
     console.log(`[SystemsDamaged] \\${entityId}\\ added damaged systems spray`)
     let system = damagedSystemsSprayParticlePool.getSystem(entityId, emitter)
     system.begin()
@@ -59,7 +59,7 @@ export class SystemsDamagedSpraySystem implements IDisposable {
   }
 
   systemsDamagedOnEntityRemoved = (entity: Entity) => {
-    console.log(`[SystemsDamaged] \\${world.id(entity)}\\ removed damaged systems spray`)
-    damagedSystemsSprayParticlePool.release(world.id(entity))
+    console.log(`[SystemsDamaged] \\${entity.id}\\ removed damaged systems spray`)
+    damagedSystemsSprayParticlePool.release(entity.id)
   }
 }

@@ -1,6 +1,7 @@
 import { decode, encode } from "@msgpack/msgpack"
-import { Entity, GFrame, world } from "../../world"
-import { net } from "../../../net"
+import { CreateEntity, Entity, EntityForId, GFrame, world } from "../../world"
+import { net } from "./net"
+import { GameFrameMessage } from "./messages/gameFrameMessage"
 /**
  * client receives the world state from the server and sends the state of the local entities
  * it's not true client/server since we don't send commands, we send state.  the server is not authoritative of client objects
@@ -9,49 +10,52 @@ import { net } from "../../../net"
  * 
  * TODO: we are missing a way to rend deletion of entities
  */
+
+const DEBUG = false
+const PERFTEST = false
+
 let acc = 0
 const NetTik = 10
 const NetTikMili = 1000/NetTik
 let onIncData
-// oof
-let netId2worldId = []
 let lastSync = 0
 let lastSend = 0
 // foo
 export function netSyncClientSystem(dt: number) {
-  if (net.conn != undefined && onIncData == undefined) {
-    onIncData = (data) => {
-      console.time("net frame decode")
-      const payload = decode(data) as { syn: number, entities: Partial<Entity>[], dead: number[] }
+  if (net.connected && onIncData == undefined) {
+    onIncData = (_peer, data) => {
+      DEBUG || console.log("[net] client dencoding frame")
+      PERFTEST || console.time("[net] client frame decode")
+      const frame = data as GameFrameMessage
+      if (frame.type != "frame") {
+        // not a game frame message
+        return
+      }
+      const payload = frame.data
       if (payload.dead != undefined) {
         for (const deadid of payload.dead) {
-          let localId = netId2worldId[deadid]
-          const entity = world.entity(localId)
+          const entity = EntityForId(deadid)
           world.remove(entity)
         }
       }
-      if (payload.syn < lastSync) { console.log("[net] out of order frame"); return }
+      if (payload.syn < lastSync) { DEBUG || console.log("[net] out of order frame"); return }
       lastSync = payload.syn
       for (const entityData of payload.entities) {
         if (entityData.owner == net.id) {
           // if i own this entity, i am authoritative and i ignore the server state
           continue;
         }
-        const id = entityData["_id"]
-        delete entityData["_id"]
-        let localId = netId2worldId[id]
-        if (localId != undefined) {
-          const entity = world.entity(localId)
+        const entity = EntityForId(entityData.id)
+        if (entity != undefined) {
           world.update(entity, entityData)
         } else {
-          const newEntity = world.add(entityData as Entity)
-          const newId = world.id(newEntity)
-          netId2worldId[id] = newId
+          const _newEntity = CreateEntity(entityData as Entity)
+          console.log(`[net client] new entity created`, _newEntity)
         }
       }
-      console.timeEnd("net frame decode")
+      PERFTEST || console.timeEnd("[net] client frame decode")
     }
-    net.onData(onIncData)
+    net.onData = onIncData
   }
   acc += dt
   if (acc < NetTikMili) {
@@ -61,12 +65,16 @@ export function netSyncClientSystem(dt: number) {
   if (acc > NetTikMili * 0.5) {
     acc = 0
   }
-  if (net.conn == undefined) {
+  if (net.connected == false) {
     return
   }
-  console.time("net frame encode")
+  DEBUG || console.log("[net] client encoding frame")
+  PERFTEST || console.time("net frame encode")
   const frame = new GFrame(true)
-  const message = encode({ id: net.id, syn: ++lastSend, entities: frame.payload })
+  const message = {
+    type: "frame",
+    data: { syn: ++lastSend, entities: frame.payload }
+  } as GameFrameMessage
   net.send(message)
-  console.timeEnd("net frame encode")
+  PERFTEST || console.timeEnd("net frame encode")
 }

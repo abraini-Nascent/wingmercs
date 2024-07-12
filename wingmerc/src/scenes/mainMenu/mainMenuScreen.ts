@@ -9,6 +9,7 @@ import { Observer } from '@babylonjs/core';
 import { SettingsMenuScene } from '../settingsMenu/settingsMenuLoop';
 import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
 import { ShipSelectionScene } from '../shipCustomizer/shipSelection/shipSelectionLoop';
+import { MultiplayerMenuScene } from '../multiplayerMenu/multiplayerMenuLoop';
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -78,6 +79,19 @@ export class MainMenuScreen extends MercScreen {
       }, 333)
     })
     mainPanel.addControl(startButton)
+
+    const multiplayerButton = this.createMainMenuButton("start", "Multiplayer");
+    multiplayerButton.onPointerClickObservable.addOnce(() => {
+      setTimeout(() => {
+        SoundEffects.Select()
+        const appContainer = AppContainer.instance
+        // appContainer.server = true
+        appContainer.gameScene.dispose()
+        appContainer.gameScene = new MultiplayerMenuScene()
+        this.dispose()
+      }, 333)
+    })
+    mainPanel.addControl(multiplayerButton)
 
     const shipSelection = this.createMainMenuButton("model viewer", "Ship Selection");
     shipSelection.onPointerClickObservable.addOnce(() => {

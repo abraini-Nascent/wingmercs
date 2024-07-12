@@ -10,7 +10,7 @@ import {
   Vector3,
 } from "@babylonjs/core"
 import { World } from "miniplex"
-import { net } from "../net"
+import { net } from "./systems/netSystems/net"
 import { AIType } from "./systems/ai/aiSystem"
 import { PilotAIType } from '../data/pilotAI/pilotAI';
 import { WeaponType } from '../data/weapons/weapon';
@@ -18,7 +18,12 @@ import { GunStats } from '../data/guns/gun';
 import { GunAffix } from '../data/affixes/gunAffix';
 import { UtilityModifierDetails } from '../data/ships/shipTemplate';
 import { Voice } from '../utils/speaking';
+import { SerializableType, SerializeAs, serialize } from '../utils/serialize';
+import { generateUUIDv4 } from '../utils/random';
+import { Pool } from '../utils/pool';
 
+
+export type EntityUUID = string
 export type MovementCommand = {
   pitch: number
   roll: number
@@ -166,7 +171,7 @@ export type TargetState = {
   gunInterceptPosition: { x: number; y: number; z: number }
   targetingDirection: { x: number; y: number; z: number }
   targetingTime: number
-  target: number
+  target: EntityUUID
   locked: boolean
   missileLocked: boolean
 }
@@ -195,20 +200,36 @@ export type HitsTracked = {
   hitCount: number
   hitCountRecent: number
   recentResetCountdown: number
-  hits: { shooter: number; victim: number; }[]
+  hits: { shooter: EntityUUID; victim: EntityUUID; }[]
 }
 export type MissionDetails = {
   mission: MissionType
-  destroy?: number
+  destroy?: EntityUUID
   patrolPoints?: Vector3[]
 }
 // TODO: organize this... :S
 export type Entity = {
+  // net code components
+  id: EntityUUID
+  local?: boolean // local to client
+  owner?: string // who owns the state of this entity
+  relinquish?: boolean // give the state of the entity to the server
+  // end netcode components
+
+  // AI Components
   ai?: { type: AIType; pilot: PilotAIType, blackboard: AIBlackboard }
   teamId?: number
   groupId?: number
-  wingleader?: { wingmen: number[] }
+  wingleader?: { wingmen: EntityUUID[] }
+  missionDetails?: MissionDetails
+
+  // UI Components
   targetName?: string
+  camera?: "cockpit" | "follow" | "debug"
+  vduState?: VDUState
+  paused?: true
+
+  // Position and Movement Components
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
@@ -227,8 +248,14 @@ export type Entity = {
   rotationalVelocity?: { roll: number; pitch: number; yaw: number }
   rotationQuaternion?: { x: number; y: number; z: number; w: number }
   rotation?: { x: number; y: number; z: number }
+
+  // Input Components
+  movementCommand?: MovementCommand
+  fireCommand?: FireCommand
+
+  // Modeling and Rendering Components
+  visible?: boolean
   scale?: { x: number; y: number; z: number }
-  asteroidSize?: number
   engineMesh?: Mesh
   shieldMeshName?: string
   shieldMesh?: Mesh
@@ -236,19 +263,15 @@ export type Entity = {
   physicsMesh?: Mesh
   physicsRadius?: number
   meshName?: string
-  mesh?: Mesh
-  meshColor?: { r: number; g: number; b: number; a: number }
+  meshColor?: { r: number; g: number; b: number; a?: number }
   meshInstance?: InstancedMesh
-  movementCommand?: MovementCommand
-  missionDetails?: MissionDetails
   nerdStats?: NerdStats
-  fireCommand?: FireCommand
   trail?: true
   trailOptions?: {
     width?: number
     length?: number
-    color?: { r: number; g: number; b: number }
-    start?: { x: number; y: number; z: number }
+    color?: { r: number; g: number; b: number; a?: number }
+    start?: { x: number; y: number; z: number; a?: number }
   }[]
   trailMeshs?: {
     trails: {trail: TrailMesh, node: TransformNode}[]
@@ -257,23 +280,19 @@ export type Entity = {
   bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody
   node?: TransformNode
+
+  // Gameplay Stats Components
+  worth?: number
+  totalScore?: number
+  score?: Score
+
+  // Ship Stats Components
   health?: {
     current: number
     base: number
   }
-  totalScore?: number
-  worth?: number
-  paused?: true
   playerId?: string
-  originatorId?: string
   planeTemplate?: string
-  visible?: boolean
-  missileEngine?: true
-  // net code components
-  local?: boolean // local to client
-  owner?: string // who owns the state of this entity
-  relinquish?: boolean // give the state of the entity to the server
-  damage?: number
   targeting?: TargetState
   isTargetable?: "player" | "enemy" | "missile"
   guns?: ShipGuns
@@ -287,30 +306,34 @@ export type Entity = {
   thrusters?: ShipThrusters
   fuel?: FuelTank
   systemsDamaged?: boolean
-  score?: Score
   armor?: ShipArmor
   hitsTaken?: HitsTracked
-  vduState?: VDUState
   deathRattle?: boolean
   voice?: Voice
   speaking?: Sound
+
+  // Gun Particle Components
   particleRange?: {
     max: number
     total: number
     lastPosition: { x: number; y: number; z: number }
   }
+  originatorId?: string
+  
+  // Weapon Particle Components
   missileRange?: {
     max: number
     total: number
     lastPosition: { x: number; y: number; z: number }
     type: string
-    target: number
+    target: EntityUUID
   }
-  camera?: "cockpit" | "follow" | "debug"
+  missileEngine?: true
+  damage?: number
 }
 
 export const world = new World<Entity>()
-
+export const worldIds = new Map<string, Partial<Entity>>()
 /* Create some queries: */
 export const queries = {
   updateRender: world.with("position", "node"),
@@ -350,6 +373,112 @@ export const queries = {
   hits: world.with("hitsTaken"),
   missileEngine: world.with("missileEngine", "node"),
 }
+export const CreateEntity = (entity: Partial<Entity>): Entity => {
+  if (entity.id == undefined) {
+    const uuid = generateUUIDv4()
+    entity.id = uuid
+    worldIds.set(uuid, entity)
+  } else {
+    worldIds.set(entity.id, entity)
+  }
+  world.add(entity as Entity)
+  return entity as Entity
+}
+export const EntityForId = (id: string) => {
+  return worldIds.get(id) as Entity
+}
+world.onEntityRemoved.subscribe((entity) => {
+  worldIds.delete(entity.id)
+})
+
+const DeepCloneTransform = (value) => { return structuredClone(value) }
+SerializableType("GFrame")
+// net code components
+SerializeAs("GFrame", "id")
+SerializeAs("GFrame", "local")
+SerializeAs("GFrame", "owner")
+SerializeAs("GFrame", "relinquish")
+
+// world code
+
+// AI Components
+// SerializeAs("GFrame", "ai") ai is handled by the server
+SerializeAs("GFrame", "teamId")
+SerializeAs("GFrame", "groupId")
+SerializeAs("GFrame", "wingleader")
+SerializeAs("GFrame", "missionDetails")
+
+// UI Components
+SerializeAs("GFrame", "targetName")
+SerializeAs("GFrame", "vduState")
+SerializeAs("GFrame", "paused")
+
+// Position and Movement Components
+SerializeAs("GFrame", "position")
+SerializeAs("GFrame", "velocity")
+SerializeAs("GFrame", "afterburnerVelocity")
+SerializeAs("GFrame", "afterburnerActive")
+SerializeAs("GFrame", "driftActive")
+SerializeAs("GFrame", "brakingActive")
+SerializeAs("GFrame", "barkedSpooked")
+SerializeAs("GFrame", "driftVelocity")
+SerializeAs("GFrame", "breakingPower")
+SerializeAs("GFrame", "breakingVelocity")
+SerializeAs("GFrame", "setSpeed")
+SerializeAs("GFrame", "currentSpeed")
+SerializeAs("GFrame", "acceleration")
+SerializeAs("GFrame", "direction")
+SerializeAs("GFrame", "up")
+SerializeAs("GFrame", "rotationalVelocity")
+SerializeAs("GFrame", "rotationQuaternion")
+SerializeAs("GFrame", "rotation")
+
+// Input Components
+SerializeAs("GFrame", "movementCommand")
+SerializeAs("GFrame", "fireCommand")
+
+// Modeling and Rendering Components
+SerializeAs("GFrame", "visible")
+SerializeAs("GFrame", "scale")
+SerializeAs("GFrame", "shieldMeshName")
+SerializeAs("GFrame", "physicsMeshName")
+SerializeAs("GFrame", "physicsRadius")
+SerializeAs("GFrame", "meshName")
+SerializeAs("GFrame", "meshColor")
+SerializeAs("GFrame", "nerdStats")
+SerializeAs("GFrame", "trail")
+SerializeAs("GFrame", "trailOptions", DeepCloneTransform)
+
+// Ship Stats Components
+SerializeAs("GFrame", "health")
+SerializeAs("GFrame", "totalScore")
+SerializeAs("GFrame", "worth")
+SerializeAs("GFrame", "planeTemplate")
+SerializeAs("GFrame", "targeting")
+SerializeAs("GFrame", "isTargetable")
+SerializeAs("GFrame", "guns")
+SerializeAs("GFrame", "gunAmmo")
+SerializeAs("GFrame", "weapons")
+SerializeAs("GFrame", "utilities")
+SerializeAs("GFrame", "engine")
+SerializeAs("GFrame", "powerPlant")
+SerializeAs("GFrame", "shields")
+SerializeAs("GFrame", "systems")
+SerializeAs("GFrame", "thrusters")
+SerializeAs("GFrame", "fuel")
+SerializeAs("GFrame", "systemsDamaged")
+SerializeAs("GFrame", "score")
+SerializeAs("GFrame", "armor")
+SerializeAs("GFrame", "hitsTaken")
+SerializeAs("GFrame", "deathRattle")
+SerializeAs("GFrame", "voice")
+
+// Weapon and Particle Components
+SerializeAs("GFrame", "originatorId")
+SerializeAs("GFrame", "particleRange")
+SerializeAs("GFrame", "missileRange")
+SerializeAs("GFrame", "missileEngine")
+SerializeAs("GFrame", "damage")
 
 /**
  * Game Frame serialized the game state to send over the net
@@ -360,7 +489,7 @@ export class GFrame {
   constructor(client = false) {
     const toSerialize = []
     for (const entity of world.entities) {
-      const id = world.id(entity)
+      const id = entity.id
       // if we are the client we should only send local entities to the server
       if (client) {
         if (entity.local && entity.owner != net.id) {
@@ -373,7 +502,17 @@ export class GFrame {
         }
       }
       // todo we should have a better way to manage what is sent over the wire
-      const payload = {
+      let framePayload = serialize("GFrame", entity)
+      framePayload["_id"] = id
+
+      toSerialize.push(framePayload)
+    }
+    this.payload = toSerialize //encode(toSerialize)
+  }
+}
+
+/**
+ *       const payload = {
         _id: id,
         owner: entity.owner,
         relinquish: entity.relinquish,
@@ -405,7 +544,6 @@ export class GFrame {
             }
           : undefined,
         scale: entity.scale,
-        asteroidSize: entity.asteroidSize,
         meshName: entity.meshName,
         bodyType: entity.bodyType,
         health: entity.health,
@@ -417,8 +555,4 @@ export class GFrame {
         originatorId: entity.originatorId,
         totalScore: entity.totalScore,
       }
-      toSerialize.push(payload)
-    }
-    this.payload = toSerialize //encode(toSerialize)
-  }
-}
+ */

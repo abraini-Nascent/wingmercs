@@ -1,5 +1,5 @@
 import { IDisposable, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../../world"
+import { CreateEntity, Entity, EntityUUID, queries, world } from "../../world"
 import * as Guns from "../../../data/guns"
 import * as Weapons from "../../../data/weapons"
 import { Gun } from "../../../data/guns/gun"
@@ -104,11 +104,11 @@ export class WeaponCommandSystem implements IDisposable {
           z: position.z + gunPosition.z,
         }
         // create particle
-        world.add({
+        CreateEntity({
           // meshName: "meteor", // use meteor for now
           targetName: "",
           meshColor: { r: 100 / 255, g: 10 / 255, b: 10 / 255, a: 1 },
-          originatorId: "" + world.id(entity),
+          originatorId: entity.id,
           position: { ...startPosition },
           direction: {
             x: direction.x,
@@ -140,7 +140,7 @@ export class WeaponCommandSystem implements IDisposable {
               length: 2,
             },
           ],
-          physicsRadius: 1,
+          physicsRadius: .5,
           bodyType: "animated",
         })
         let laserSound = SoundEffects.Laser()
@@ -225,12 +225,12 @@ export class WeaponCommandSystem implements IDisposable {
           // find nearest enemy
           const nearestTarget = nearestEnemy(entity, weaponClass.range)
           console.log("[weaponCommandSystem] targeting nearest enemy", target)
-          target = world.id(nearestTarget)
+          target = nearestTarget.id
         }
         // create missile
-        world.add({
+        CreateEntity({
           targetName: `${weaponClass.name} missile`,
-          originatorId: "" + world.id(entity),
+          originatorId: entity.id,
           position: { ...startPosition },
           direction: {
             x: direction.x,
@@ -288,14 +288,14 @@ export class WeaponCommandSystem implements IDisposable {
     if (fireCommand.lock) {
       // console.log("[WeaponSystems] attempting lock")
       // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
-      const entityId = world.id(entity)
+      const entityId = entity.id
       const { direction, position, targeting } = entity
       const entityDirection = Vector3FromObj(direction)
       const entityPosition = Vector3FromObj(position)
       let smallestDistance = Number.MAX_SAFE_INTEGER
-      let closestTarget: number = undefined
+      let closestTarget: EntityUUID = undefined
       for (const target of queries.targets.entities) {
-        const targetId = world.id(target)
+        const targetId = target.id
         const targetPosition = Vector3FromObj(target.position)
         if (entityId == targetId) {
           continue

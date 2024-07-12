@@ -5,6 +5,7 @@ import { HavokPhysicsWithBindings } from "@babylonjs/havok"
 import { GameScene } from "./scenes/gameScene"
 import { EventPipeline } from './utils/pipeline';
 import { DebugConsole } from './app.debugConsole';
+import { net } from './world/systems/netSystems/net';
 
 export class AppContainer {
   static instance: AppContainer = new AppContainer()
@@ -28,11 +29,25 @@ export class AppContainer {
     if (debugValue) {
       this.debug = true
     }
+    const peerId = urlParams.get('peerId');
+    if (peerId) {
+      this.peerId = peerId
+      net.updatePeerId(this.peerId, PlayerAgent.playerName)
+      this.server = true
+    }
+    const connectId = urlParams.get('roomId');
+    if (connectId) {
+      this.connectId = connectId
+      this.server = false
+    }
   }
+  peerId: string
+  connectId: string
+  multiplayer: boolean = false
+  server: boolean = false
   env: "browser" | "desktop" | "mobile" = "browser"
   player: PlayerAgent
   camera: TargetCamera
-  server: boolean = false
   engine: Engine
   havokInstance: HavokPhysicsWithBindings
   gameScene: GameScene

@@ -1,3 +1,4 @@
+import { EntityForId } from './../../world';
 import { HavokPlugin, PhysicsEngineV2, PhysicsRaycastResult, Quaternion, ShapeCastResult, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
@@ -35,6 +36,7 @@ export function particleSystem() {
       startPosition: start,
       endPosition: end,
       shouldHitTriggers: false,
+      ignoreBody: entity.body
   }, shapeLocalResult, hitWorldResult)
     
     // physicsEngine.raycastToRef(start, end, raycastResult);
@@ -42,7 +44,7 @@ export function particleSystem() {
     //   debugger;
     // }
     if (shapeLocalResult.hasHit && entity.originatorId != ""+hitWorldResult.body.entityId) {
-      const hitEntity = world.entity(hitWorldResult.body.entityId)
+      const hitEntity = EntityForId(hitWorldResult.body.entityId)
       if (hitEntity == undefined) {
         console.error("we collided with a mesh that has an entity id that doesn't exist in the world!", hitWorldResult.body, hitWorldResult.body.entityId)
         continue
@@ -52,10 +54,10 @@ export function particleSystem() {
         console.log("[ParticleSystem] we were shot out by the same thing and hit each other!")
         continue
       }
-      console.log(`[ParticleSystem] contact: ${world.id(entity)}`)
+      console.log(`[ParticleSystem] contact: ${entity.id}`)
       // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
       registerHit(hitEntity, entity, hitWorldResult.hitPoint, entity.damage ?? 1)
-      const shooter = world.entity(parseInt(entity.originatorId))
+      const shooter = EntityForId(entity.originatorId)
       if (shooter?.nerdStats) {
         shooter.nerdStats.roundsHit += 1
       }
@@ -72,7 +74,7 @@ export function particleSystem() {
     if (particleRange.total >= particleRange.max) {
       // end of the line
       // console.log("[ParticleSystem] end of line")
-      const shooter = world.entity(parseInt(entity.originatorId))
+      const shooter = EntityForId(entity.originatorId)
       if (shooter?.nerdStats) {
         shooter.nerdStats.roundsMissed += 1
       }

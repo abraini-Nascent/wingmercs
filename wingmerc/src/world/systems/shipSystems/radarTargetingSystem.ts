@@ -1,3 +1,4 @@
+import { EntityForId, EntityUUID } from './../../world';
 import { queries, world } from "../../world"
 import { AngleBetweenVectors, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../../utils/math"
 
@@ -9,9 +10,9 @@ export function radarTargetingSystem(dt: number) {
       continue
     }
     if (targeting.locked) {
-      if (world.entity(targeting.target) == undefined) {
+      if (EntityForId(targeting.target) == undefined) {
         targeting.locked = false
-        targeting.target = -1
+        targeting.target = ""
         world.update(entity, "targeting", targeting)
         continue
       } else {
@@ -19,15 +20,15 @@ export function radarTargetingSystem(dt: number) {
       }
     }
     // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
-    const entityId = world.id(entity)
+    const entityId = entity.id
     
     const entityDirection = Vector3FromObj(direction)
     const entityPosition = Vector3FromObj(position)
     let smallestDistance = Number.MAX_SAFE_INTEGER
-    let closestTarget: number = -1
+    let closestTarget: EntityUUID = ""
     let holdTarget: boolean = false
     for (const target of queries.targets.entities) {
-      const targetId = world.id(target)
+      const targetId = target.id
       const targetPosition = Vector3FromObj(target.position)
       if (entityId == targetId) {
         continue

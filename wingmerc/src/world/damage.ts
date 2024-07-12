@@ -4,7 +4,7 @@ import { Observer, Scalar, Scene, TmpVectors, Vector3 } from '@babylonjs/core';
  * Audio cue on hitting shield or armor or health
  */
 import { PhysicsRaycastResult, Quaternion } from "@babylonjs/core";
-import { Entity, world } from "./world";
+import { Entity, EntityForId, EntityUUID, world } from "./world";
 import { QuaternionFromObj, ToDegree, Vector3FromObj } from '../utils/math';
 import { RouletteSelectionStochastic, rand, randomItem } from '../utils/random';
 import { AppContainer } from '../app.container';
@@ -20,10 +20,10 @@ const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
 export type ParticleEntity = Pick<Entity, "damage" | "originatorId">
 
 export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, hitPointWorld: Vector3, damage: number = 1) {
-  const shooterStats = world.entity(parseInt(particleEntity.originatorId))?.nerdStats
+  const shooterStats = EntityForId(particleEntity.originatorId)?.nerdStats
   const victimStats = hitEntity.nerdStats
   
-  AppContainer.instance.pipeline.process("registerHit", { shooter: parseInt(particleEntity.originatorId), victim: world.id(hitEntity) })
+  AppContainer.instance.pipeline.process("registerHit", { shooter: parseInt(particleEntity.originatorId), victim: hitEntity.id })
   if (hitEntity.position == undefined) { return }
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
     // determine if we were hit in the front of back shields
@@ -251,10 +251,10 @@ export function damageSprayFrom(hitEntity: Entity, hitPointWorld: Vector3, direc
 }
 
 export class ShieldPulser {
-  pulsing = new Set<number>()
+  pulsing = new Set<EntityUUID>()
   renderObserver: Observer<Scene>
   pulse(entity: Entity) {
-    const entityId = world.id(entity)
+    const entityId = entity.id
     const shieldMesh = entity.shieldMesh
     if (shieldMesh == undefined) {
       return
@@ -265,7 +265,7 @@ export class ShieldPulser {
   update(dt) {
     let delta = dt / 1000
     for (const entityId of this.pulsing) {
-      const entity = world.entity(entityId)
+      const entity = EntityForId(entityId)
       if (entity == undefined) {
         this.pulsing.delete(entityId)
         continue

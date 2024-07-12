@@ -46,6 +46,7 @@ import { MissionType } from '../../world/systems/ai/engagementState';
 import { ShipTemplate } from '../../data/ships/shipTemplate';
 import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
 import { ToRadians } from '../../utils/math';
+import { net } from '../../world/systems/netSystems/net';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -220,7 +221,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       }
       // TODO: play a healing sound or triumph music note or something
     }
-    if (shouldSpawnShips) {
+    if (AppContainer.instance.server != undefined && AppContainer.instance.server && shouldSpawnShips) {
       this.spawnShips()
     }
   }
@@ -249,7 +250,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       // patrol around the players position
       world.addComponent(ship, "missionDetails", {
         patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)],
-        destroy: world.id(AppContainer.instance.player.playerEntity),
+        destroy: AppContainer.instance.player.playerEntity.id,
         mission: MissionType.Destroy
       })
       this.lastSpawnCount += 1
@@ -307,11 +308,13 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
     this.hitTrackerSystem.update(delta)
-    // if (appContainer.server) {
-    //   netSyncServerSystem(delta)
-    // } else {
-    //   netSyncClientSystem(delta)
-    // }
+    if (appContainer.multiplayer) {
+      if (appContainer.server) {
+        netSyncServerSystem(delta)
+      } else {
+        netSyncClientSystem(delta)
+      }
+    }
     shieldPulserSystem.update(delta)
     updateRenderSystem()
     if (this.spaceDebris) {

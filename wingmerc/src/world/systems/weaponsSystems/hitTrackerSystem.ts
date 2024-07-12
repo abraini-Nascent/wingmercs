@@ -1,7 +1,7 @@
 import { IDisposable } from "@babylonjs/core"
 import { InterceptorSubscription, interceptEvent } from "../../../app.pipeline"
 import { AppContainer } from "../../../app.container"
-import { HitsTracked, queries, world } from "../../world"
+import { EntityForId, EntityUUID, HitsTracked, queries, world } from "../../world"
 
 const RECENT = 1000
 export class HitTrackerSystem implements IDisposable {
@@ -9,8 +9,8 @@ export class HitTrackerSystem implements IDisposable {
   registerHitInterceptor: InterceptorSubscription
 
   constructor() {
-    this.registerHitInterceptor = interceptEvent("registerHit", (input: { victim: number, shooter: number }) => {
-      const victimEntity = world.entity(input.victim)
+    this.registerHitInterceptor = interceptEvent("registerHit", (input: { victim: EntityUUID, shooter: EntityUUID }) => {
+      const victimEntity = EntityForId(input.victim)
       if (victimEntity == undefined) { return input }
       if (victimEntity.hitsTaken == undefined) {
         let hitsTaken = {
