@@ -3,18 +3,19 @@ import { net } from "../world/systems/netSystems/net";
 import { Dirk } from "../data/ships";
 import { createCustomShip } from "../world/factories";
 import { ShipTemplate } from "../data/ships/shipTemplate";
+import { generateUUIDv4 } from "../utils/random";
 
 export class PlayerAgent {
   playerEntity: Entity
   static playerName: string = "Player"
+  static playerId: string = generateUUIDv4()
 
   constructor(private planeTemplate?: ShipTemplate) {
     this.createPlayerShip() 
   }
 
   revivePlayer() {
-    world.remove(this.playerEntity)
-    this.createPlayerShip()
+    this.restorePlayerShip()
   }
 
   restorePlayerShip() {
@@ -73,6 +74,7 @@ export class PlayerAgent {
       targetName: PlayerAgent.playerName,
       local: true,
       owner: net.id,
+      playerId: PlayerAgent.playerId,
       totalScore: 0,
       visible: false,
       setSpeed: 0,

@@ -3,8 +3,8 @@ import { CreateEntity, Entity, EntityForId, EntityUUID, GFrame, world } from "..
 import { net } from "./net"
 import { GameFrameMessage } from "./messages/gameFrameMessage"
 
-const DEBUG = true
-const PERFTEST = true
+const DEBUG = false
+const PERFTEST = false
 
 let acc = 0
 const NetTik = 10

@@ -406,6 +406,7 @@ const DeepCloneTransform = (value) => { return structuredClone(value) }
 SerializableType("GFrame")
 // net code components
 SerializeAs("GFrame", "id")
+SerializeAs("GFrame", "playerId")
 // SerializeAs("GFrame", "local") // local belongs to the client only
 SerializeAs("GFrame", "owner")
 SerializeAs("GFrame", "relinquish")

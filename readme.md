@@ -72,13 +72,21 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 
 ## Bugs:
 - [ ] high score doesn't seem to be saved
+- [ ] if leader is killed before break formation, the chain of leaders is broken and results in undefined property access
 ## Backlog:
 - [ ] joystick controls
 - [ ] VR controls
 - [ ] configurable input
+  - [ ] message about gamepads being preferred
+- [ ] background polish
+  - [ ] generate the nebula
+  - [ ] place stars similar to points of interest
+  - [ ] generate points of interest
+  - [ ] use blue noise to space out points of interest and stars
 - [ ] rebuild ai:
   - [ ] test path following
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
+  - [ ] add more wingmen formations (use Homeworld 1 for inspiration)
 - [ ] chaff
 - [ ] fof targeting friend if radio damaged
 - [ ] heat tracking new target if stronger signal in range
@@ -122,15 +130,15 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 ### multiplayer detour
 - [x] fix net and sync systems
 - [x] support multiple clients (3+ players)
-- [ ] recreate multiplayer menu
-  - [ ] allow custom room names
-  - [ ] allow custom player names
-  - [ ] sync start game
+- [x] recreate multiplayer menu
+  - [x] allow custom room names
+  - [x] allow custom player names
+  - [x] sync start game
 - [x] friendly players on same team
   - [x] friendly players BLUE target box
   - [x] friendly players no missile lock
   - [x] friendly players name in target box
-- [ ] kill ship to revive downed friendly player
+- [x] kill ship to revive downed friendly player
 
 ### next demo
 - [] dynamic missions - instant action mode

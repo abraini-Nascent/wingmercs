@@ -228,6 +228,9 @@ export class CombatHud {
 
   updateScreen(dt: number) {
     if (this.gameover) {
+      if (this.hud.isVisible == false) {
+        this.hud.isVisible = true
+      }
       this.hideAll()
       if (this.gameOverText == undefined) {
         this.gameOverText = new TextSizeAnimationComponent("GAME OVER", "gold", 24, 128, 300, () => {
@@ -246,7 +249,9 @@ export class CombatHud {
       return
     }
     if (this.spectator) {
+      // this.hideAll()
       this.hud.isVisible = false
+      return
     }
     if (this.hud.isVisible == false) {
       this.hud.isVisible = true

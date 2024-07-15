@@ -1,3 +1,4 @@
+import { MissionType } from './../../world/systems/ai/engagementState';
 import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSystem';
 import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
@@ -42,10 +43,8 @@ import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSpr
 import { IDisposable, TmpVectors, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
 import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
-import { MissionType } from '../../world/systems/ai/engagementState';
 import { ShipTemplate } from '../../data/ships/shipTemplate';
 import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
-import { QuaternionFromObj, Vector3FromObj } from '../../utils/math';
 
 /**
  * If a player dies they should follow cam another player untill
@@ -178,7 +177,6 @@ export class SpaceCombatSceneMultiplayer implements GameScene, IDisposable {
 
   onDeath = (entity: Entity) => {
     if (entity == AppContainer.instance.player.playerEntity) {
-
       const anotherPlayerIsAlive = queries.players.entities.some((player) => {
         return player.health.current > 0
       })
@@ -192,6 +190,10 @@ export class SpaceCombatSceneMultiplayer implements GameScene, IDisposable {
       this.hud.gameover = true
       this.gameoverTimer = 3000
       MusicPlayer.instance.playStinger("fail")
+      return
+    }
+    if (entity.playerId != undefined) {
+      // a player teammate died
       return
     }
     MusicPlayer.instance.playStinger("win")
@@ -232,7 +234,6 @@ export class SpaceCombatSceneMultiplayer implements GameScene, IDisposable {
     if (AppContainer.instance.multiplayer == true && AppContainer.instance.server == false) {
       return
     }
-    return
     const radius = 6000
     const minRadius = 2000
     let newShipAmount = this.lastSpawnCount + 1
@@ -257,7 +258,7 @@ export class SpaceCombatSceneMultiplayer implements GameScene, IDisposable {
       world.addComponent(ship, "missionDetails", {
         patrolPoints: [new Vector3(playerEntityPosition.x, playerEntityPosition.y, playerEntityPosition.z)],
         destroy: AppContainer.instance.player.playerEntity.id,
-        mission: MissionType.Destroy
+        mission: MissionType.Patrol
       })
       this.lastSpawnCount += 1
     }
