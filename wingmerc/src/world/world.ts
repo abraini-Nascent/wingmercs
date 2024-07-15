@@ -447,7 +447,7 @@ SerializeAs("GFrame", "rotation")
 
 // Input Components
 SerializeAs("GFrame", "movementCommand")
-SerializeAs("GFrame", "fireCommand")
+// SerializeAs("GFrame", "fireCommand")
 
 // Modeling and Rendering Components
 // SerializeAs("GFrame", "visible") // only used in local game to hide cockpit
