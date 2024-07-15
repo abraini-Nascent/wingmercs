@@ -3,8 +3,8 @@ import { CreateEntity, Entity, EntityForId, EntityUUID, GFrame, world } from "..
 import { net } from "./net"
 import { GameFrameMessage } from "./messages/gameFrameMessage"
 
-const DEBUG = false
-const PERFTEST = false
+const DEBUG = true
+const PERFTEST = true
 
 let acc = 0
 const NetTik = 10
@@ -23,8 +23,8 @@ export function netSyncServerSystem(dt: number) {
   }
   if (net.connected && onIncData == undefined) {
     onIncData = (peer, data) => {
-      DEBUG || console.log("[net] server dencoding frame")
-      PERFTEST || console.time("net frame decode")
+      DEBUG && console.log("[net] server dencoding frame")
+      PERFTEST && console.time("net frame decode")
       const frame = data as GameFrameMessage
       if (frame.type != "frame") {
         // not a game frame mission
@@ -32,7 +32,7 @@ export function netSyncServerSystem(dt: number) {
       }
       const payload = frame.data
       let lastSync = clientSync[peer] ?? 0
-      if (payload.syn < lastSync) { DEBUG || console.log("[net] out of order frame"); return }
+      if (payload.syn < lastSync) { DEBUG && console.log("[net] out of order frame"); return }
       clientSync[peer] = payload.syn
       for (const entityData of payload.entities) {
         if (entityData.owner != undefined && entityData.relinquish) {
@@ -49,7 +49,7 @@ export function netSyncServerSystem(dt: number) {
           console.log(`[net server] new entity created`, _newEntity)
         }
       }
-      PERFTEST || console.timeEnd("net frame decode")
+      PERFTEST && console.timeEnd("net frame decode")
     }
     net.onData(onIncData)
   }
@@ -64,8 +64,8 @@ export function netSyncServerSystem(dt: number) {
   if (net.connected == false) {
     return
   }
-  DEBUG || console.log("[net] server encoding frame")
-  PERFTEST || console.time("net frame encode")
+  DEBUG && console.log("[net] server encoding frame")
+  PERFTEST && console.time("net frame encode")
   const frame = new GFrame()
   const deadEntities = dead.splice(0, dead.length)
   const message = {
@@ -73,5 +73,5 @@ export function netSyncServerSystem(dt: number) {
     data: { syn: ++lastSync, entities: frame.payload, dead: deadEntities }
   } as GameFrameMessage
   net.send(message)
-  PERFTEST || console.timeEnd("net frame encode")
+  PERFTEST && console.timeEnd("net frame encode")
 }

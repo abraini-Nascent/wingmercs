@@ -15,9 +15,9 @@ export function cameraFollowSystem(player: Entity, camera: TargetCamera) {
   }
 }
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
-export function cameraSystem(player: PlayerAgent, camera: Camera) {
-  if (player?.playerEntity == undefined) { return }
-  let { rotationQuaternion, position } = player.playerEntity
+export function cameraSystem(cameraEntity: Entity, camera: Camera) {
+  if (cameraEntity == undefined) { return }
+  let { rotationQuaternion, position } = cameraEntity
   const cameraOverride = queries.cameras.first
   if (cameraOverride != undefined && cameraOverride.camera == "cockpit") {
     rotationQuaternion = cameraOverride.rotationQuaternion

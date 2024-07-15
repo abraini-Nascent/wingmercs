@@ -53,6 +53,7 @@ export class CombatHud {
   flashTimer = 0
   gameover: boolean = false
   _getReady: boolean = false
+  spectator: boolean = false
 
   constructor() {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
@@ -243,6 +244,9 @@ export class CombatHud {
       this.hud.isVisible = false
       this.getReadyText.update(dt)
       return
+    }
+    if (this.spectator) {
+      this.hud.isVisible = false
     }
     if (this.hud.isVisible == false) {
       this.hud.isVisible = true

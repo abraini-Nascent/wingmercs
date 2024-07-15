@@ -51,20 +51,20 @@ class Net {
   }
   private createPeer() {
     var peer = new Peer(Net.Namespace+this.id);
-    DEBUG || console.log("[net] my peer id:", peer.id)
+    DEBUG && console.log("[net] my peer id:", peer.id)
     
     peer.on('open', (id) => {
-      DEBUG || console.log('[net] My server peer ID is: ' + id);
+      DEBUG && console.log('[net] My server peer ID is: ' + id);
     });
     peer.on('connection', (conn) => {
-      DEBUG || console.log(`[net] Peer connected: ${conn.peer}`, conn.metadata)
+      DEBUG && console.log(`[net] Peer connected: ${conn.peer}`, conn.metadata)
       this.connected = true
       this.connections.set(conn.peer, conn)
       this.metadata.set(conn.peer, conn.metadata)
 
       conn.on("data", (data) => {
         const decoded: unknown = decode(data as any)
-        DEBUG || console.log(`[net] data from ${conn.peer}`, decoded)
+        DEBUG && console.log(`[net] data from ${conn.peer}`, decoded)
         const handshake = decoded as any as { ack: true, metadata: any }
         if (handshake.ack) {
           // send back out name since the host doesn't provide metadata :s
@@ -80,7 +80,7 @@ class Net {
       })
     });
     peer.on('disconnected', (peer) => {
-      DEBUG || console.log(`[net] Peer disconnected: ${peer}`)
+      DEBUG && console.log(`[net] Peer disconnected: ${peer}`)
       this.connections.delete(peer)
       this.metadata.delete(peer)
       if (this.connections.size == 0) {
@@ -90,7 +90,7 @@ class Net {
     this.peer = peer
   }
   connect(destination: string, playerName: string, cb: (success: boolean, peerId: string | undefined) => void) {
-    DEBUG || console.log("[net] connecting to destination:", Net.Namespace+destination)
+    DEBUG && console.log("[net] connecting to destination:", Net.Namespace+destination)
     var conn = this.peer.connect(Net.Namespace+destination, {
       metadata: {
         name: playerName
@@ -99,13 +99,13 @@ class Net {
     this.attempt = true
     let waitingAck = true
     const timeout = setTimeout(() => {
-      DEBUG || console.log("[net] connection timed out")
+      DEBUG && console.log("[net] connection timed out")
       conn.close()
       this.attempt = false
       cb(false, undefined)
     }, 10000);
     conn.on('open', () => {
-      DEBUG || console.log("[net] opened")
+      DEBUG && console.log("[net] opened")
       clearTimeout(timeout);
       this.attempt = false
       this.connected = true
@@ -117,11 +117,11 @@ class Net {
     });
     conn.on("data", (data: unknown) => {
       const decoded: unknown = decode(data as any)
-      DEBUG || console.log(`[net] data from ${conn.peer}`, decoded)
+      DEBUG && console.log(`[net] data from ${conn.peer}`, decoded)
       const handshake = decoded as any as { ack: true, metadata: any }
       if (handshake.ack) {
         if (waitingAck) {
-          DEBUG || console.log("[net] connected")
+          DEBUG && console.log("[net] connected")
           waitingAck = false
           this.metadata.set(conn.peer, { name: handshake.metadata.name })
           // wait for handshake before considering it a success
@@ -132,12 +132,13 @@ class Net {
       this._onData.forEach(cb => cb(conn.peer, decoded))
     })
     conn.on("close", () => {
-      DEBUG || console.log("[net] closed", conn.peer)
+      DEBUG && console.log("[net] closed", conn.peer)
       this.connections.delete(conn.peer)
       this._onClose.forEach(cb => cb(conn.peer))
     })
   }
   send(data: any) {
+    DEBUG && console.log("[net] sending", data)
     this.connections.forEach((connection) => {
       connection.send(encode(data))
     })

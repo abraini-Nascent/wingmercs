@@ -24,8 +24,8 @@ let lastSend = 0
 export function netSyncClientSystem(dt: number) {
   if (net.connected && onIncData == undefined) {
     onIncData = (_peer, data) => {
-      DEBUG || console.log("[net] client dencoding frame")
-      PERFTEST || console.time("[net] client frame decode")
+      DEBUG && console.log("[net] client dencoding frame")
+      PERFTEST && console.time("[net] client frame decode")
       const frame = data as GameFrameMessage
       if (frame.type != "frame") {
         // not a game frame message
@@ -38,7 +38,7 @@ export function netSyncClientSystem(dt: number) {
           world.remove(entity)
         }
       }
-      if (payload.syn < lastSync) { DEBUG || console.log("[net] out of order frame"); return }
+      if (payload.syn < lastSync) { DEBUG && console.log("[net] out of order frame"); return }
       lastSync = payload.syn
       for (const entityData of payload.entities) {
         if (entityData.owner == net.id) {
@@ -53,7 +53,7 @@ export function netSyncClientSystem(dt: number) {
           console.log(`[net client] new entity created`, _newEntity)
         }
       }
-      PERFTEST || console.timeEnd("[net] client frame decode")
+      PERFTEST && console.timeEnd("[net] client frame decode")
     }
     net.onData(onIncData)
   }
@@ -68,13 +68,13 @@ export function netSyncClientSystem(dt: number) {
   if (net.connected == false) {
     return
   }
-  DEBUG || console.log("[net] client encoding frame")
-  PERFTEST || console.time("net frame encode")
+  DEBUG && console.log("[net] client encoding frame")
+  PERFTEST && console.time("net frame encode")
   const frame = new GFrame(true)
   const message = {
     type: "frame",
     data: { syn: ++lastSend, entities: frame.payload }
   } as GameFrameMessage
   net.send(message)
-  PERFTEST || console.timeEnd("net frame encode")
+  PERFTEST && console.timeEnd("net frame encode")
 }

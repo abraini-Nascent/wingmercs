@@ -2,7 +2,7 @@ import * as GUI from '@babylonjs/gui';
 import { MercScreen } from "../screen"
 import { AppContainer } from '../../app.container';
 import { PlayerAgent } from '../../agents/playerAgent';
-import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop';
+import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop.singlePlayer';
 import { ModelViewerScene } from '../modelViewer/modelViewerLoop';
 import { SoundEffects } from '../../utils/sounds/soundEffects';
 import { Observer } from '@babylonjs/core';

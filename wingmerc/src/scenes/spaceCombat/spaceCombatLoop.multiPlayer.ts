@@ -1,5 +1,5 @@
-import { DriftSoundSystem } from './../../world/systems/soundSystems/driftSoundSystem';
-import { GameScene } from './../gameScene';
+import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSystem';
+import { GameScene } from '../gameScene';
 import { AppContainer } from "../../app.container";
 import { aiSystem } from "../../world/systems/ai/aiSystem";
 import { cameraSystem } from "../../world/systems/renderSystems/cameraSystem";
@@ -39,19 +39,25 @@ import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterbu
 import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
 import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
 import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
-import { Axis, IDisposable, Vector3 } from '@babylonjs/core';
+import { IDisposable, TmpVectors, Vector3 } from '@babylonjs/core';
 import { MusicPlayer } from '../../utils/music/musicPlayer';
 import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerSystem';
 import { MissionType } from '../../world/systems/ai/engagementState';
 import { ShipTemplate } from '../../data/ships/shipTemplate';
 import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
-import { ToRadians } from '../../utils/math';
-import { net } from '../../world/systems/netSystems/net';
+import { QuaternionFromObj, Vector3FromObj } from '../../utils/math';
+
+/**
+ * If a player dies they should follow cam another player untill
+ * If all other players die the level is over:
+ * - send them back to the multiplayer screen after the end screen
+ * If the other players kill another enemy the dead players respawn
+*/
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
 const pointsPerSecond = 10;
-export class SpaceCombatScene implements GameScene, IDisposable {
+export class SpaceCombatSceneMultiplayer implements GameScene, IDisposable {
 
   controllerInput: CombatControllerInput
   spaceDebris: SpaceDebrisAgent
@@ -65,6 +71,9 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   gameover: boolean
   readyTimer = 0
   gameoverTimer = 0
+  spectator: boolean = false
+  spectatingPlayer: Entity = undefined
+  reviveKillsRemaining: number = 0
   score: Score
   stats: NerdStats
 
@@ -86,7 +95,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   disposibles = new Set<IDisposable>()
 
   constructor(private playerShip?: ShipTemplate) {
-    console.log("[SpaceCombatLoop] created")
+    console.log("[SpaceCombatLoop.multiplayer] created")
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisAgent(appContainer.scene)
     world.onEntityAdded.subscribe(this.onCombatEntityAdded)
@@ -169,7 +178,16 @@ export class SpaceCombatScene implements GameScene, IDisposable {
 
   onDeath = (entity: Entity) => {
     if (entity == AppContainer.instance.player.playerEntity) {
-      // TODO: the player died
+
+      const anotherPlayerIsAlive = queries.players.entities.some((player) => {
+        return player.health.current > 0
+      })
+      if (anotherPlayerIsAlive) {
+        this.spectator = true
+        this.reviveKillsRemaining = 1
+        this.hud.spectator = true
+        return
+      }
       this.gameover = true
       this.hud.gameover = true
       this.gameoverTimer = 3000
@@ -198,35 +216,23 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       }
       // this.extraShipCount += 1
       playerScore.total += 10000 * this.waveCount // end of wave bonus
-      const playerEntity = AppContainer.instance.player.playerEntity
-      const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
-      playerEntity.health = {
-        current: shipTemplate.structure.core.health,
-        base: shipTemplate.structure.core.health
-      }
-      playerEntity.systems.state = { ...playerEntity.systems.base }
-      playerEntity.armor.back = shipTemplate.structure.back.armor
-      playerEntity.armor.front = shipTemplate.structure.front.armor
-      playerEntity.armor.left = shipTemplate.structure.left.armor
-      playerEntity.armor.right = shipTemplate.structure.right.armor
-      playerEntity.shields.currentAft = playerEntity.shields.maxAft
-      playerEntity.shields.currentFore = playerEntity.shields.maxFore
-      playerEntity.weapons.mounts.forEach((mount, index) => {
-        mount.count = mount.baseCount
-      })
-      if (playerEntity.gunAmmo != undefined) {
-        Object.keys(playerEntity.gunAmmo).forEach((ammoType) => {
-          playerEntity.gunAmmo[ammoType].current = playerEntity.gunAmmo[ammoType].base
-        })
-      }
+      AppContainer.instance.player.restorePlayerShip()
       // TODO: play a healing sound or triumph music note or something
     }
-    if (AppContainer.instance.server != undefined && AppContainer.instance.server && shouldSpawnShips) {
-      this.spawnShips()
+    if (this.reviveKillsRemaining > 0) {
+      this.reviveKillsRemaining = 0
+      this.spectator = false
+      this.hud.spectator = false
+      AppContainer.instance.player.revivePlayer()
     }
+    this.spawnShips()
   }
 
   spawnShips() {
+    if (AppContainer.instance.multiplayer == true && AppContainer.instance.server == false) {
+      return
+    }
+    return
     const radius = 6000
     const minRadius = 2000
     let newShipAmount = this.lastSpawnCount + 1
@@ -261,6 +267,9 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     const appContainer = AppContainer.instance
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
+    if (this.spectator) {
+      
+    }
     if (this.gameover) {
       this.gameoverTimer -= delta
       this.hud.updateScreen(delta)
@@ -317,11 +326,15 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     }
     shieldPulserSystem.update(delta)
     updateRenderSystem()
+    this.updateScore(delta)
     if (this.spaceDebris) {
       this.spaceDebris.update(delta)
     }
-    cameraSystem(appContainer.player, appContainer.camera)
-    this.updateScore(delta)
+    if (this.spectator) {
+      this.spectatorCameraSystem()
+    } else {
+      cameraSystem(appContainer.player.playerEntity, appContainer.camera)
+    }
     this.hud.updateScreen(delta)
   
     scene.render()
@@ -337,5 +350,18 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       this.hud.gameover = true
       this.gameoverTimer = 3000
     }
+  }
+
+  spectatorCameraSystem() {
+    // Calculate the center point between the two nodes
+    // follow cam
+    if (this.spectatingPlayer == undefined || this.spectatingPlayer.health.current == 0) {
+      this.spectatingPlayer = queries.players.entities.find(entity => entity.health.current > 0)
+    }
+    if (this.spectatingPlayer == undefined) {
+      return
+    }
+    cameraSystem(this.spectatingPlayer, AppContainer.instance.camera)
+    return
   }
 }

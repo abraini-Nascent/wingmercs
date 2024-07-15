@@ -7,7 +7,7 @@ import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } 
 import { MercScreen } from "../screen";
 import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../app.container";
-import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop';
+import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop.singlePlayer';
 import { AfterburnerTypes, Afterburners } from '../../data/components/afterburners';
 import { Gun, GunType } from '../../data/guns/gun';
 import * as Guns from '../../data/guns';
