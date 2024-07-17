@@ -225,16 +225,15 @@ export class StatsVDU {
     const playerEntity = AppContainer.instance.player.playerEntity
     if (playerEntity.health.current < (playerEntity.health.base / 2)) {
       if (this.ejectWarning == undefined) {
-        this.ejectWarning = VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt bɑmp bɑmp", undefined)
+        this.ejectWarning = VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt ", undefined)
         this.ejectWarning.loop = true
-        // this.ejectWarning.onended = () => {
-        //   setTimeout(() => {
-        //     this.ejectWarning.play()
-        //   }, 100);
-        // }
         this.ejectWarning.play()
       }
+    } else {
+      if (this.ejectWarning != undefined) {
+        SoundEffects.Silience(this.ejectWarning)
+        this.ejectWarning = undefined
+      }
     }
-    
   }
 }

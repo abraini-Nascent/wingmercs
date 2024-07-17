@@ -1,7 +1,7 @@
 import { Utilities } from './../../data/components/utility';
 import { Shields } from './../../data/components/shields';
 import { Engines } from './../../data/components/engines';
-import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, GunMounts, GunSelection, ModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, UtilityModifierDetails, UtilityMounts, WeaponMounts } from '../../data/ships/shipTemplate';
+import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, FuelTankModifierDetails, GunMounts, GunSelection, ModifierDetails, PowerPlantModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, ThrustersModifierDetails, UtilityModifierDetails, UtilityMounts, WeaponMounts } from '../../data/ships/shipTemplate';
 import { Axis, Color3, Observer, PointerEventTypes, Vector3 } from "@babylonjs/core";
 import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers";
 import { MercScreen } from "../screen";
@@ -20,14 +20,18 @@ import { CreateEntity, world } from '../../world/world';
 import { Button, ButtonItem, TextBlock } from '../components';
 import { ShipSelectionScene } from './shipSelection/shipSelectionLoop';
 import { ToRadians } from '../../utils/math';
+import { PowerPlants } from '../../data/components/powerPlants';
+import { Thrusters } from '../../data/components/thrusters';
+import { FuelTanks } from '../../data/components/fueltanks';
 
 
-type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "Utility";
+type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility";
 const ComponentColours = {
   Thruster: { r: 1.0, g: 0.0, b: 0.0 },    // Bright red
   Afterburner: { r: 1.0, g: 0.5, b: 0.0 }, // Orange
   Shields: { r: 0.0, g: 0.5, b: 1.0 },     // Sky blue
   Engine: { r: 0.0, g: 0.8, b: 0.4 },      // Grey
+  FuelTank: { r: 0.0, g: 0.8, b: 0.4 },    // Grey
   PowerPlant: { r: 1.0, g: 1.0, b: 0.0 },  // Yellow
   Radar: { r: 0.0, g: 1.0, b: 0.0 },       // Green
   Gun: { r: 0.5, g: 0.0, b: 0.5 },         // Purple
@@ -278,6 +282,24 @@ export class ShipCustomizerScreen extends MercScreen {
       slot: "shieldsSlot",
     },
     {
+      id: 'PowerPlant' as ComponentType,
+      title: `-= Power Plant =-`,
+      parts: Object.entries(PowerPlants),
+      slot: "powerPlantSlot",
+    },
+    {
+      id: 'Thruster' as ComponentType,
+      title: `-= Thrusters =-`,
+      parts: Object.entries(Thrusters),
+      slot: "thrustersSlot",
+    },
+    {
+      id: 'FuelTank' as ComponentType,
+      title: `-= Fuel Tanks =-`,
+      parts: Object.entries(FuelTanks),
+      slot: "fuelTankSlot",
+    },
+    {
       id: 'Utility' as ComponentType,
       title: `-= Utilities =-`,
       parts: Object.entries(Utilities),
@@ -349,6 +371,57 @@ export class ShipCustomizerScreen extends MercScreen {
         }
         if (shield.energyDrain != undefined) {
           detailsSection.addControl(this.printComponentModifier("Energy Drain", shield.energyDrain))
+        }
+      }
+      if (component.type == "PowerPlant") {
+        const powerPlant = component as PowerPlantModifierDetails
+        detailsSection.addControl(this.textItem("name", `${powerPlant.name}`))
+        detailsSection.addControl(this.textItem("class", `${powerPlant.size}`))
+        detailsSection.addControl(this.textItem("cost", `$${powerPlant.cost}`))
+        if (powerPlant.health != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", powerPlant.health))
+        }
+        if (powerPlant.maxCapacity != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Capacity", powerPlant.maxCapacity))
+        }
+        if (powerPlant.rate != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Recharge Rate", powerPlant.rate))
+        }
+      }
+      if (component.type == "Thruster") {
+        const thruster = component as ThrustersModifierDetails
+        detailsSection.addControl(this.textItem("name", `${thruster.name}`))
+        detailsSection.addControl(this.textItem("class", `${thruster.size}`))
+        detailsSection.addControl(this.textItem("cost", `$${thruster.cost}`))
+        if (thruster.health != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", thruster.health))
+        }
+        if (thruster.breakingForce != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Breaking Force", thruster.breakingForce))
+        }
+        if (thruster.breakingLimit != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Breaking Limit", thruster.breakingLimit))
+        }
+        if (thruster.pitch != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Pitch", thruster.pitch))
+        }
+        if (thruster.yaw != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Yaw", thruster.yaw))
+        }
+        if (thruster.roll != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Roll", thruster.roll))
+        }
+      }
+      if (component.type == "FuelTank") {
+        const fuelTank = component as FuelTankModifierDetails
+        detailsSection.addControl(this.textItem("name", `${fuelTank.name}`))
+        detailsSection.addControl(this.textItem("class", `${fuelTank.size}`))
+        detailsSection.addControl(this.textItem("cost", `$${fuelTank.cost}`))
+        if (fuelTank.health != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", fuelTank.health))
+        }
+        if (fuelTank.capacity != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Capacity", fuelTank.capacity))
         }
       }
       if (component.type == "Utility") {

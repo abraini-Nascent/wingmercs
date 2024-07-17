@@ -143,13 +143,13 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 ### next demo
 - [] dynamic missions - instant action mode
 - [] command wingmen
-- [] polish and juice
-  - [ ] rebuild hud indicators
-    - [ ] target / lock box
-    - [ ] missile lock indicator
-    - [ ] ITTS indicator
-    - [ ] Fire Reticle
-    - [ ] ui for who is talking
+- [x] polish and juice
+  - [x] rebuild hud indicators
+    - [x] target / lock box
+    - [x] missile lock indicator
+    - [x] ITTS indicator
+    - [x] Crosshair
+    - [x] ui for who is talking
   - [ ] pixelated texture mapped to spaceships?
   - [ ] pixelated textures mapped to particles?
 ### next demo

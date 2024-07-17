@@ -50,6 +50,7 @@ export function radarTargetingSystem(dt: number) {
     if (targeting.target != closestTarget && !holdTarget) {
       // reset target time when target changes
       targeting.targetingTime = 0
+      targeting.timeToLock = -1
     }
     if (!holdTarget) {
       // console.log("[RadarTargeting] target", closestTarget)

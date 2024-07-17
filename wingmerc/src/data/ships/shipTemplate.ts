@@ -284,6 +284,7 @@ export const StructureSlotType = {
   Gun: "Gun",
   Weapon: "Weapon",
   Utility: "Utility",
+  FuelTank: "FuelTank",
 } as const
 export type StructureSlotType = typeof StructureSlotType[keyof typeof StructureSlotType];
 

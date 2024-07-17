@@ -18,6 +18,8 @@ export function missileTargetingSystem(dt: number) {
       targeting.locked = false
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
+      targeting.timeToLock = -1
+      targeting.timeToLock = 0
       targeting.gunInterceptPosition = undefined
       world.update(entity, "targeting", targeting)
       continue
@@ -48,10 +50,11 @@ export function missileTargetingSystem(dt: number) {
     if (weaponClass.type == "dumbfire" || weaponClass.type == "friendorfoe") {
       continue
     }
-    if (targeting.target == -1) {
+    if (targeting.target == "") {
       // reset targeting time
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
+      targeting.timeToLock = -1
       targeting.gunInterceptPosition = undefined
       world.update(entity, "targeting", targeting)
       continue
@@ -69,12 +72,14 @@ export function missileTargetingSystem(dt: number) {
       // target is out of cone of fire, reset
       targeting.targetingDirection = { x: direction.x, y: direction.y, z: direction.z }
       targeting.targetingTime = 0
+      targeting.timeToLock = -1
       targeting.gunInterceptPosition = undefined
       world.update(entity, "targeting", targeting)
       continue
     }
     // start adding time to target lock
     targeting.targetingTime += dt
+    targeting.timeToLock = weaponClass.timeToLock
     if (weaponClass.class == "heatseeking") {
       const facingDelta = AngleBetweenVectors(directionToTarget, targetDirection)
       if (ToDegree(facingDelta) < 45) {

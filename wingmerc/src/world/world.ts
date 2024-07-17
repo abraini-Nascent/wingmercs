@@ -171,6 +171,7 @@ export type TargetState = {
   gunInterceptPosition: { x: number; y: number; z: number }
   targetingDirection: { x: number; y: number; z: number }
   targetingTime: number
+  timeToLock: number
   target: EntityUUID
   locked: boolean
   missileLocked: boolean
@@ -515,6 +516,9 @@ export class GFrame {
         }
       }
       // todo we should have a better way to manage what is sent over the wire
+      if (entity.relinquish) {
+        console.log("[net frame] handing over entity", entity)
+      }
       let framePayload = serialize("GFrame", entity)
       framePayload["_id"] = id
 

@@ -324,6 +324,7 @@ export class WeaponCommandSystem implements IDisposable {
       if (targeting.target != closestTarget) {
         // reset target time when target changes
         targeting.targetingTime = 0
+        targeting.timeToLock = -1
       }
       targeting.target = closestTarget
       targeting.locked = true

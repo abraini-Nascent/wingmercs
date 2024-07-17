@@ -45,6 +45,7 @@ import { HitTrackerSystem } from '../../world/systems/weaponsSystems/hitTrackerS
 import { MissionType } from '../../world/systems/ai/engagementState';
 import { ShipTemplate } from '../../data/ships/shipTemplate';
 import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
+import { TargetBoxesSystem } from '../../world/systems/renderSystems/targetBoxesSystem';
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps");
@@ -79,6 +80,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
   hitTrackerSystem = new HitTrackerSystem()
+  targetBoxesSystem = new TargetBoxesSystem()
 
   combatEntities = new Set<Entity>()
   disposibles = new Set<IDisposable>()
@@ -140,6 +142,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
     this.hitTrackerSystem.dispose()
+    this.targetBoxesSystem.dispose()
 
     // reset cursor
     document.body.style.cursor = "auto";
@@ -219,13 +222,12 @@ export class SpaceCombatScene implements GameScene, IDisposable {
       }
       // TODO: play a healing sound or triumph music note or something
     }
-    this.spawnShips()
+    if (shouldSpawnShips) {
+      this.spawnShips()
+    }
   }
 
   spawnShips() {
-    if (AppContainer.instance.multiplayer == true && AppContainer.instance.server == false) {
-      return
-    }
     const radius = 6000
     const minRadius = 2000
     let newShipAmount = this.lastSpawnCount + 1
@@ -288,7 +290,7 @@ export class SpaceCombatScene implements GameScene, IDisposable {
         divFps.innerHTML = engine.getFps().toFixed() + " fps";
         return
       } else {
-        // this.spawnShips()
+        this.spawnShips()
         this.hud.getReady = false
       }
     }
