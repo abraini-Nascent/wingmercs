@@ -67,7 +67,7 @@ export const Rapier: ShipTemplate = Object.seal({
       health: 10,
       fore: 115,
       aft: 115,
-      rechargeRate: 3,
+      rechargeRate: 30,
       energyDrain: 2,
     },
   },

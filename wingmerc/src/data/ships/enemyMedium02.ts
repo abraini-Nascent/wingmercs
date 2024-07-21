@@ -54,8 +54,8 @@ export const EnemyMedium02: ShipTemplate = Object.seal({
       health: 10,
       fore: 80,
       aft: 80,
-      rechargeRate: 5,
-      energyDrain: 5,
+      rechargeRate: 30,
+      energyDrain: 3,
     },
   },
   engineSlot: {

@@ -55,7 +55,7 @@ export const Saber: ShipTemplate = Object.seal({
       health: 10,
       fore: 80,
       aft: 80,
-      rechargeRate: 2,
+      rechargeRate: 40,
       energyDrain: 2,
     },
   },

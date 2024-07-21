@@ -77,7 +77,7 @@ export const Epee: ShipTemplate = Object.seal({
       fore: 60,
       aft: 60,
       energyDrain: 5,
-      rechargeRate: 5,
+      rechargeRate: 50,
       health: 20,
     },
   },

@@ -55,7 +55,7 @@ export const Dirk: ShipTemplate = Object.seal({
       health: 10,
       fore: 60,
       aft: 60,
-      rechargeRate: 2,
+      rechargeRate: 20,
       energyDrain: 2,
     },
   },

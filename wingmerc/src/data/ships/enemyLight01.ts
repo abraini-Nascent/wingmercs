@@ -54,7 +54,7 @@ export const EnemyLight01: ShipTemplate = Object.seal({
       health: 10,
       fore: 35,
       aft: 35,
-      rechargeRate: 3,
+      rechargeRate: 30,
       energyDrain: 3,
     },
   },

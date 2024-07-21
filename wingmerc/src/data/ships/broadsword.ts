@@ -5,6 +5,7 @@ export const Broadsword: ShipTemplate = Object.seal({
   name: "Broadsword",
   class: "Broadsword",
   weightClass: "Heavy",
+  baseWeight: 18,
   maxWeight: 35,
   modelDetails: {
     base: "spaceCraft4",
@@ -52,9 +53,9 @@ export const Broadsword: ShipTemplate = Object.seal({
     maxSize: "Medium",
     base: {
       health: 10,
-      fore: 80,
-      aft: 80,
-      rechargeRate: 2,
+      fore: 180,
+      aft: 180,
+      rechargeRate: 30,
       energyDrain: 2,
     },
   },
