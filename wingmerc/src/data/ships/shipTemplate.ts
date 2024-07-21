@@ -1,95 +1,6 @@
-import { friendorfoe } from '../weapons/friendorfoe';
 import { PilotAIType } from "../pilotAI/pilotAI";
 import { GunType } from '../guns/gun';
 import { WeaponType } from '../weapons/weapon';
-
-export interface ShipDetails {
-  name: string;
-  class: string;
-  modelDetails: {
-      base: string;
-      physics: string;
-      shield: string;
-      trails: {
-          start: {
-              x: number;
-              y: number;
-              z: number;
-          };
-          color?: {
-              r: number;
-              g: number;
-              b: number;
-          }
-      }[];
-  };
-  pilot: PilotAIType,
-  shields: {
-      fore: number;
-      aft: number;
-      rechargeRate: number;
-      energyDrain: number;
-  };
-  armor: {
-    front: number;
-    back: number;
-    left: number;
-    right: number;
-  };
-  systems: {
-    quadrant: {
-        fore: {
-            system: string;
-            weight: number;
-        }[];
-        aft: {
-            system: string;
-            weight: number;
-        }[];
-    };
-    base: {
-        afterburners: number;
-        thrusters: number;
-        engines: number;
-        power: number;
-        battery: number;
-        shield: number;
-        radar: number;
-        targeting: number;
-        guns: number;
-        weapons: number;
-    };
-  };
-  health: number;
-  pitch: number;
-  roll: number;
-  yaw: number;
-  accelleration: number;
-  afterburnerAccelleration: number;
-  breakingForce: number;
-  breakingLimit: number;
-  cruiseSpeed: number;
-  maxSpeed: number;
-  guns: {
-    type: string;
-    position: {
-        x: number;
-        y: number;
-        z: number;
-    };
-  }[];
-  weapons: {
-    type: string;
-    count: number;
-  }[];
-  engine: {
-    rate: number;
-    maxCapacity: number;
-  };
-  fuel: {
-    maxCapacity: number;
-  }
-}
 
 export const ShipWeightClass = {
   Light: "Light",
@@ -113,6 +24,7 @@ export interface ModifierDetails {
   name: string
 }
 export interface UtilityModifierDetails extends ModifierDetails {
+  weight: number
   ammo?: string
   ammoCount?: number
   health?: ComponentModifier;
@@ -130,6 +42,7 @@ export interface ShieldGeneratorBaseDetails {
 export interface ShieldGeneratorModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
+  weight: number;
   cost: number;
   health?: ComponentModifier;
   fore?: ComponentModifier;
@@ -152,6 +65,7 @@ export interface AfterburnerBaseDetails {
 export interface AfterburnerModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
+  weight: number;
   cost: number;
   health?: ComponentModifier;
   accelleration?: ComponentModifier;
@@ -171,6 +85,7 @@ export interface EngineModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
+  weight: number;
   health?: ComponentModifier;
   cruiseSpeed?: ComponentModifier;
   accelleration?: ComponentModifier;
@@ -179,6 +94,7 @@ export interface EngineModifierDetails extends ModifierDetails {
 export interface PowerPlantModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
+  weight: number;
   cost: number;
   health: ComponentModifier;
   /** how much energy per second the power plant generates */
@@ -197,6 +113,7 @@ export interface PowerPlantBaseDetails {
 export interface FuelTankModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
+  weight: number;
   cost: number;
   health: ComponentModifier;
   /** how much fuel the tank can hold */
@@ -212,6 +129,7 @@ export interface ThrustersModifierDetails extends ModifierDetails {
   name: string;
   size: ShipComponentSize;
   cost: number;
+  weight: number;
   health: ComponentModifier;
   pitch: ComponentModifier;
   roll: ComponentModifier;
@@ -332,6 +250,7 @@ export interface ShipTemplate {
   class: string;
   weightClass: ShipWeightClass;
   maxWeight: number;
+  baseWeight: number;
   modelDetails: {
       base: string;
       physics: string;
@@ -376,6 +295,7 @@ export interface ShipTemplate {
   };
   fuelTankSlot: {
     maxSize: ShipComponentSize;
+    modifier?: FuelTankModifierDetails;
     base: FuelTankBaseDetails;
   };
   thrustersSlot: {

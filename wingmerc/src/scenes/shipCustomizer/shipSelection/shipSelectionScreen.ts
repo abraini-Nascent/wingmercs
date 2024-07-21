@@ -7,7 +7,7 @@ import { Entity } from "../../../world/world";
 import { AngleBetweenVectors, ToDegree, generatePointsOnCircle } from "../../../utils/math";
 import { AppContainer } from "../../../app.container";
 import { ShipCustomizerScene } from "../shipCustomizerLoop";
-import { ShipDetails, ShipTemplate } from "../../../data/ships/shipTemplate";
+import { ShipTemplate } from "../../../data/ships/shipTemplate";
 import { Button, ButtonItem, TextBlock } from "../../components";
 import { MainMenuScene } from "../../mainMenu/mainMenuLoop";
 

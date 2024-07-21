@@ -66,7 +66,7 @@ class App {
 
     // skybox generated from
     //https://tools.wwwtyro.net/space-3d/index.html#animationSpeed=1&fov=80&nebulae=true&pointStars=true&resolution=256&seed=4ro5nl4knq80&stars=true&sun=true
-    const skybox = MeshBuilder.CreateBox("skyBox", { size: 10000.0 }, scene);
+    const skybox = MeshBuilder.CreateBox("skyBox", { size: 20000.0 }, scene);
     const skyboxMaterial = new StandardMaterial("skyBox", scene);
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.disableLighting = true;

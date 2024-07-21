@@ -5,7 +5,7 @@ import { MercScreen } from "../screen"
 import { AppContainer } from '../../app.container';
 import { Engine, Observer } from '@babylonjs/core';
 import { MainMenuButton, TextBlock, TextItem, clearSection } from '../components';
-import { Align, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from '../../utils/guiHelpers';
+import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from '../../utils/guiHelpers';
 import { PlayerAgent } from '../../agents/playerAgent';
 import { net } from '../../world/systems/netSystems/net';
 import { ReadyMessage } from '../../world/systems/netSystems/messages/readyMessage';
@@ -200,23 +200,12 @@ export class MultiplayerMenuScreen extends MercScreen {
     const mainScrollView = FlexContainer.CreateScrollView("Multiplayer Menu", mainPanel)
     mainScrollView.style.setJustifyContent(Justify.Center)
     mainScrollView.style.setAlignContent(Align.Center)
-    // mainPanel.isVertical = true
-    // mainPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-    // mainPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
-    // mainPanel.width = "100%"
-    // mainPanel.paddingBottomInPixels = 24
-    // mainPanel.paddingLeftInPixels = 24
-    // mainPanel.paddingTopInPixels = 128
-    // mainPanel.spacing = 24
-    // mainPanel.topInPixels = 124
-    // this.gui.addControl(mainPanel)
     
     const title = new GUI.TextBlock()
     title.name = "title"
     title.fontFamily = "Regular5"
     title.text = "-=Multiplayer=-"
     title.color = "gold"
-    // title.fontSize = 64
     title.fontSizeInPixels = 60
     title.heightInPixels = 128
     title.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
@@ -235,10 +224,10 @@ export class MultiplayerMenuScreen extends MercScreen {
       console.log("[multiplayer] name event change", event.text)
       PlayerAgent.playerName = event.text
     })
-    const nameRow = this.createRow("player name row", label, input)
+    const nameRow = this.createCenteredRow("player name", label, input)
+    nameRow.style.setMargin(Edge.Bottom, 15)
     mainScrollView.addControl(nameRow)
 
-    // join room
     const roomLabel = this.createLabel("room name label", "Room: ")
     const roomInput = new GUI.InputText("room name", this.roomName)
     roomInput.heightInPixels = 40
@@ -249,11 +238,18 @@ export class MultiplayerMenuScreen extends MercScreen {
       console.log("[multiplayer] room event change", event.text)
       this.roomName = event.text
     })
-    const roomRow = this.createRow("room name row", roomLabel, roomInput)
+    const roomRow = this.createCenteredRow("player name", roomLabel, roomInput)
+    roomRow.style.setMargin(Edge.Bottom, 15)
     mainScrollView.addControl(roomRow)
     
     const playerListContainer = new FlexContainer("playerListContainer")
+    playerListContainer.style.setAlignItems(Align.Center)
+    playerListContainer.style.setFlex(1)
     mainScrollView.addControl(playerListContainer)
+
+    const buttonContainer = new FlexContainer("button container")
+    buttonContainer.style.setAlignItems(Align.Center)
+    mainScrollView.addControl(buttonContainer)
 
     const hostButton = MainMenuButton("back", "Host");
     hostButton.onPointerClickObservable.add(() => {
@@ -284,7 +280,7 @@ export class MultiplayerMenuScreen extends MercScreen {
         }
       }, 333)
     })
-    mainScrollView.addControl(hostButton)
+    buttonContainer.addControl(hostButton)
 
     const joinButton = MainMenuButton("join", "Join");
     joinButton.onPointerClickObservable.add(() => {
@@ -315,7 +311,7 @@ export class MultiplayerMenuScreen extends MercScreen {
         }
       }, 333)
     })
-    mainScrollView.addControl(joinButton)
+    buttonContainer.addControl(joinButton)
 
     const readyButton = MainMenuButton("ready", "Ready");
     readyButton.onPointerClickObservable.add(() => {
@@ -323,14 +319,14 @@ export class MultiplayerMenuScreen extends MercScreen {
       this.gameroom.readyUp(PlayerAgent.playerName, this.ready)
     })
     readyButton.isVisible = false
-    mainScrollView.addControl(readyButton)
+    buttonContainer.addControl(readyButton)
 
     const startButton = MainMenuButton("start", "Start");
     startButton.onPointerClickObservable.add(() => {
       this.gameroom.start()
     })
     startButton.isVisible = false
-    mainScrollView.addControl(startButton)
+    buttonContainer.addControl(startButton)
 
     const backButton = MainMenuButton("back", "Back");
     backButton.onPointerClickObservable.addOnce(() => {
@@ -339,7 +335,7 @@ export class MultiplayerMenuScreen extends MercScreen {
         AppContainer.instance.gameScene = new MainMenuScene()
       }, 333)
     })
-    mainScrollView.addControl(backButton)
+    buttonContainer.addControl(backButton)
 
     this.gameroom.onEvent = () => {
       console.log("[net multiplayer] onEvent")
@@ -370,6 +366,25 @@ export class MultiplayerMenuScreen extends MercScreen {
       appContainer.gameScene = new SpaceCombatSceneMultiplayer()
       this.dispose()
     }
+  }
+
+  private createCenteredRow(name: string, leftItem: GUI.Control | FlexItem, rightItem: GUI.Control | FlexItem): FlexContainer {
+    const row = new FlexContainer("row_"+name)
+    row.style.setFlexDirection(FlexDirection.Row)
+    // row.style.setFlex(1)
+    const left = new FlexContainer("left")
+    left.style.setFlex(1)
+    left.style.setAlignItems(Align.FlexEnd)
+    left.style.setJustifyContent(Justify.Center)
+    left.style.setMargin(Edge.Right, 15)
+    const right = new FlexContainer("right")
+    right.style.setAlignItems(Align.FlexStart)
+    right.style.setFlex(1)
+    row.addControl(left)
+    row.addControl(right)
+    left.addControl(leftItem)
+    right.addControl(rightItem)
+    return row
   }
 
   private createRow(name: string, label: GUI.Control | FlexItem, item: GUI.Control | FlexItem): FlexContainer {

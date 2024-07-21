@@ -154,7 +154,7 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
   - [ ] pixelated textures mapped to particles?
 ### next demo
 - [] purchase and maintain ships
-- [] purchase and maintain personal
+- [] purchase and maintain personnel
 - [] polish and juice
 ### next demo
 - [] ai nuance

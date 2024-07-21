@@ -13,6 +13,7 @@ export const Overdrive = {
   cost: 10000,
   size: "Medium",
   name: "Overdrive",
+  weight: 1,
   roll: {
     value: 0.25,
     percent: true
@@ -31,6 +32,7 @@ export const HardReverse = {
   cost: 10000,
   size: "Medium",
   name: "Hard Reverse",
+  weight: 1,
   breakingForce: {
     value: 1,
     percent: true
@@ -45,6 +47,7 @@ export const Reinforced = {
   cost: 10000,
   size: "Medium",
   name: "Reinforced",
+  weight: 1,
   health: {
     value: 50
   }

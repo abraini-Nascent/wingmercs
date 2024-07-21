@@ -134,7 +134,7 @@ export class DynamicTextureImage extends GUI.Rectangle {
   }
 }
 
-const debug = false
+const debug = true
 export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-layout';
 export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
 export class FlexContainer {

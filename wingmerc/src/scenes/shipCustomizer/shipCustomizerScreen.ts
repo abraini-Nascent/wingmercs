@@ -23,6 +23,7 @@ import { ToRadians } from '../../utils/math';
 import { PowerPlants } from '../../data/components/powerPlants';
 import { Thrusters } from '../../data/components/thrusters';
 import { FuelTanks } from '../../data/components/fueltanks';
+import { weightForShip } from '../../world/helpers';
 
 
 type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility";
@@ -221,7 +222,7 @@ export class ShipCustomizerScreen extends MercScreen {
     container.addControl(contentContainer)
     contentContainer.addControl(this.textItem("name", `Ship Name: ${this.ship.name}`))
     contentContainer.addControl(this.textItem("class", `Ship Class: ${this.ship.weightClass}`))
-    contentContainer.addControl(this.textItem("weight", `Ship Weight: ${this.ship.maxWeight} / ${this.ship.maxWeight}`))
+    contentContainer.addControl(this.textItem("weight", `Ship Weight: ${weightForShip(this.ship)} / ${this.ship.maxWeight}`))
     let row = new FlexContainer()
     row.style.setFlexDirection(FlexDirection.Row)
     row.addControl(this.textItem("cruise-label", `Cruise Speed:`, true))

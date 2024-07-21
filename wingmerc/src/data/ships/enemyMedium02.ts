@@ -1,9 +1,10 @@
-import { ShipDetails, ShipTemplate } from "./shipTemplate"
+import { ShipTemplate } from "./shipTemplate"
 
 export const EnemyMedium02: ShipTemplate = Object.seal({
   name: "Scorpion",
   class: "EnemyMedium02",
   weightClass: "Medium",
+  baseWeight: 12,
   maxWeight: 24,
   modelDetails: {
     base: "craftSpeederC",

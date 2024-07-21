@@ -7,6 +7,8 @@ export const heatseeking: Weapon = Object.seal({
   type: "heatseeking",
   /** display name */
   name: "Heat Seeking",
+  /** the weight in tonnes of the weapon */
+  weight: 0.25,
   /** range before dissipating */
   range: 9000,
   /** damage done on contact */

@@ -12,12 +12,11 @@ import { MercParticles } from '../utils/particles/mercParticles';
 import { MercParticleConeEmitter, MercParticlePointEmitter } from '../utils/particles/mercParticleEmitters';
 import { MercParticleSystemPool } from '../utils/particles/mercParticleSystem';
 import { barks } from '../data/barks';
-import { translateIPA } from '../data/IAP';
 import { SAM, VoiceSound } from '../utils/speaking';
 import { SoundEffects } from '../utils/sounds/soundEffects';
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
-export type ParticleEntity = Pick<Entity, "damage" | "originatorId">
+export type ParticleEntity = Pick<Entity, "id" | "damage" | "originatorId">
 
 export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, hitPointWorld: Vector3, damage: number = 1) {
   const shooterStats = EntityForId(particleEntity.originatorId)?.nerdStats
@@ -26,6 +25,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
   AppContainer.instance.pipeline.process("registerHit", { shooter: parseInt(particleEntity.originatorId), victim: hitEntity.id })
   if (hitEntity.position == undefined) { return }
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
+    console.log(`[Damage] calculating damage for particle: ${particleEntity.id}`)
     // determine if we were hit in the front of back shields
     const hitEntityPosition = Vector3FromObj(hitEntity.position, TmpVectors.Vector3[0])
     
@@ -90,32 +90,40 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           if (hitEntity.armor.front < 0) {
             damage = Math.abs(hitEntity.armor.front)
             hitEntity.armor.front = 0
+          } else {
+            damage = 0
           }
-          console.log("[Damage] hit front armor", hitEntity.armor.front)
+          console.log("[Damage] hit front armor", hitEntity.armor.front, damage)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
           if (hitEntity.armor.right < 0) {
             damage = Math.abs(hitEntity.armor.right)
             hitEntity.armor.right = 0
+          } else {
+            damage = 0
           }
-          console.log("[Damage] hit right armor", hitEntity.armor.right)
+          console.log("[Damage] hit right armor", hitEntity.armor.right, damage)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
           if (hitEntity.armor.back < 0) {
             damage = Math.abs(hitEntity.armor.back)
             hitEntity.armor.back = 0
+          } else {
+            damage = 0
           }
-          console.log("[Damage] hit back armor", hitEntity.armor.back)
+          console.log("[Damage] hit back armor", hitEntity.armor.back, damage)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
           if (hitEntity.armor.left < 0) {
             damage = Math.abs(hitEntity.armor.left)
             hitEntity.armor.left = 0
+          } else {
+            damage = 0
           }
-          console.log("[Damage] hit left armor", hitEntity.armor.left)
+          console.log("[Damage] hit left armor", hitEntity.armor.left, damage)
         }
         damageSprayFrom(hitEntity, hitPointWorld, directionOfHit)
         SoundEffects.ArmorHit(hitEntityPosition.clone(), hitEntity == player)
@@ -133,18 +141,20 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             let voice = hitEntity.voice ?? SAM
             setTimeout(() => { 
               const sound = VoiceSound(bark.ipa, voice)
-              sound.maxDistance = 10000
-              sound.spatialSound = true
-              sound.attachToMesh(hitEntity.node);
-              sound.play()
-              world.addComponent(hitEntity, "speaking", sound)
-              sound.onEndedObservable.addOnce(() => {
-                if (hitEntity.speaking == sound) {
-                  world.removeComponent(hitEntity, "speaking")
-                }
-                sound.detachFromMesh()
-                sound.dispose()
-              })
+              if (sound) {
+                sound.maxDistance = 10000
+                sound.spatialSound = true
+                sound.attachToMesh(hitEntity.node);
+                sound.play()
+                world.addComponent(hitEntity, "speaking", sound)
+                sound.onEndedObservable.addOnce(() => {
+                  if (hitEntity.speaking == sound) {
+                    world.removeComponent(hitEntity, "speaking")
+                  }
+                  sound.detachFromMesh()
+                  sound.dispose()
+                })
+              }
             }, 1)
           }
           /*
@@ -173,7 +183,7 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
             randomDamage += rand(1, remaining)
           }
           hitEntity.health.current -= randomDamage
-          console.log("[Damage] hit health", randomDamage, hitEntity.health.current, hitEntity.health.base)
+          console.log(`[Damage] hit health for ${randomDamage} damage, ${hitEntity.health.current} / ${hitEntity.health.base} health remaining`)
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
           switch (damagedSystem) {
             case "guns": {

@@ -16,7 +16,7 @@ import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missi
 import { shieldPulserSystem } from "../../world/damage";
 import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem";
 import { createCustomShip } from "../../world/factories";
-import { ShipDetails, ShipTemplate } from "../../data/ships/shipTemplate";
+import { ShipTemplate } from "../../data/ships/shipTemplate";
 import * as Ships from "../../data/ships";
 import { randomItem } from "../../utils/random";
 import { QuaternionFromObj, Vector3FromObj, pointInSphere } from "../../utils/math";

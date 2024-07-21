@@ -61,6 +61,7 @@ export class TargetingHUD {
       crosshairMaterial.specularColor = Color3.Black()
       this.crosshairPlane = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", { size: 10, sideOrientation: Mesh.DOUBLESIDE });
       this.crosshairPlane.material = crosshairMaterial
+      this.crosshairPlane.metadata = { keepVisible: true }
 
       const pointInFront = TmpVectors.Vector3[2].copyFrom(playerEntity.node.position)
       pointInFront.addInPlace(Vector3FromObj(playerEntity.direction, TmpVectors.Vector3[0]).multiplyInPlace(TmpVectors.Vector3[1].setAll(100)))

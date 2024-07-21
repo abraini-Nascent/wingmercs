@@ -3,6 +3,7 @@ import { PowerPlantModifierDetails } from './../ships/shipTemplate';
 export const HighCapPowerPlant = {
   cost: 10000,
   size: "Medium",
+  weight: 1,
   maxCapacity: {
     value: 1.0,
     percent: true
@@ -13,6 +14,7 @@ export const HighCapPowerPlant = {
 export const HighRatePowerPlant = {
   cost: 10000,
   size: "Medium",
+  weight: 1,
   rate: {
     value: 1.0,
     percent: true
@@ -23,6 +25,7 @@ export const HighRatePowerPlant = {
 export const OverChargedPowerPlant = {
   cost: 10000,
   size: "Medium",
+  weight: 1,
   maxCapacity: {
     value: 0.25,
     percent: true
@@ -37,6 +40,7 @@ export const OverChargedPowerPlant = {
 export const SuperChargedPowerPlant = {
   cost: 10000,
   size: "Medium",
+  weight: 1,
   maxCapacity: {
     value: 0.5,
     percent: true

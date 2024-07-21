@@ -1,12 +1,14 @@
 import { Gun } from "./gun"
 
-export const massdriver: Gun = Object.seal({
+export const literifle: Gun = Object.seal({
   /** id */
-  class: "massdriver",
+  class: "literifle",
   /** display name */
-  name: "Mass Driver",
+  name: "Lite Rifle",
   /** the weight in tonnes of the gun */
   weight: 0.5,
+  ammo: "lite rifle round",
+  ammoPerBin: 230, // ~3500 damage per bin
   /** color of the trail */
   color: { r: 78 / 100, g: 92 / 100, b: 95 / 100, a: 1 },
   /** stats per tier */
@@ -17,15 +19,15 @@ export const massdriver: Gun = Object.seal({
       /** range before dissipating */
       range: 3000,
       /** damage done on contact */
-      damage: 28,
+      damage: 15,
       /** energy consumer per shot */
-      energy: 12,
+      energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 1000,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 10,
+      health: 25,
     },
     {
       /** tier */
@@ -33,15 +35,15 @@ export const massdriver: Gun = Object.seal({
       /** range before dissipating */
       range: 3000,
       /** damage done on contact */
-      damage: 30,
+      damage: 15,
       /** energy consumer per shot */
-      energy: 12,
+      energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 1000,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 10,
+      health: 25,
     },
     {
       /** tier */
@@ -49,15 +51,15 @@ export const massdriver: Gun = Object.seal({
       /** range before dissipating */
       range: 3100,
       /** damage done on contact */
-      damage: 30,
+      damage: 15,
       /** energy consumer per shot */
-      energy: 11,
+      energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 1000,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 14,
+      health: 25,
     },
     {
       /** tier */
@@ -65,47 +67,47 @@ export const massdriver: Gun = Object.seal({
       /** range before dissipating */
       range: 3200,
       /** damage done on contact */
-      damage: 31,
+      damage: 17,
       /** energy consumer per shot */
-      energy: 11,
+      energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 800,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 16,
+      health: 25,
     },
     {
       /** tier */
       tier: 4,
       /** range before dissipating */
-      range: 3100,
+      range: 3300,
       /** damage done on contact */
-      damage: 31,
+      damage: 19,
       /** energy consumer per shot */
       energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 800,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 18,
+      health: 25,
     },
     {
       /** tier */
       tier: 5,
       /** range before dissipating */
-      range: 3200,
+      range: 3500,
       /** damage done on contact */
-      damage: 32,
+      damage: 23,
       /** energy consumer per shot */
       energy: 10,
       /** delay in milliseconds */
-      delay: 300,
+      delay: 800,
       /** travel speed in mps */
-      speed: 2000,
+      speed: 10000,
       /** how much damage it can take before being destroyed */
-      health: 20,
+      health: 25,
     },
   ],
 })

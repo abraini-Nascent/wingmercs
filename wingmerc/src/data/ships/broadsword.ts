@@ -1,4 +1,4 @@
-import { ShipDetails, ShipTemplate } from "./shipTemplate"
+import { ShipTemplate } from "./shipTemplate"
 
 /// based on the Broadsword
 export const Broadsword: ShipTemplate = Object.seal({

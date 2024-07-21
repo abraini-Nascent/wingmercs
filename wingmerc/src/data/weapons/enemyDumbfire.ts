@@ -7,6 +7,8 @@ export const enemyDumbfire: Weapon = Object.seal({
   type: "dumbfire",
   /** display name */
   name: "EnemyDumbfire",
+  /** the weight in tonnes of the weapon */
+  weight: 0.25,
   /** range before dissipating */
   range: 10000,
   /** damage done on contact */

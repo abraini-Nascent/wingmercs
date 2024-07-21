@@ -64,10 +64,11 @@ export type Voice = {
   mouth: number
 }
 export function VoiceSound(phoneticSentence: string, voice: Voice): Sound | undefined {
-  const samSentence = translateIPA(phoneticSentence, true)
+  const samSentence = translateIPA(phoneticSentence, AppContainer.instance.debug)
   // console.log(`${bark.english}: \\${samSentence}\\`)
+  return
   const sam = new SamJs({
-    debug: true,
+    debug: AppContainer.instance.debug,
     phonetic: true,
     ...voice
   })

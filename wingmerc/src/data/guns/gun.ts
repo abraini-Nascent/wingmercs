@@ -1,3 +1,7 @@
+import { gaussrifle } from "./gaussRifle"
+import { literifle } from "./liteRifle"
+import { mediumrifle } from "./mediumRifle"
+
 export type GunStats = {
     /** tier */
     tier: 0 | 1 | 2 | 3 | 4 | 5,
@@ -20,6 +24,8 @@ export type Gun = {
   class: GunType,
   /** display name */
   name: string,
+  /** the weight in tonnes of the gun */
+  weight: number,
   /** hex color of the trail */
   color: {r: number, g: number, b: number, a: 1},
   /** the type of ammo used */
@@ -37,6 +43,9 @@ export const GunType = {
   neutron: "neutron",
   particleCannon: "particleCannon",
   plasma: "plasma",
+  literifle: "literifle",
+  mediumrifle: "mediumrifle",
+  gaussrifle: "gaussrifle",
 } as const
 
 export type GunType = typeof GunType[keyof typeof GunType];

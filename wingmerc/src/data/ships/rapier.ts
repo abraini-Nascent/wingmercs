@@ -1,4 +1,4 @@
-import { ShipDetails, ShipTemplate } from "./shipTemplate"
+import { ShipTemplate } from "./shipTemplate"
 
 /// based on the Papier
 export const Rapier: ShipTemplate = Object.seal({
@@ -6,6 +6,7 @@ export const Rapier: ShipTemplate = Object.seal({
   class: "Rapier",
   weightClass: "Medium",
   maxWeight: 14,
+  baseWeight: 6,
   modelDetails: {
     base: "spaceCraft2",
     physics: "spaceCraft2Hull",

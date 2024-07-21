@@ -5,6 +5,8 @@ export const plasma: Gun = Object.seal({
   class: "plasma",
   /** display name */
   name: "Plasma Cannon",
+  /** the weight in tonnes of the gun */
+  weight: 0.5,
   /** color of the trail */
   color: {r: 187/100, g: 30/100, b: 57/100, a: 1},
   /** stats per tier */

@@ -5,6 +5,8 @@ export const neutron: Gun = Object.seal({
   class: "neutron",
   /** display name */
   name: "Neutron",
+  /** the weight in tonnes of the gun */
+  weight: 0.5,
   /** color of the trail */
   color: { r: 1 / 100, g: 98 / 100, b: 149 / 100, a: 1 },
   /** tiers */

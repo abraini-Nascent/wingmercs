@@ -1,4 +1,4 @@
-import { ShipDetails, ShipTemplate } from "./shipTemplate"
+import { ShipTemplate } from "./shipTemplate"
 
 /// based on the Saber
 export const Saber: ShipTemplate = Object.seal({
@@ -6,6 +6,7 @@ export const Saber: ShipTemplate = Object.seal({
   class: "Saber",
   weightClass: "Heavy",
   maxWeight: 35,
+  baseWeight: 17,
   modelDetails: {
     base: "spaceCraft3",
     physics: "spaceCraft3Hull",

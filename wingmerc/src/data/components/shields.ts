@@ -6,6 +6,7 @@ export const BasicShields = {
   name: "Basic Shield Booster",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   fore: {
     value: 5
   },
@@ -20,6 +21,7 @@ export const LightningShields = {
   name: "Lightning Shields",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   rechargeRate: {
     value: 0.15,
     percent: true
@@ -36,6 +38,7 @@ export const JellyShields = {
   name: "Jelly Shields",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   rechargeRate: {
     value: -0.1,
     percent: true
@@ -52,6 +55,7 @@ export const SnapShields = {
   name: "SnapBack Shields",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   fore: {
     value: -0.25,
     percent: true
@@ -76,6 +80,7 @@ export const HeavyShields = {
   name: "Heavy Shields",
   size: "Large",
   cost: 10000,
+  weight: 1,
   fore: {
     value: 0.25,
     percent: true

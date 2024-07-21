@@ -6,6 +6,7 @@ export const Epee: ShipTemplate = Object.seal({
   class: "Epee",
   weightClass: "Light",
   maxWeight: 15,
+  baseWeight: 7,
   // ai
   pilot: "Light01",
   // 3d model

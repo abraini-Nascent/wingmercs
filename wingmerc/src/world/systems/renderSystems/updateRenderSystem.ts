@@ -2,7 +2,7 @@ import { Color3, Mesh, Quaternion, StandardMaterial, TransformNode } from "@baby
 import { queries } from "../../world"
 
 // let targetingBox: Mesh
-
+const DEBUG = false
 /**
  * applies the entity's component details to the babylonjs transform node
  */
@@ -30,6 +30,10 @@ export function updateRenderSystem() {
     }
     if (visible != undefined) {
       for (const mesh of transform.getChildMeshes()) {
+        if (mesh.metadata?.keepVisible) {
+          mesh.isVisible = true
+          continue
+        }
         mesh.isVisible = visible
       }
       if (entity.trailMeshs) {

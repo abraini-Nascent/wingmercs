@@ -4,6 +4,7 @@ export const ShieldedFuelTank = {
   cost: 10000,
   size: "Medium",
   name: "Shielded",
+  weight: 1,
   health: {
     value: 50
   }
@@ -13,6 +14,7 @@ export const ExpandedFuelTank = {
   cost: 10000,
   size: "Medium",
   name: "Expanded",
+  weight: 1,
   capacity: {
     value: 1,
     percent: true
@@ -23,6 +25,7 @@ export const ReinforcedFuelTank = {
   cost: 10000,
   size: "Medium",
   name: "Reinforced",
+  weight: 1,
   capacity: {
     value: .5,
     percent: true

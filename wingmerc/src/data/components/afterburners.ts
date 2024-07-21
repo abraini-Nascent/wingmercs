@@ -13,6 +13,7 @@ export const HotAfterburners: AfterburnerModifierDetails = {
   type: "Afterburner",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   maxSpeed: {
     value: 0.15,
     percent: true
@@ -30,6 +31,7 @@ export const DragsterAfterburners = {
   name: "Dragster",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   maxSpeed: {
     value: 0.15,
     percent: true
@@ -47,6 +49,7 @@ export const JackrabbitAfterburners = {
   name: "Jackrabbit",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   maxSpeed: {
     value: -0.1,
     percent: true
@@ -64,6 +67,7 @@ export const TurtleAfterburners = {
   name: "Turtle",
   size: "Large",
   cost: 10000,
+  weight: 1,
   maxSpeed: {
     value: -0.1,
     percent: true

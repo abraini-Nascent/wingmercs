@@ -318,6 +318,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       target: "",
       locked: false,
       targetingTime: 0,
+      timeToLock: -1,
     },
     isTargetable: "enemy",
     // scale: { x: 2, y: 2, z: 2 }

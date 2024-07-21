@@ -5,6 +5,8 @@ export type Weapon = {
   type: WeaponType,
   /** display name */
   name: string,
+  /** the weight in tonnes of the weapon */
+  weight: number,
   /** range before dissipating */
   range: number,
   /** damage done on contact */

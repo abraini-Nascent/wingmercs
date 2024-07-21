@@ -7,6 +7,8 @@ export const imagerecognition: Weapon = Object.seal({
   type: "imagerecognition",
   /** display name */
   name: "Image Recognition",
+  /** the weight in tonnes of the weapon */
+  weight: 0.25,
   /** range before dissipating */
   range: 8000,
   /** damage done on contact */

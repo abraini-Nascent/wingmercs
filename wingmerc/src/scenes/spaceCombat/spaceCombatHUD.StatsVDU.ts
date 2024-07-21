@@ -226,8 +226,10 @@ export class StatsVDU {
     if (playerEntity.health.current < (playerEntity.health.base / 2)) {
       if (this.ejectWarning == undefined) {
         this.ejectWarning = VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt ", undefined)
-        this.ejectWarning.loop = true
-        this.ejectWarning.play()
+        if (this.ejectWarning) {
+          this.ejectWarning.loop = true
+          this.ejectWarning.play()
+        }
       }
     } else {
       if (this.ejectWarning != undefined) {

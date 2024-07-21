@@ -6,6 +6,7 @@ export const BasicEngines = {
   name: "Basic Engines",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   cruiseSpeed: {
     value: 0.1
   },
@@ -20,6 +21,7 @@ export const LightEngines = {
   name: "Light Engines",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   cruiseSpeed: {
     value: 0.1
   },
@@ -34,6 +36,7 @@ export const MediumEngines = {
   name: "Medium Engines",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   accelleration: {
     value: 0.25
   }
@@ -45,6 +48,7 @@ export const ThickEngines = {
   name: "Thick Engines",
   size: "Medium",
   cost: 10000,
+  weight: 1,
   cruiseSpeed: {
     value: -0.1
   },
@@ -59,6 +63,7 @@ export const HeavyEngines = {
   name: "Heavy Engines",
   size: "Large",
   cost: 10000,
+  weight: 1,
   health: {
     value: 0.5
   },

@@ -5,6 +5,8 @@ export const particleCannon: Gun = Object.seal({
   class: "particleCannon",
   /** display name */
   name: "Particle Cannon",
+  /** the weight in tonnes of the gun */
+  weight: 0.5,
   /** color of the trail */
   color: {r: 187/100, g: 30/100, b: 57/100, a: 1},
   /** stats per tier */

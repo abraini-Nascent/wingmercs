@@ -4,6 +4,7 @@ import { ObjModels } from "../../../assetLoader/objModels"
 import { AppContainer } from "../../../app.container"
 import { ToRadians } from "../../../utils/math";
 
+const DEBUG = false
 declare module '@babylonjs/core' {
   interface PhysicsBody {
     entityId: EntityUUID;
@@ -27,7 +28,7 @@ export class UpdatePhysicsSystem implements IDisposable {
 
   private physicsOnEntityAdded = (entity: Entity) => {
     const { node, bodyType } = entity
-    console.log(`[PhysicsSystem] creating body for [${entity.id}]"${entity.targetName}"`)
+    DEBUG && console.log(`[PhysicsSystem] creating body for [${entity.id}]"${entity.targetName}"`)
     // create the body
     let physicsType = PhysicsMotionType.DYNAMIC
     if (bodyType == "static") {
@@ -72,7 +73,7 @@ export class UpdatePhysicsSystem implements IDisposable {
     } else {
       hullShape = new PhysicsShapeConvexHull(entity.node.getChildMeshes()[0] as Mesh, app.scene)
     }
-    console.log(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
+    DEBUG && console.log(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
     body.shape = hullShape
     body.entityId = entity.id
     body.setCollisionCallbackEnabled(true)

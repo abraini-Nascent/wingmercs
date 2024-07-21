@@ -7,6 +7,8 @@ export const friendorfoe: Weapon = Object.seal({
   type: "friendorfoe",
   /** display name */
   name: "Friend or For",
+  /** the weight in tonnes of the weapon */
+  weight: 0.25,
   /** range before dissipating */
   range: 12000,
   /** damage done on contact */
