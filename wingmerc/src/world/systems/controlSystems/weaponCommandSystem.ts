@@ -291,12 +291,87 @@ export class WeaponCommandSystem implements IDisposable {
         }
       }
     }
-    // locking
+
+    if (fireCommand.nav) {
+      // find the next nav
+      const entityId = entity.id
+      const { targeting, vduState } = entity
+      if (vduState) {
+        vduState.right = "destination"
+      }
+      let validTargets: EntityUUID[] = []
+      let currentTarget = targeting.destination
+      for (const target of queries.targets.entities) {
+        const targetId = target.id
+        if (entityId == targetId) {
+          continue
+        }
+        if (target.isTargetable != "nav") {
+          continue
+        }
+        // if there are no current targets set the first target
+        if (currentTarget == undefined) {
+          targeting.destination = targetId
+          break
+        }
+        validTargets.push(target.id)
+      }
+      if (validTargets.length > 0) { 
+        let indexOfCurrentTarget = validTargets.indexOf(currentTarget)
+        if (indexOfCurrentTarget == -1) {
+          // target is not around anymore? set to first valid target
+          targeting.destination = validTargets[0]
+        }
+        let nextTargetIndex = (indexOfCurrentTarget + 1) % validTargets.length
+        targeting.destination = validTargets[nextTargetIndex]
+      }
+    }
+
+    /// TARGETING
+    if (fireCommand.target) {
+      // find the next enemy
+      const entityId = entity.id
+      const { targeting, vduState } = entity
+      if (vduState) {
+        vduState.right = "target"
+      }
+      let validTargets: EntityUUID[] = []
+      let currentTarget = targeting.target
+      for (const target of queries.targets.entities) {
+        const targetId = target.id
+        if (entityId == targetId) {
+          continue
+        }
+        if (target.isTargetable == "nav" || target.isTargetable == "missile") {
+          continue
+        }
+        // if there are no current targets set the first target
+        if (currentTarget == undefined) {
+          targeting.target = targetId
+          break
+        }
+        validTargets.push(target.id)
+      }
+      if (validTargets.length >= 0) {
+        let indexOfCurrentTarget = validTargets.indexOf(currentTarget)
+        if (indexOfCurrentTarget == -1) {
+          // target is not around anymore? set to first valid target
+          targeting.target = validTargets[0]
+        }
+        let nextTargetIndex = (indexOfCurrentTarget + 1) % validTargets.length
+        targeting.target = validTargets[nextTargetIndex]
+      }
+    }
+
+    /// LOCKING
     if (fireCommand.lock) {
       // console.log("[WeaponSystems] attempting lock")
       // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
       const entityId = entity.id
-      const { direction, position, targeting } = entity
+      const { direction, position, targeting, vduState } = entity
+      if (vduState) {
+        vduState.right = "target"
+      }
       const entityDirection = Vector3FromObj(direction)
       const entityPosition = Vector3FromObj(position)
       let smallestDistance = Number.MAX_SAFE_INTEGER
@@ -305,6 +380,10 @@ export class WeaponCommandSystem implements IDisposable {
         const targetId = target.id
         const targetPosition = Vector3FromObj(target.position)
         if (entityId == targetId) {
+          continue
+        } 
+        if (target.isTargetable == "nav") {
+          // don't lock nav beacons
           continue
         }
         const directionToTarget = targetPosition
@@ -326,8 +405,17 @@ export class WeaponCommandSystem implements IDisposable {
         targeting.targetingTime = 0
         targeting.timeToLock = -1
       }
-      targeting.target = closestTarget
-      targeting.locked = true
+      if (closestTarget == undefined) {
+        targeting.target = undefined
+        targeting.targetingTime = 0
+        targeting.timeToLock = -1
+      }
+      else if (closestTarget == targeting.target) {
+        targeting.locked = !targeting.locked
+      } else {
+        targeting.target = closestTarget
+        targeting.locked = true
+      }
       if (entity == AppContainer.instance.player?.playerEntity) {
         let sound = SoundEffects.Select()
         sound.play()

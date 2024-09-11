@@ -5,13 +5,15 @@ import { WeaponType } from '../weapons/weapon';
 export const ShipWeightClass = {
   Light: "Light",
   Medium: "Medium",
-  Heavy: "Heavy"
+  Heavy: "Heavy",
+  Capital: "Capital",
 } as const
 export type ShipWeightClass = typeof ShipWeightClass[keyof typeof ShipWeightClass];
 export const ShipComponentSize = {
   Small: "Small",
   Medium: "Medium",
-  Large: "Large"
+  Large: "Large",
+  Capital: "Capital",
 } as const
 export type ShipComponentSize = typeof ShipComponentSize[keyof typeof ShipComponentSize];
 export interface ComponentModifier {
@@ -255,12 +257,16 @@ export interface ShipTemplate {
       base: string;
       physics: string;
       shield: string;
+      cockpit?: string;
+      firstPerson?: string;
       trails: {
           start: {
               x: number;
               y: number;
               z: number;
           };
+          width?: number;
+          length?: number;
           color?: {
               r: number;
               g: number;

@@ -2,7 +2,7 @@ import { EntityForId } from './../../world';
 import { BreakLeftData, BreakRightData, HeadingManeuverData, FishHookData, FlipData, LoopData, SmallWaggleData, VeerOffDownLeftData, VeerOffDownRightData, VeerOffUpLeftData, VeerOffUpRightData } from '../../../data/maneuvers/headingManeuvers';
 import { AngleBetweenVectors, QuaternionFromObj, ToDegree, ToRadians, Vector3FromObj, isPointBehind } from "../../../utils/math";
 import { MovementCommand, AIBlackboard, Entity, world, queries, FireCommand } from "../../world";
-import { ManeuverType, MissionType, NearDistance, ObjectiveType, StateOfConfrontation, StateOfHealth } from "./engagementState";
+import { ManeuverType, ObjectiveType, StateOfConfrontation, StateOfHealth } from "./engagementState";
 import { SteeringBehaviours, SteeringHardTurnClamp, SteeringResult } from "./steeringBehaviours";
 import { TmpVectors, Vector3 } from "@babylonjs/core";
 import { RouletteSelectionStochastic, randFloat, randomItem } from '../../../utils/random';
@@ -13,9 +13,13 @@ import * as Ships from "../../../data/ships"
 import { PilotAIs } from '../../../data/pilotAI/pilotAI';
 import { ExecutionTree } from '../../../data/pilotAI/executionTree';
 import { ShipTemplate } from '../../../data/ships/shipTemplate';
+import { MissionType } from '../../../data/missions/missionData';
+import { AppContainer } from '../../../app.container';
+import { barks } from '../../../data/barks';
+import { PlayVoiceSound, VoiceSound } from '../../../utils/speaking';
 
 
-const DEBUG = false
+const DEBUG = true
 
 const PlanarUp = Vector3.Up()
 const BreakFormationPattern = [
@@ -55,8 +59,10 @@ export function shipIntelligence(entity: Entity) {
     case MissionType.Wingman:
       WingmanMission(entity, blackboard)
       break;
+    case MissionType.Escorted:
+      EscortedMission(entity, blackboard)
     default:
-      intelligence.mission = MissionType.Wingman
+      intelligence.mission = entity.missionDetails?.mission ?? MissionType.Wingman
       break;
   }
 }
@@ -251,6 +257,103 @@ const DestroyMission = (entity: Entity, blackboard: intelligenceBlackboard) => {
 }
 
 /****
+ * ESCORTED MISSION
+ * Navigate from nav point to nav point
+ */
+const EscortedMission = (entity: Entity, blackboard: intelligenceBlackboard) => {
+  const objective = blackboard.intelligence.objective
+  switch (objective) {
+    case "Caravan": {
+      Caravan(entity, blackboard)
+      break;
+    }
+    case "Park": {
+      // just sit here
+      break;
+    }
+    default: {
+      blackboard.intelligence.objective = "Caravan"
+      break;
+    }
+  }
+}
+
+/**
+ * Move from nav point to nav point
+ * 
+ * @param entity 
+ * @param blackboard 
+ */
+const Caravan = (entity: Entity, blackboard: AIBlackboard) => {
+  // set the bloackboard state
+  if (blackboard.caravan == undefined) {
+    const mission = entity.missionDetails
+    const currentNavPosition = mission.missionLocations[0].position
+    const currentNavIndex = 0
+    blackboard.caravan = {
+      currentNavPosition,
+      currentNavIndex,
+      greeted: false
+    }
+    DEBUG && console.log(`[ShipIntelligence][Caravan] Ship ${entity.id} Approaching Nav ${mission.missionLocations[0].name}`, mission.missionLocations[0].position)
+  }
+  // check if near the next nav point
+  const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
+  const entityRotation = QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0])
+  const navPossition = Vector3FromObj(blackboard.caravan.currentNavPosition, TmpVectors.Vector3[1])
+  const distance = entityPosition.subtractToRef(navPossition, TmpVectors.Vector3[2]).length()
+  if (blackboard.caravan.greeted == false) {
+    const player = AppContainer.instance.player.playerEntity
+    const playerDistance = Vector3FromObj(player.position).subtract(entityPosition).length()
+    if (playerDistance < 1500) {
+      blackboard.caravan.greeted = true
+      const greeting = randomItem(barks.escortedArival)
+      const greetingSound = VoiceSound(greeting.ipa, entity.voice)
+      PlayVoiceSound(greetingSound, entity)
+      DEBUG && console.log(`[ShipIntelligence][Caravan] greetings: ${greeting.english}`)
+    }
+  }
+  if (distance < 150) {
+    // increment next nav point by one
+    const nextIndex = blackboard.caravan.currentNavIndex + 1
+    // if final nav point
+    if (nextIndex >= entity.missionDetails.missionLocations.length) {
+      // TODO
+      // assign next mission objective
+      if (entity.setSpeed != undefined) {
+        entity.setSpeed = 0
+      } else {
+        world.addComponent(entity, "setSpeed", 0)
+      }
+      DEBUG && console.log(`[ShipIntelligence][Caravan] Ship ${entity.id} Sitting at final Nav ${entity.missionDetails.missionLocations[blackboard.caravan.currentNavIndex].name}`)
+      blackboard.caravan = undefined
+      blackboard.intelligence.objective = "Park"
+      return
+    } else {
+      const nextPosition = entity.missionDetails.missionLocations[nextIndex].position
+      blackboard.caravan.currentNavPosition.x = nextPosition.x
+      blackboard.caravan.currentNavPosition.y = nextPosition.y
+      blackboard.caravan.currentNavPosition.z = nextPosition.z
+      blackboard.caravan.currentNavIndex = nextIndex
+      DEBUG && console.log(`[ShipIntelligence][Caravan] Ship ${entity.id} Heading to next Nav ${entity.missionDetails.missionLocations[blackboard.caravan.currentNavIndex].name}`, blackboard.caravan.currentNavPosition)
+    }
+  }
+  // approach next nav point
+  const nextNavPossition = Vector3FromObj(blackboard.caravan.currentNavPosition, TmpVectors.Vector3[1])
+  const input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, nextNavPossition, PlanarUp, SteeringSoftNormalizeClamp)
+  const movementCommand: MovementCommand = {
+    pitch: input.pitch,
+    yaw: input.yaw,
+    roll: input.roll,
+    afterburner: 0,
+    brake: 0,
+    drift: 0,
+    deltaSpeed: 0,
+  }
+  world.update(entity, "movementCommand", movementCommand)
+}
+
+/****
  * PATROL MISSION
  * Wander around the patrol point
  * Approach and engage enemies within range
@@ -304,13 +407,14 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         blackboard.targeting.target = nearbyEnemy.id
         blackboard.intelligence.tactic = PatrolTactics.ApproachTarget
         blackboard.lookout = undefined
-        DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target`)
+        DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
         return
       }
       const missionDetails = entity.missionDetails
       const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
       const entityRotation = QuaternionFromObj(entity.rotationQuaternion)
-      const distance = entityPosition.subtractToRef(missionDetails.patrolPoints[0], TmpVectors.Vector3[1]).length()
+      const missionNextPosition = Vector3FromObj(missionDetails.missionLocations[0].position, TmpVectors.Vector3[2])
+      const distance = entityPosition.subtractToRef(missionNextPosition, TmpVectors.Vector3[1]).length()
       if (distance > PATROL_HEADHOME_DISTANCE) {
         blackboard.lookout = undefined
         blackboard.intelligence.tactic = PatrolTactics.HeadHome
@@ -336,14 +440,15 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
       const missionDetails = entity.missionDetails
       const entityPosition = Vector3FromObj(entity.position)
       const entityRotation = QuaternionFromObj(entity.rotationQuaternion)
-      const distance = entityPosition.subtractToRef(missionDetails.patrolPoints[0], TmpVectors.Vector3[1]).length()
+      const missionNextPosition = Vector3FromObj(missionDetails.missionLocations[0].position, TmpVectors.Vector3[2])
+      const distance = entityPosition.subtractToRef(missionNextPosition, TmpVectors.Vector3[1]).length()
       if (distance < PATROL_WANDER_DISTANCE) {
         blackboard.intelligence.tactic = PatrolTactics.LookOut
         DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} looking out`)
         return
       }
       // head back to patrol point
-      let input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, entity.missionDetails.patrolPoints[0], PlanarUp, SteeringSoftNormalizeClamp)
+      let input = SteeringBehaviours.seek(blackboard.dt, entityPosition, entityRotation, missionNextPosition, PlanarUp, SteeringSoftNormalizeClamp)
       let deltaSpeed = (entity.setSpeed ?? 0) < shipCruiseSpeed(entity) ? 1 : -1
       const movementCommand: MovementCommand = {
         pitch: input.pitch,
@@ -533,6 +638,9 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
     if (otherEntity.teamId == entity.teamId) {
       continue
     }
+    if (otherEntity.isTargetable == "missile" || otherEntity.isTargetable == "nav") {
+      continue
+    }
     const enemyPosition = Vector3FromObj(otherEntity.position, TmpVectors.Vector3[4])
     const enemyDirection = Vector3FromObj(otherEntity.direction, TmpVectors.Vector3[5])
     if (isPointBehind(entityPosition, entityDirection, enemyPosition) == false) {
@@ -617,6 +725,10 @@ export function nearestEnemy(entity: Entity, threshold: number = Number.MAX_SAFE
 
   for (let otherEntity of queries.targets.entities) {
     if (otherEntity.teamId == entity.teamId) {
+      continue
+    }
+    if (otherEntity.isTargetable == "nav" || otherEntity.isTargetable == "missile") {
+      console.log("skipping nav")
       continue
     }
     const otherEntityPosition = Vector3FromObj(otherEntity.position, TmpVectors.Vector3[1])
@@ -717,7 +829,8 @@ namespace AIManeuvers {
     let nearestEntity = nearestEnemy(entity, FLEE_DESPAWN_RANGE)
     if (nearestEntity == undefined) {
       // we have cleared the battlefield
-      world.remove(entity)
+      world.addComponent(entity, "outOfCombat", true)
+      queueMicrotask(() => { world.remove(entity) })
       return
     }
     let movementCommand: MovementCommand = {
@@ -983,7 +1096,7 @@ namespace AIManeuvers {
       }
       world.update(entity, "fireCommand", fireCommand)
     }
-    const avoidCollision = SteeringBehaviours.collisionAvoidance(blackboard.dt, entity, queries.targets.entities.filter(t => t.isTargetable != "missile"))
+    const avoidCollision = SteeringBehaviours.collisionAvoidance(blackboard.dt, entity, queries.targets.entities.filter(t => (t.isTargetable != "missile" && t.isTargetable != "nav")))
     if (blackboard.strafe.flyPast) {
       if (blackboard.strafe.flyPastCount > STRAFE_FIRE_COUNT) {
         blackboard.strafe = undefined

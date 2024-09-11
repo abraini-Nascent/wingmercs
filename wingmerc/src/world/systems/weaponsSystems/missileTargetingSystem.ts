@@ -24,6 +24,8 @@ export function missileTargetingSystem(dt: number) {
       world.update(entity, "targeting", targeting)
       continue
     }
+    const { isTargetable } = targetEntity
+    if (isTargetable == "nav") { continue }
 
     // calculate time to intercept
     // TODO this should be it's own system

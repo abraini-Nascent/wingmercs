@@ -7,7 +7,7 @@ import { queries, world } from "../world"
  */
 export function moveSystem(dt: number) {
   for (const entity of queries.moving) {
-    const { position, velocity, driftVelocity, afterburnerVelocity, breakingVelocity, acceleration } = entity;
+    const { driftActive, position, velocity, driftVelocity, afterburnerVelocity, breakingVelocity, acceleration } = entity;
 
     velocity.x += acceleration.x
     velocity.y += acceleration.y
@@ -30,15 +30,17 @@ export function moveSystem(dt: number) {
       position.z += driftVelocity.z * deltaSeconds
       // speed += TmpVectors.Vector3[0].set(driftVelocity.x, driftVelocity.y, driftVelocity.z).length()
     }
+    if (!driftActive) {
+      position.x += velocity.x * deltaSeconds
+      position.y += velocity.y * deltaSeconds
+      position.z += velocity.z * deltaSeconds
+    }
     if (breakingVelocity != undefined) {
       position.x += breakingVelocity.x * deltaSeconds
       position.y += breakingVelocity.y * deltaSeconds
       position.z += breakingVelocity.z * deltaSeconds
       speed -= TmpVectors.Vector3[0].set(breakingVelocity.x, breakingVelocity.y, breakingVelocity.z).length()
     }
-    position.x += velocity.x * deltaSeconds
-    position.y += velocity.y * deltaSeconds
-    position.z += velocity.z * deltaSeconds
     world.update(entity, "currentSpeed", speed)
   }
 }

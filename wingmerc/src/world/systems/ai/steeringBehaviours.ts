@@ -160,6 +160,9 @@ export namespace SteeringBehaviours {
     const currentRotation = QuaternionFromObj(entity.rotationQuaternion)
     const targetUp = Vector3FromObj(targetEntity.up)
     const gunGroup = entity.guns.groups[entity.guns.selected]
+    if (gunGroup == undefined) {
+      return pursuit(dt, entity, targetEntity, clampStrategy)
+    }
     let gunsSpeed = 0
     for (let mountIdx of gunGroup) {
       const gun = entity.guns.mounts[mountIdx].stats as GunStats

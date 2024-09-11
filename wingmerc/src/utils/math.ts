@@ -163,6 +163,39 @@ export function closestPointOnCurve(point: Vector3, curve: Curve3): Vector3 {
   return closestPoint;
 }
 
+/** Utility function to calculate the collision point between a line segment and a sphere (circle in 2D) */
+export function lineSegmentSphereIntersection(start: Vector3, end: Vector3, center: Vector3, radius: number): Vector3 | null {
+  const direction = end.subtract(start);
+  const f = start.subtract(center);
+  
+  const a = Vector3.Dot(direction, direction);
+  const b = 2 * Vector3.Dot(f, direction);
+  const c = Vector3.Dot(f, f) - radius * radius;
+
+  let discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) {
+    return null; // No intersection
+  }
+
+  discriminant = Math.sqrt(discriminant);
+
+  const t1 = (-b - discriminant) / (2 * a);
+  const t2 = (-b + discriminant) / (2 * a);
+
+  // Check if t1 is within the segment and calculate the point
+  if (t1 >= 0 && t1 <= 1) {
+    return start.add(direction.scale(t1));
+  }
+
+  // Check if t2 is within the segment and calculate the point
+  if (t2 >= 0 && t2 <= 1) {
+    return start.add(direction.scale(t2));
+  }
+
+  // No valid intersection points within the segment
+  return null;
+}
+
 export function generatePointsOnCircle(radius: number, numberOfPoints: number): Vector3[] {
   const points: Vector3[] = [];
   const angleIncrement = (2 * Math.PI) / numberOfPoints;
@@ -233,6 +266,19 @@ export function calculateSteering(currentPosition: Vector3, currentRotation: Qua
 
   // TODO: clamp turning speeds to ship roll, pitch, yaw capabilities
   return { pitch, roll: 0, yaw }
+}
+
+/** random point on a sphere */
+export function pointOnSphere(radius: number, offset: Matrix, ref: Vector3) {
+  const r = radius
+  const phi = Math.random() * Math.PI * 2;
+  const costheta = 2 * Math.random() - 1;
+  const theta = Math.acos(costheta);
+  const x = r * Math.sin(theta) * Math.cos(phi);
+  const y = r * Math.sin(theta) * Math.sin(phi);
+  const z = r * Math.cos(theta);
+
+  Vector3.TransformCoordinatesFromFloatsToRef(x, y, z, offset, ref);
 }
 
 export function pointInSphere(radius: number, offset?: Vector3, ref?: Vector3) {

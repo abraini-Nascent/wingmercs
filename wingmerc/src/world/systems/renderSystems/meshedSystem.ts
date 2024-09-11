@@ -1,5 +1,5 @@
 import { Color3, IDisposable, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
-import { queries, world } from "../../world"
+import { Entity, queries, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 
 
@@ -20,7 +20,7 @@ export class MeshedSystem implements IDisposable {
     queries.meshed.onEntityRemoved.unsubscribe(this.meshedOnEntityRemoved)
   }
   
-  meshedOnEntityAdded = (entity) => {
+  meshedOnEntityAdded = (entity: Entity) => {
     const visible = entity.visible ?? true
     const meshNode = ObjModels[entity.meshName] as TransformNode
     // create the mesh
@@ -29,9 +29,50 @@ export class MeshedSystem implements IDisposable {
     let mat: StandardMaterial = undefined
     let engineMesh: Mesh = undefined
     let shieldMesh: Mesh = undefined
+    let cockpitMesh: Mesh = undefined
+    let firstPersonMesh: Mesh = undefined
     let radius: number = 0
+    let scale = 1
+    newNode.metadata = {
+      keepVisible: true
+    }
+    if (entity.cockpitName) {
+      const cockpitNode = ObjModels[entity.cockpitName] as TransformNode
+      const children = cockpitNode.getChildMeshes()
+      for (let mi = 0; mi < children.length; mi += 1) {
+        const mesh = children[mi]
+        mesh.metadata = {
+          keepVisible: true
+        }
+        const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
+        // instanceMesh.alwaysSelectAsActiveMesh = true
+        instanceMesh.bakeCurrentTransformIntoVertices()
+        if (mat != undefined) {
+          instanceMesh.material = mat
+        }
+        instanceMesh.isVisible = visible
+      }
+    }
+
+    if (entity.firstPersonMeshName) {
+      const planeNode = ObjModels[entity.firstPersonMeshName] as TransformNode
+      const children = planeNode.getChildMeshes()
+      for (let mi = 0; mi < children.length; mi += 1) {
+        const mesh = children[mi]
+        mesh.metadata = {
+          keepVisible: true
+        }
+        const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
+        instanceMesh.alwaysSelectAsActiveMesh = true
+        instanceMesh.bakeCurrentTransformIntoVertices()
+        if (mat != undefined) {
+          instanceMesh.material = mat
+        }
+        instanceMesh.isVisible = visible
+      }
+    }
+
     if (entity.meshColor != undefined) {
-      // TODO: we could cache and reuse mats of the same color
       mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
       mat.emissiveColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
       mat.diffuseColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
@@ -47,6 +88,7 @@ export class MeshedSystem implements IDisposable {
       if (instanceMesh.material?.name == "engine") {
         // found the engine mesh
         engineMesh = instanceMesh
+        engineMesh.material = engineMesh.material.clone(engineMesh.material.name + "_engine")
       }
       //.createInstance(`asteroid-mesh-${i}-${mi}`)
       instanceMesh.isVisible = visible
@@ -62,8 +104,6 @@ export class MeshedSystem implements IDisposable {
         const mesh = hullChildren[mi]
         // TODO: we could actually make instances instead of cloning
         const instanceMesh = (mesh as Mesh).clone(`${entity.shieldMeshName}-hull-${i}-${mi}`, newNode)
-        // instanceMesh.rotate(Vector3.Forward(true), ToRadians(180))
-        // instanceMesh.bakeCurrentTransformIntoVertices()
         const mat = new StandardMaterial(`${entity.shieldMeshName}-mat-${i}`)
         mat.emissiveColor = new Color3(0, 0, 0.5)
         mat.diffuseColor = new Color3(0, 0, 0.5)
@@ -72,6 +112,7 @@ export class MeshedSystem implements IDisposable {
         mat.wireframe = true
         instanceMesh.material = mat
         instanceMesh.isVisible = visible
+        instanceMesh.isVisible = true
         if (instanceMesh.getBoundingInfo().boundingSphere.radiusWorld > radius) {
           radius = instanceMesh.getBoundingInfo().boundingSphere.radiusWorld
         }

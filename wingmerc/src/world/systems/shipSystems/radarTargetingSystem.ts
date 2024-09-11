@@ -33,6 +33,10 @@ export function radarTargetingSystem(dt: number) {
       if (entityId == targetId) {
         continue
       }
+      if (target.isTargetable == "nav") {
+        // don't auto target nav beacons
+        continue
+      }
       const directionToTarget = targetPosition.subtract(entityPosition).normalize()
       const delta = AngleBetweenVectors(entityDirection, directionToTarget)
       if (ToDegree(delta) > 45) {

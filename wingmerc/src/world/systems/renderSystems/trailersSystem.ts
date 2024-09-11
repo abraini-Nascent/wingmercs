@@ -1,6 +1,7 @@
-import { Color3, IDisposable, StandardMaterial, TrailMesh, TransformNode } from "@babylonjs/core";
+import { Color3, IDisposable, StandardMaterial, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../../app.container";
 import { queries, world } from "../../world";
+import { Vector3FromObj } from "../../../utils/math";
 
 let i = 0
 /**
@@ -18,6 +19,7 @@ export class TrailersSystem implements IDisposable {
   }
 
   trailersOnEntityAdded = (entity) => {
+    const origin = queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : Vector3.ZeroReadOnly
     let node = entity.node
     let nodeCreated = false
     let disposables: IDisposable[] = []
@@ -25,9 +27,9 @@ export class TrailersSystem implements IDisposable {
       nodeCreated = true
       node = new TransformNode(`trail-${i}-parent`)
       const { position } = entity
-      node.position.x = position.x
-      node.position.y = position.y
-      node.position.z = position.z
+      node.position.x = position.x - origin.x
+      node.position.y = position.y - origin.y
+      node.position.z = position.z - origin.z
       disposables.push(node)
     }
     const scene = AppContainer.instance.scene

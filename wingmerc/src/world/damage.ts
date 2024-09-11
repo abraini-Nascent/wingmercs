@@ -127,7 +127,6 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
         }
         damageSprayFrom(hitEntity, hitPointWorld, directionOfHit)
         SoundEffects.ArmorHit(hitEntityPosition.clone(), hitEntity == player)
-        // ConeParticleEmitter("assets/particles/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
         let armorDamageDelt = oldArmorDamage - damage
         if (shooterStats) { shooterStats.armorDamageGiven += armorDamageDelt }
         if (victimStats) { victimStats.armorDamageTaken += armorDamageDelt }
@@ -214,7 +213,6 @@ export function registerHit(hitEntity: Entity, particleEntity: ParticleEntity, h
           console.log("[Damage] damaged system:", damagedSystem, randomDamage)
           console.log("[Damage] remaining health:", hitEntity.health)
           // double up particle effects and play a different sound
-          // ConeParticleEmitter("assets/particles/hull_spark.png", hitPointWorld, AppContainer.instance.scene)
           if (hitEntity.health.current <= 0 && hitEntity.deathRattle == undefined) {
             // death animation or something
             world.addComponent(hitEntity, "deathRattle", true)

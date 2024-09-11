@@ -10,7 +10,7 @@ import { PlayerAgent } from '../../agents/playerAgent';
 import { net } from '../../world/systems/netSystems/net';
 import { ReadyMessage } from '../../world/systems/netSystems/messages/readyMessage';
 import { MissionMessage } from '../../world/systems/netSystems/messages/missionMessage';
-import { SpaceCombatSceneMultiplayer } from '../spaceCombat/spaceCombatLoop.multiPlayer';
+import { TrainSimSceneMultiplayer } from '../spaceCombat/trainSim/trainSimLoop.multiPlayer';
 
 class GameRoom implements IDisposable {
   connected = false
@@ -363,7 +363,7 @@ export class MultiplayerMenuScreen extends MercScreen {
         appContainer.server = false
       }
       appContainer.gameScene.dispose()
-      appContainer.gameScene = new SpaceCombatSceneMultiplayer()
+      appContainer.gameScene = new TrainSimSceneMultiplayer()
       this.dispose()
     }
   }

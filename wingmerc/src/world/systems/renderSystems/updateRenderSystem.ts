@@ -1,4 +1,4 @@
-import { Color3, Mesh, Quaternion, StandardMaterial, TransformNode } from "@babylonjs/core"
+import { Color3, Mesh, Quaternion, StandardMaterial, TransformNode, Vector3 } from "@babylonjs/core"
 import { queries } from "../../world"
 
 // let targetingBox: Mesh
@@ -7,12 +7,14 @@ const DEBUG = false
  * applies the entity's component details to the babylonjs transform node
  */
 export function updateRenderSystem() {
+  // everything is relative to the camera, the camera entity stays still at 0,0,0 otherwise rendering gets broken at extreme distances
+  const origin = queries.origin.first?.position ?? Vector3.Zero()
   for (const { position, node, rotationQuaternion, rotation, scale, targeting, visible, ...entity } of queries.updateRender) {
 
     let transform = node as TransformNode
-    transform.position.x = position.x
-    transform.position.y = position.y
-    transform.position.z = position.z
+    transform.position.x = position.x - origin.x
+    transform.position.y = position.y - origin.y
+    transform.position.z = position.z - origin.z
     if (rotationQuaternion != null) {
       if (transform.rotationQuaternion == null) {
         transform.rotationQuaternion = Quaternion.Identity()
@@ -28,7 +30,7 @@ export function updateRenderSystem() {
     if (scale != undefined) {
       transform.scaling.set(scale.x, scale.y, scale.z)
     }
-    if (visible != undefined) {
+    if (visible != undefined && false) {
       for (const mesh of transform.getChildMeshes()) {
         if (mesh.metadata?.keepVisible) {
           mesh.isVisible = true
@@ -64,18 +66,3 @@ export function updateRenderSystem() {
   //   } 
   }
 }
-
-const ColorMaterialCache = (() => {
-  const cache = new Map<number, StandardMaterial>()
-  return (color: Color3) => {
-    const hash = color.getHashCode()
-    let mat = cache.get(hash)
-    if (mat) { return mat }
-    mat = new StandardMaterial(`trailMat-${hash}`)
-    mat.emissiveColor = color.clone()
-    mat.diffuseColor = color.clone()
-    mat.specularColor = Color3.Black()
-    cache.set(hash, mat)
-    return mat
-  }
-})();

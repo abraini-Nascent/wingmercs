@@ -1,24 +1,29 @@
 import { LatchMulti, LatchOn } from './../../../../utils/debounce';
 import { FireCommand, MovementCommand, world } from '../../../world';
-import { DualShockPad, GamepadManager, GenericPad, Gamepad, Scalar, Xbox360Pad } from "@babylonjs/core";
+import { DualShockPad, GamepadManager, GenericPad, Scalar, Xbox360Pad, Gamepad as BabylonPad } from "@babylonjs/core";
 import { AppContainer } from "../../../../app.container";
 import { DebounceTimedMulti } from '../../../../utils/debounce';
 import { inputConfiguration } from './combatInputConfiguration';
+import type { ControllerInputAssignment, GamepadAssignedButtons} from './combatInputConfiguration';
+import { ToRadians } from '../../../../utils/math';
 
 const DriftThreshold = 1000
 const FastThreshold = 333
 
-const Drift = 0
-const Camera = 1
-const SpeedUp = 2
-const WeaponFire = 3
-const WeaponSelect = 4
-const GunSelect = 5
-const Target = 6
+const DebounceIds = {
+  SpeedDown: 101,
+  SpeedUp: 102,
+  Camera: 103,
+  WeaponSelect: 104,
+  GunSelect: 105,
+  WeaponFire: 106,
+  Target: 107,
+  Lock: 108,
+}
 
 export class CombatControllerInput {
   gamepadManager: GamepadManager
-  playerGamepad: Gamepad[] = []
+  playerGamepad: BabylonPad[] = []
   genericGamepad: GenericPad
   driftTime: number
   slowDebounce: number
@@ -58,7 +63,7 @@ export class CombatControllerInput {
         }
       } else {
         // we need to update the browser gamepad because chrome doesn't update the object
-        this.genericGamepad.browserGamepad = gamepad.browserGamepad
+        this.genericGamepad.browserGamepad = gamepad.browserGamepad as Gamepad
       }
       this.handleGeneric(dt, this.genericGamepad)
     }
@@ -67,8 +72,10 @@ export class CombatControllerInput {
     }
   }
 
+  adjustedValue = (rawValue: number, exponent: number = 2) => { return Math.sign(rawValue) * Math.pow(Math.abs(rawValue), exponent) };
+
   handleGeneric(dt: number, gamepad: GenericPad) {
-    const ic = inputConfiguration
+    const ic = inputConfiguration.gamepadConfig
     if (this.genericGamepadId == undefined || this.genericGamepadId != gamepad.id) {
       gamepad.onbuttondown((button) => {
         this.genericButtons.set(button, 1)
@@ -82,37 +89,91 @@ export class CombatControllerInput {
 
     gamepad.update()
 
+    // helper
+
+    const checkAssignedButtons = (assignedInput: ControllerInputAssignment): boolean => {
+
+      if (typeof assignedInput === 'number') {
+        return this.genericButtons.has(assignedInput)
+      } else if (assignedInput.button !== undefined) {
+        if (assignedInput.mod !== undefined) {
+          return this.genericButtons.has(assignedInput.button) && this.genericButtons.has(assignedInput.mod)
+        }
+        if (assignedInput.held) {
+          if (this.genericButtons.has(assignedInput.button)) {
+            let totalTimeHeld = this.previous.get(assignedInput.button) ?? 0
+            if (totalTimeHeld > 300) {
+              return true
+            } else {
+              this.previous.set(assignedInput.button, totalTimeHeld + dt)
+              return false
+            }
+          } else {
+            this.previous.delete(assignedInput.button)
+            return false
+          }
+        }
+        return this.genericButtons.has(assignedInput.button)
+      } else if (assignedInput.axis !== undefined) {
+        if (assignedInput.mod && this.genericButtons.has(assignedInput.mod) == false) {
+          return false
+        }
+        let browserGamepad = gamepad.browserGamepad as Gamepad
+        let axisValue = browserGamepad.axes[assignedInput.axis]
+        if (assignedInput.direction < 0 && axisValue < 0) {
+          return true
+        }
+        if (assignedInput.direction >0 && axisValue > 0) {
+          return true
+        }
+        return false
+      }
+  
+      return false
+    }
+
+    const getAssignedAxisValue = (assignedInput: ControllerInputAssignment): number => {
+      if (typeof assignedInput === 'number') {
+        return 0
+      }
+      if (assignedInput.axis == undefined) {
+        return 0
+      }
+      let browserGamepad = gamepad.browserGamepad as Gamepad
+      let axisValue = browserGamepad.axes[assignedInput.axis]
+      return axisValue
+    }
+
     // get movement command from player
     let movementCommand = AppContainer.instance.player.playerEntity.movementCommand ?? {} as MovementCommand
     
-    // SPEED DOWN / DRIFT
-    if (this.genericButtons.has(ic.SpeedDown)) {
-      let driftLatch = this.latchingDebounce.tryNow(Drift)
-      if (driftLatch == LatchOn) {
-        movementCommand.drift = 1
-        this.wasDrift = true
-      }
-    } else {
-      if (this.previous.get(ic.SpeedDown) && this.wasDrift == false) {
-        movementCommand.deltaSpeed = -25
-      }
-      this.wasDrift = false
-      this.latchingDebounce.clear(Drift)
+    /// DRIFT
+    if (checkAssignedButtons(ic.Drift)) {
+      movementCommand.drift = 1
     }
-    this.previous.set(ic.SpeedDown, this.genericButtons.get(ic.SpeedDown) ?? 0)
 
-    // SPEED UP
-    if (this.genericButtons.has(ic.SpeedUp) && this.inputDebounce.tryNow(SpeedUp)) {
-      movementCommand.deltaSpeed = +25
-    } else if (this.genericButtons.has(ic.SpeedUp) == false) {
-      this.inputDebounce.clear(SpeedUp)
-    }
-    // BRAKE
-    if (this.genericButtons.has(ic.Brake)) {
+    /// BRAKE
+    if (checkAssignedButtons(ic.Brake)) {
       movementCommand.brake = 1
     }
-    // CAMERA
-    if (this.genericButtons.has(ic.Camera) && this.inputDebounce.tryNow(Camera)) {
+
+    // SPEED DOWN note, can't speed up or down if braking
+    if (!movementCommand.brake && checkAssignedButtons(ic.SpeedDown)) {
+      if (this.inputDebounce.tryNow(DebounceIds.SpeedDown)) {
+        movementCommand.deltaSpeed = -25
+      }
+    } else {
+      this.inputDebounce.clear(DebounceIds.SpeedDown)
+    }
+
+    /// SPEED UP
+    if (!movementCommand.brake && checkAssignedButtons(ic.SpeedUp) && this.inputDebounce.tryNow(DebounceIds.SpeedUp)) {
+      movementCommand.deltaSpeed = +25
+    } else if (checkAssignedButtons(ic.SpeedUp) == false) {
+      this.inputDebounce.clear(DebounceIds.SpeedUp)
+    }
+    /// CAMERA
+    if (checkAssignedButtons(ic.CameraToggle) && this.inputDebounce.tryNow(DebounceIds.Camera)) {
       let follow = false
       if (AppContainer.instance.player.playerEntity.camera == "follow") {
         world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
@@ -129,8 +190,8 @@ export class CombatControllerInput {
         world.update(AppContainer.instance.player.playerEntity, "visible", false)
       }
     }
-    // WEAPONS SELECT
-    if (this.genericButtons.has(ic.WeaponSelect) && this.inputDebounce.tryNow(WeaponSelect)) {
+    /// WEAPONS SELECT
+    if (checkAssignedButtons(ic.WeaponSelect) && this.inputDebounce.tryNow(DebounceIds.WeaponSelect)) {
       const player = AppContainer.instance.player.playerEntity
       player.vduState.left = "weapons"
       player.weapons.selected += 1
@@ -138,9 +199,11 @@ export class CombatControllerInput {
       if (player.weapons.selected >= weaponCount) {
         player.weapons.selected = 0
       }
+    } else if (checkAssignedButtons(ic.WeaponSelect) == false) {
+      this.inputDebounce.clear(DebounceIds.WeaponSelect)
     }
-    // GUN SELECT
-    if (this.genericButtons.has(ic.GunSelect) && this.inputDebounce.tryNow(GunSelect)) {
+    /// GUN SELECT
+    if (checkAssignedButtons(ic.GunSelect) && this.inputDebounce.tryNow(DebounceIds.GunSelect)) {
       const player = AppContainer.instance.player.playerEntity
       player.vduState.left = "guns"
       player.guns.selected += 1
@@ -148,43 +211,120 @@ export class CombatControllerInput {
       if (player.guns.selected >= gunGroupCount) {
         player.guns.selected = 0
       }
+    } else if (checkAssignedButtons(ic.GunSelect) == false) {
+      this.inputDebounce.clear(DebounceIds.GunSelect)
     }
-
-    // PITCH YAW ROLL
-    if (gamepad.leftStick.y || gamepad.leftStick.x) {
-      this.ramp += dt
-    }
-    if (gamepad.leftStick.y) {
-      let pitch = Scalar.Lerp(0, gamepad.leftStick.y, Math.min(1, this.ramp / FastThreshold))
-      movementCommand.pitch = pitch
-    }
-    if (gamepad.leftStick.x) {
-      let yaw = Scalar.Lerp(0, gamepad.leftStick.x, Math.min(1, this.ramp / FastThreshold))
-      movementCommand.yaw = yaw
-    }
-    if (!gamepad.leftStick.y && !gamepad.leftStick.x) {
-      this.ramp = 0
-    }
-    movementCommand.roll = gamepad.rightStick.x * -1
 
     /// AFTERBURNER - ACCELERATE
-    if (this.genericButtons.has(ic.Afterburner)) {
+    if (checkAssignedButtons(ic.Afterburner)) {
       movementCommand.afterburner = 1
     }
 
+    /// PITCH YAW ROLL
+    if (checkAssignedButtons(ic.YawLeft) || checkAssignedButtons(ic.YawRight) ||
+      checkAssignedButtons(ic.PitchUp) || checkAssignedButtons(ic.PitchDown) ||
+      checkAssignedButtons(ic.RollLeft) || checkAssignedButtons(ic.RollRight)) {
+      this.ramp += dt
+    } else {
+      this.ramp = 0
+    }
+    if (checkAssignedButtons(ic.PitchUp)) {
+      let axisValue = getAssignedAxisValue(ic.PitchUp)
+      let pitch = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.pitch = this.adjustedValue(pitch * -1)
+    } 
+    if (checkAssignedButtons(ic.PitchDown)) {
+      let axisValue = getAssignedAxisValue(ic.PitchDown)
+      let pitch = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.pitch = this.adjustedValue(pitch)
+    }
+    if (checkAssignedButtons(ic.YawLeft)) {
+      let axisValue = getAssignedAxisValue(ic.YawLeft)
+      let yaw = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.yaw = this.adjustedValue(yaw * -1)
+    } 
+    if (checkAssignedButtons(ic.YawRight)) {
+      let axisValue = getAssignedAxisValue(ic.YawRight)
+      let yaw = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.yaw = this.adjustedValue(yaw)
+    }
+    if (checkAssignedButtons(ic.RollLeft)) {
+      let axisValue = getAssignedAxisValue(ic.RollLeft)
+      let roll = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.roll = this.adjustedValue(roll)
+    } 
+    if (checkAssignedButtons(ic.RollRight)) {
+      let axisValue = getAssignedAxisValue(ic.RollRight)
+      let roll = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      movementCommand.roll = this.adjustedValue(roll * -1)
+    }
+
+    /// CAMERA MOVEMENT
+
+    const playerEntity = AppContainer.instance.player.playerEntity
+    let looking = false
+    if (checkAssignedButtons(ic.CameraUp)) {
+      let axisValue = getAssignedAxisValue(ic.CameraUp)
+      let pitch = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      // playerEntity.cameraDirection.y = pitch * ToRadians(160) * -1
+      playerEntity.cameraMovement.y -= (pitch * ToRadians((180 / 1000))) * dt // 5 degrees per second
+      looking = true
+    } 
+    if (checkAssignedButtons(ic.CameraDown)) {
+      let axisValue = getAssignedAxisValue(ic.CameraDown)
+      let pitch = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      // playerEntity.cameraDirection.y = pitch * ToRadians(160)
+      playerEntity.cameraMovement.y += (pitch * ToRadians((180 / 1000))) * dt // 5 degrees per second
+      looking = true
+    }
+    if (checkAssignedButtons(ic.CameraLeft)) {
+      let axisValue = getAssignedAxisValue(ic.CameraLeft)
+      let yaw = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      // playerEntity.cameraDirection.x = yaw * ToRadians(160) * -1
+      playerEntity.cameraMovement.x -= (yaw * ToRadians((180 / 1000))) * dt // 5 degrees per second
+      looking = true
+    } 
+    if (checkAssignedButtons(ic.CameraRight)) {
+      let axisValue = getAssignedAxisValue(ic.CameraRight)
+      let yaw = Math.abs(Scalar.Lerp(0, axisValue, Math.min(1, this.ramp / FastThreshold)))
+      // playerEntity.cameraDirection.x = yaw * ToRadians(160)
+      playerEntity.cameraMovement.x += (yaw * ToRadians((180 / 1000))) * dt // 5 degrees per second
+      looking = true
+    }
+    if (looking == false && checkAssignedButtons(ic.CameraReset) == false) {
+      playerEntity.cameraDirection.x = Scalar.Lerp(playerEntity.cameraDirection.x, 0, 0.5)
+      playerEntity.cameraDirection.y = Scalar.Lerp(playerEntity.cameraDirection.y, 0, 0.5)
+    }
+
+    /// Assign Movement Command
     world.update(AppContainer.instance.player.playerEntity, "movementCommand", movementCommand)
     // console.log("[combat input]", movementCommand)
 
-    const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0, lock: false }
-    if (this.genericButtons.get(ic.GunFire) > 0.2) {
+    /// Handle Weapon Commands
+    const fireCommand: FireCommand = AppContainer.instance.player.playerEntity.fireCommand ?? { gun: 0, weapon: 0, lock: false, target: false, nav: undefined }
+    /// FIRE GUN
+    if (checkAssignedButtons(ic.GunFire)) { // > 0.2) {
       fireCommand.gun = 1
     }
-    if (this.genericButtons.has(ic.WeaponFire) && this.inputDebounce.tryNow(WeaponFire)) {
+    /// FIRE WEAPON
+    if (checkAssignedButtons(ic.WeaponFire) && this.inputDebounce.tryNow(DebounceIds.WeaponFire)) {
       fireCommand.weapon = 1
+    } else if (checkAssignedButtons(ic.WeaponFire) == false) {
+      this.inputDebounce.clear(DebounceIds.WeaponFire)
     }
-    if (this.genericButtons.has(ic.Target) && this.inputDebounce.tryNow(Target)) {
+    /// LOCK
+    if (checkAssignedButtons(ic.Lock) && this.inputDebounce.tryNow(DebounceIds.Lock)) {
       fireCommand.lock = true
+    } else if (checkAssignedButtons(ic.Lock) == false) {
+      this.inputDebounce.clear(DebounceIds.Lock)
     }
+    /// TARGET
+    if (checkAssignedButtons(ic.Target) && this.inputDebounce.tryNow(DebounceIds.Target)) {
+      fireCommand.lock = true
+    } else if (checkAssignedButtons(ic.Target) == false) {
+      this.inputDebounce.clear(DebounceIds.Target)
+    }
+    /// Assign Fire Command
     world.update(AppContainer.instance.player.playerEntity, "fireCommand", fireCommand)
   }
 }

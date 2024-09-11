@@ -178,4 +178,106 @@ export const barks = {
       sam: "",
     },
   ],
+  escortedArival: [
+    {
+      english: "Good to see you, Commander. Ready for a smooth flight?",
+      ipa: "/ˈɡʊd tu si ju, kəˈmændər. ˈrɛdi fɔr ə smuð flaɪt?/",
+      sam: "",
+    },
+    {
+      english: "Welcome, Commander! Let's make this a safe journey.",
+      ipa: "/ˈwɛlkəm, kəˈmændər! lɛts meɪk ðɪs ə seɪf ˈdʒɝni./",
+      sam: "",
+    },
+    {
+      english: "Hello, Commander. I've got your six.",
+      ipa: "/həˈloʊ, kəˈmændər. aɪv ɡɑt jɔr sɪks./",
+      sam: "",
+    },
+    {
+      english: "Nice to have you with us, Commander. Let's move out.",
+      ipa: "/naɪs tu hæv ju wɪð əs, kəˈmændər. lɛts muːv aʊt./",
+      sam: "",
+    },
+    {
+      english: "Commander, your presence is reassuring. Ready when you are.",
+      ipa: "/kəˈmændər, jɔr ˈprɛzəns ɪz ˌriəˈʃʊrɪŋ. ˈrɛdi wɛn ju ɑr./",
+      sam: "",
+    },
+    {
+      english: "Greetings, Commander. All systems green on our end.",
+      ipa: "/ˈɡriːtɪŋz, kəˈmændər. ɔl ˈsɪstəmz ɡrin ɑn aʊər ɛnd./",
+      sam: "",
+    },
+    {
+      english: "Commander, glad to have you aboard. Let's get this mission started.",
+      ipa: "/kəˈmændər, ˈɡlæd tu hæv ju əˈbɔrd. lɛts ɡɛt ðɪs ˈmɪʃən ˈstɑrtɪd./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're counting on your expertise. Lead the way.",
+      ipa: "/kəˈmændər, wɪr ˈkaʊntɪŋ ɑn jɔr ˌɛkspərˈtiz. lid ðə weɪ./",
+      sam: "",
+    },
+    {
+      english: "Commander, everything is set. Let's make this a successful run.",
+      ipa: "/kəˈmændər, ˈɛvri ˌθɪŋ ɪz sɛt. lɛts meɪk ðɪs ə səkˈsɛsfəl rʌn./",
+      sam: "",
+    },
+    {
+      english: "Hello, Commander. We've been waiting for you. Let's roll.",
+      ipa: "/həˈloʊ, kəˈmændər. wiv bɪn ˈweɪtɪŋ fɔr ju. lɛts roʊl./",
+      sam: "",
+    },
+    {
+      english: "Commander, it's an honor to fly with you. Ready for launch.",
+      ipa: "/kəˈmændər, ɪts ən ˈɑnər tu flaɪ wɪð ju. ˈrɛdi fɔr lɔntʃ./",
+      sam: "",
+    },
+    {
+      english: "Commander, great to see you. Let's keep our wits about us.",
+      ipa: "/kəˈmændər, ɡreɪt tu si ju. lɛts kip aʊər wɪts əˈbaʊt əs./",
+      sam: "",
+    },
+    {
+      english: "Commander, we appreciate the escort. Ready for your command.",
+      ipa: "/kəˈmændər, wi əˈpriʃieɪt ði ˈɛskɔrt. ˈrɛdi fɔr jɔr kəˈmænd./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're in good hands with you. Let's go.",
+      ipa: "/kəˈmændər, wɪr ɪn ɡʊd hændz wɪð ju. lɛts ɡoʊ./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're all set. Ready for a smooth mission.",
+      ipa: "/kəˈmændər, wɪr ɔl sɛt. ˈrɛdi fɔr ə smuð ˈmɪʃən./",
+      sam: "",
+    },
+    {
+      english: "Commander, your timing is perfect. Let's get moving.",
+      ipa: "/kəˈmændər, jɔr ˈtaɪmɪŋ ɪz ˈpɜrˌfɪkt. lɛts ɡɛt ˈmuvɪŋ./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're prepped and ready. Lead the way.",
+      ipa: "/kəˈmændər, wɪr ˈprɛpt ənd ˈrɛdi. lid ðə weɪ./",
+      sam: "",
+    },
+    {
+      english: "Commander, it's good to have you with us. Let's proceed.",
+      ipa: "/kəˈmændər, ɪts ɡʊd tu hæv ju wɪð əs. lɛts prəˈsid./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're ready for takeoff. Thanks for the escort.",
+      ipa: "/kəˈmændər, wɪr ˈrɛdi fɔr ˈteɪkˌɔf. θæŋks fɔr ði ˈɛskɔrt./",
+      sam: "",
+    },
+    {
+      english: "Commander, we're all systems go. Let's make this mission count.",
+      ipa: "/kəˈmændər, wɪr ɔl ˈsɪstəmz ɡoʊ. lɛts meɪk ðɪs ˈmɪʃən kaʊnt./",
+      sam: "",
+    },
+  ]
 }

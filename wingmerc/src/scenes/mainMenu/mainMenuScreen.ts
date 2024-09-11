@@ -2,14 +2,16 @@ import * as GUI from '@babylonjs/gui';
 import { MercScreen } from "../screen"
 import { AppContainer } from '../../app.container';
 import { PlayerAgent } from '../../agents/playerAgent';
-import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop.singlePlayer';
-import { ModelViewerScene } from '../modelViewer/modelViewerLoop';
+import { TrainSimScene } from '../spaceCombat/trainSim/trainSimLoop.singlePlayer';
+import { DebugTestLoop } from '../debugTest/debugTestLoop';
 import { SoundEffects } from '../../utils/sounds/soundEffects';
 import { Observer } from '@babylonjs/core';
 import { SettingsMenuScene } from '../settingsMenu/settingsMenuLoop';
 import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
 import { ShipSelectionScene } from '../shipCustomizer/shipSelection/shipSelectionLoop';
 import { MultiplayerMenuScene } from '../multiplayerMenu/multiplayerMenuLoop';
+import { InstantActionScene } from '../spaceCombat/instantAction/instantAction.singlePlayer';
+import { ModelTestLoop } from '../modelTest/modelTestLoop';
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -74,11 +76,23 @@ export class MainMenuScreen extends MercScreen {
         const appContainer = AppContainer.instance
         appContainer.server = true
         appContainer.gameScene.dispose()
-        appContainer.gameScene = new SpaceCombatScene()
+        appContainer.gameScene = new TrainSimScene()
         this.dispose()
       }, 333)
     })
     mainPanel.addControl(startButton)
+
+    const instantActionButton = this.createMainMenuButton("start", "Instant Action");
+    instantActionButton.onPointerClickObservable.addOnce(() => {
+      setTimeout(() => {
+        SoundEffects.Select()
+        const appContainer = AppContainer.instance
+        appContainer.gameScene.dispose()
+        appContainer.gameScene = new InstantActionScene()
+        this.dispose()
+      }, 333)
+    })
+    mainPanel.addControl(instantActionButton)
 
     const multiplayerButton = this.createMainMenuButton("start", "Multiplayer");
     multiplayerButton.onPointerClickObservable.addOnce(() => {
@@ -140,7 +154,7 @@ export class MainMenuScreen extends MercScreen {
         const appContainer = AppContainer.instance
         appContainer.server = true
         appContainer.gameScene.dispose()
-        appContainer.gameScene = new ModelViewerScene()
+        appContainer.gameScene = new DebugTestLoop()
         this.dispose()
       })
       mainPanel.addControl(debugButton)
@@ -152,6 +166,37 @@ export class MainMenuScreen extends MercScreen {
         (window as any).electron.closeWindow()
       })
       mainPanel.addControl(exitButton)
+    }
+
+    // debug auto nav
+    if (debug) {
+      const urlParams = new URLSearchParams(window.location.search);
+      // Retrieve a specific parameter
+      const parameterValue = urlParams.get('scene');
+      if (parameterValue) {
+        switch (parameterValue) {
+          case "test": {
+            queueMicrotask(() => {
+              const appContainer = AppContainer.instance
+              appContainer.server = true
+              appContainer.gameScene.dispose()
+              appContainer.gameScene = new DebugTestLoop()
+              this.dispose()
+            })
+            break;
+          }
+          case "models": {
+            queueMicrotask(() => {
+              const appContainer = AppContainer.instance
+              appContainer.server = true
+              appContainer.gameScene.dispose()
+              appContainer.gameScene = new ModelTestLoop()
+              this.dispose()
+            })
+            break;
+          }
+        }
+      }
     }
   }
 

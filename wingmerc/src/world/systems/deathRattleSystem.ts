@@ -95,7 +95,8 @@ export class DeathRattleSystem implements IDisposable {
           let sphereSps = MercParticles.deathExplosion(`death-explosion-${i}`, scene, sphereEmitter)
           observer.remove()
           observer = undefined
-          world.remove(entity)
+          world.addComponent(entity, "outOfCombat", true)
+          queueMicrotask(() => { world.remove(entity) })
           sps.stopped = true
           sps.onDone = () => {
             sps.dispose()

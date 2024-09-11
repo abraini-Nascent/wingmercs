@@ -4,14 +4,15 @@ import { Dirk } from "../data/ships";
 import { createCustomShip } from "../world/factories";
 import { ShipTemplate } from "../data/ships/shipTemplate";
 import { generateUUIDv4 } from "../utils/random";
+import { Vector3 } from "@babylonjs/core";
 
 export class PlayerAgent {
   playerEntity: Entity
   static playerName: string = "Player"
   static playerId: string = generateUUIDv4()
 
-  constructor(private planeTemplate?: ShipTemplate) {
-    this.createPlayerShip() 
+  constructor(private planeTemplate?: ShipTemplate, x: number = 0, y: number = 0, z: number = 0) {
+    this.createPlayerShip(x, y, z) 
   }
 
   revivePlayer() {
@@ -41,10 +42,10 @@ export class PlayerAgent {
     }
   }
 
-  private createPlayerShip() {
+  private createPlayerShip(x: number = 0, y: number = 0, z: number = 0) {
     // use the factory to create the player ship
     let ship = this.planeTemplate ?? Dirk
-    const playerEntity = createCustomShip(ship, 0, 0, 0, 1, 1)
+    const playerEntity = createCustomShip(ship, x, y, z, 1, 1, true)
     
     // add player specific components
     const stats: NerdStats = {
@@ -77,7 +78,11 @@ export class PlayerAgent {
       playerId: PlayerAgent.playerId,
       totalScore: 0,
       visible: false,
-      setSpeed: 0,
+      floatingOrigin: true,
+      camera: "cockpit",
+      cameraDirection: Vector3.Forward(),
+      cameraMovement: { x: 0, y: 0 },
+      // setSpeed: 0,
       score: { livesLeft: 0, timeLeft: 0, total: 0 } as Score,
       vduState: {
         left: "weapons",

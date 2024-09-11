@@ -78,11 +78,12 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] VR controls
 - [ ] configurable input
   - [ ] message about gamepads being preferred
-- [ ] background polish
-  - [ ] generate the nebula
-  - [ ] place stars similar to points of interest
-  - [ ] generate points of interest
-  - [ ] use blue noise to space out points of interest and stars
+- [x] background polish
+  - [x] generate the nebula
+  - [x] place stars similar to points of interest
+  - [x] generate points of interest
+  - [x] use blue noise to space out points of interest and stars
+  - [x] remove pixel art and double-down on vector/polygon art
 - [ ] rebuild ai:
   - [ ] test path following
   - [ ] pre defined maneuvers can describe "up" of maneuver heading
@@ -141,8 +142,45 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] kill ship to revive downed friendly player
 
 ### next demo
-- [] dynamic missions - instant action mode
-- [] command wingmen
+- [ ] dynamic missions - instant action mode
+  - [ ] autopilot
+    - [x] navigation points
+    - [x] automatically track next nav point
+    - [ ] progress time during autopilot
+    - [x] add friendlies to formation
+    - [x] point and exit towards navigation point
+    - [x] autopilot cinematic
+      - [ ] pause world during cinematic
+  - [ ] escort ship
+    - [x] move between nav points
+    - [x] stop at final nav point
+    - [ ] progress mission on completion
+  - [ ] npc actions
+    - [ ] heal ship
+    - [ ] destroy ship
+    - [ ] recover ship/item
+    - [ ] capture enemy ship
+    - [ ] scan area
+  - [ ] enemy patrols
+    - [ ] destroy target
+      - [ ] target enemy cap fighters first
+  - [ ] hazards
+    - [ ] asteroids
+    - [ ] mines
+    - [ ] nebula
+      - [ ] electrical storms
+      - [ ] combat debris
+      - [ ] ice cloud
+  - [ ] item retrieval
+  - [ ] area investigation
+  - [ ] launch from command ship
+  - [ ] land on command ship
+- [ ] command wingmen
+  - [ ] join formation
+  - [ ] break and attack
+  - [ ] attack my target
+  - [ ] protect me
+  - [ ] protect my target
 - [x] polish and juice
   - [x] rebuild hud indicators
     - [x] target / lock box
@@ -150,8 +188,6 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
     - [x] ITTS indicator
     - [x] Crosshair
     - [x] ui for who is talking
-  - [ ] pixelated texture mapped to spaceships?
-  - [ ] pixelated textures mapped to particles?
 ### next demo
 - [] purchase and maintain ships
 - [] purchase and maintain personnel
@@ -295,9 +331,6 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [x] settings menu for volume
 - [x] controller input help menu
 ### AI Rebuild
-- [] joystick controls
-- [] VR controls
-- [] configurable input
 - [] rebuild ai: https://www.red3d.com/cwr/steer/gdc99/#:~:text=Offset%20pursuit%20refers%20to%20steering,without%20colliding%20with%20the%20target.
   - [x] pursuit
   - [x] offset pursuit

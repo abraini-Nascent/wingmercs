@@ -7,6 +7,9 @@ export default defineConfig({
       target: 'esnext'
     }
   },
+  server: {
+    host: "0.0.0.0"
+  },
   build: {
     outDir: 'dist/',
     assetsDir: 'assets', // Relative path to the assets directory

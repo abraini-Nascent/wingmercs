@@ -1,6 +1,6 @@
-import { TmpVectors, Vector3 } from "@babylonjs/core"
+import { Matrix, Quaternion, TmpVectors, Vector3 } from "@babylonjs/core"
 import { Entity } from "./world"
-import { Vector3FromObj } from "../utils/math"
+import { QuaternionFromObj, Vector3FromObj } from "../utils/math"
 import { ShipTemplate } from "../data/ships/shipTemplate"
 import * as Ships from "../data/ships"
 import * as Guns from "../data/guns"
@@ -18,6 +18,57 @@ export function totalVelocityFrom(entity: Entity): Vector3 {
     velocity.addInPlace(Vector3FromObj(entity.afterburnerVelocity, TmpVectors.Vector3[1]))
   }
   return velocity
+}
+
+/** forces the entity to rotate and look towards the point, ignoring the velocity, drift, and thrusters */
+export function rotateTowardsPoint(entity: Entity, point: Vector3) {
+  const entityPosition: Vector3 = Vector3FromObj(entity.position)
+  const entityQuaternion: Quaternion = QuaternionFromObj(entity.rotationQuaternion)
+  const entityUp: Vector3 = Vector3FromObj(entity.up)
+  const entityForward: Vector3 = Vector3FromObj(entity.direction)
+
+  // point the vectors and update the quaternion so that they look towards the point
+  // Calculate the direction vector from the entity to the point
+  const directionToTarget: Vector3 = point.subtract(entityPosition).normalize();
+
+  // Compute the quaternion that aligns the entity's forward vector with the directionToTarget
+  const newForward: Vector3 = directionToTarget;
+  const newRight: Vector3 = Vector3.Cross(entityUp, newForward).normalize();
+  const newUp: Vector3 = Vector3.Cross(newForward, newRight).normalize();
+
+  const rotationMatrix: Matrix = Matrix.Identity();
+  Matrix.FromXYZAxesToRef(newRight, newUp, newForward, rotationMatrix);
+  const rotationQuaternion: Quaternion = Quaternion.FromRotationMatrix(rotationMatrix)
+  // camera somehow looks backwards, so turn it
+  const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
+  const newRotationQuaternion = rotationQuaternion.multiply(TURN);
+
+  // Create a rotation quaternion that aligns the entity's forward vector with the direction vector
+  // const rotationMatrix: Matrix = Matrix.LookAtLH(Vector3.Zero(), point, entityUp);
+  // const newRotationQuaternion: Quaternion = Quaternion.FromRotationMatrix(rotationMatrix);
+
+  // Calculate the rotation delta
+  // const inverseOriginalQuaternion = entityQuaternion.clone().invert();
+  // const rotationDelta = inverseOriginalQuaternion.multiply(newRotationQuaternion);
+
+  // Apply the rotation delta to the up and forward vectors
+  // const deltaRotationMatrix = Matrix.Identity()
+  // Matrix.FromQuaternionToRef(rotationDelta, deltaRotationMatrix)
+  // const newUp = Vector3.TransformCoordinates(entityUp, deltaRotationMatrix);
+  // const newForward = Vector3.TransformCoordinates(entityForward, deltaRotationMatrix);
+
+  // Update the entity's values
+  // entityQuaternion.copyFrom(newRotationQuaternion);
+  entity.up.x = newUp.x
+  entity.up.y = newUp.y
+  entity.up.z = newUp.z
+  entity.direction.x = directionToTarget.x
+  entity.direction.y = directionToTarget.y
+  entity.direction.z = directionToTarget.z
+  entity.rotationQuaternion.w = newRotationQuaternion.w
+  entity.rotationQuaternion.x = newRotationQuaternion.x
+  entity.rotationQuaternion.y = newRotationQuaternion.y
+  entity.rotationQuaternion.z = newRotationQuaternion.z
 }
 
 export function shipDetailsFrom(entity: Entity): ShipTemplate {

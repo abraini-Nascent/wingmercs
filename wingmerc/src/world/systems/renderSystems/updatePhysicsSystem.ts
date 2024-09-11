@@ -77,9 +77,6 @@ export class UpdatePhysicsSystem implements IDisposable {
     body.shape = hullShape
     body.entityId = entity.id
     body.setCollisionCallbackEnabled(true)
-    setInterval(()=> {
-      body.transformNode.rotate(Vector3.Forward(true), ToRadians(1))
-    }, 300)
     
     world.addComponent(entity, "body", body)
     node.position.set(nodePos.x, nodePos.y, nodePos.z)

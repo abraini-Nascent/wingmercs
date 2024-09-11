@@ -9,13 +9,7 @@ import {
   Vector3,
   HemisphericLight,
   TargetCamera,
-  MeshBuilder,
-  StandardMaterial,
-  CubeTexture,
-  Texture,
   FreeCamera,
-  Quaternion,
-  TmpVectors,
 } from "@babylonjs/core"
 import "./world/systems/controlSystems/weaponCommandSystem";
 import { AppContainer } from "./app.container";
@@ -24,6 +18,8 @@ import "./world/systems/deathRattleSystem";
 import { loadAssets } from "./assetLoader/assetLoader";
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
 import { FlexTestScene } from "./scenes/flexTest/flexTest"
+import earcut from 'earcut';
+import { KeyboardMap } from "./utils/keyboard"
 
 class App {
   assetsManager: AssetsManager
@@ -32,6 +28,9 @@ class App {
   constructor() {
 
     (window as any).appContainer = AppContainer.instance;
+    
+    // Attach earcut to the window object
+    (window as any).earcut = earcut;
 
     // create the canvas html element and attach it to the webpage
     const canvas = document.createElement("canvas")
@@ -64,33 +63,10 @@ class App {
     container.engine = engine
     container.scene = scene
 
-    // skybox generated from
-    //https://tools.wwwtyro.net/space-3d/index.html#animationSpeed=1&fov=80&nebulae=true&pointStars=true&resolution=256&seed=4ro5nl4knq80&stars=true&sun=true
-    const skybox = MeshBuilder.CreateBox("skyBox", { size: 20000.0 }, scene);
-    const skyboxMaterial = new StandardMaterial("skyBox", scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    const skycube = new CubeTexture("assets/skybox", scene, null, true, 
-      //px, py, pz, nx, ny, nz
-      ["assets/skybox/nebula/skybox_right.png", "assets/skybox/nebula/skybox_top.png", "assets/skybox/nebula/skybox_front.png", "assets/skybox/nebula/skybox_left.png", "assets/skybox/nebula/skybox_bottom.png", "assets/skybox/nebula/skybox_back.png"],
-      () => {
-        skycube.updateSamplingMode(Texture.NEAREST_NEAREST);
-      }
-    );
-    skycube.anisotropicFilteringLevel = 0;
-    skycube.wrapU = Texture.CLAMP_ADDRESSMODE;
-    skycube.wrapV = Texture.CLAMP_ADDRESSMODE;
-    skycube.wrapR = Texture.CLAMP_ADDRESSMODE;
-    skybox.infiniteDistance = true
-    skyboxMaterial.reflectionTexture = skycube
-    skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-    skybox.renderingGroupId = 0;
-
     // hide/show the Inspector
     window.addEventListener("keydown", (ev) => {
       // Shift+Ctrl+Alt+I
-      if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+      if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === KeyboardMap.I) {
         if (scene.debugLayer.isVisible()) {
           scene.debugLayer.hide()
         } else {
@@ -147,7 +123,46 @@ class App {
           })
         });
       }
-  });
+    });
+
+  //   const testcanvas = document.createElement('canvas');
+  //   // Set canvas size
+  //   const size = 1000
+  //   testcanvas.width = size; // Adjust width as needed
+  //   testcanvas.height = size; // Adjust height as needed
+  //   testcanvas.style.width = `${size}px`
+  //   testcanvas.style.height = `${size}px`
+
+  //   // Optionally set canvas styles (e.g., border, background color)
+  //   testcanvas.style.border = '1px solid black';
+  //   testcanvas.style.backgroundColor = '#FF0000';
+
+  //   // Append the canvas to the document body
+  //   document.body.appendChild(testcanvas);
+
+  //   // Now you can use the canvas context for drawing
+  //   const testctx = testcanvas.getContext('2d');
+
+  //   // Example drawing on the canvas
+  //   testctx.fillStyle = 'white';
+  //   testctx.fillRect(0, 0, testcanvas.width, testcanvas.height);
+  //   const width = testcanvas.width;
+  //   const height = testcanvas.height;
+
+  //   const density = generateDensityMap(1, 1)
+  //   const fractalDensity = generateFractalDensityMap(1, 1)
+  //   const turbulenceDensityMap = generateCustomTurbulenceDensityMap(100, 100)
+  //   const worleyDensity = generateWorleyDensityMap(1, 1, 0.75)
+  //   const densityMap = fractalDensity
+
+  //   for (let x = 0; x < width; x++) {
+  //       for (let y = 0; y < height; y++) {
+  //           const density = densityMap(x / width, y / height);
+  //           const color = Math.floor(density * 255);
+  //           testctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
+  //           testctx.fillRect(x, y, 1, 1);
+  //       }
+  //   }
   }
 }
 new App()

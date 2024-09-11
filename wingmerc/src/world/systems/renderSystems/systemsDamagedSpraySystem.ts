@@ -2,7 +2,7 @@ import { Entity } from './../../world';
 import { IDisposable, Scalar, TmpVectors, Vector3 } from "@babylonjs/core";
 import { queries, world } from "../../world";
 import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles";
-import { Vector3FromObj } from "../../../utils/math";
+import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math";
 import { MercParticleCustomEmitter } from "../../../utils/particles/mercParticleEmitters";
 
 export class SystemsDamagedSpraySystem implements IDisposable {
@@ -21,6 +21,17 @@ export class SystemsDamagedSpraySystem implements IDisposable {
     const emitter = new MercParticleCustomEmitter(
       (particle) => {
         Vector3FromObj(entity.position, particle.position)
+        if (entity.trailOptions && entity.rotationQuaternion) {
+          const rot = QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0])
+          const start = TmpVectors.Vector3[0]
+          start.x = entity.trailOptions[0]?.start?.x ?? 0
+          start.y = entity.trailOptions[0]?.start?.y ?? 0
+          start.z = entity.trailOptions[0]?.start?.z ?? 0
+          start.rotateByQuaternionToRef(rot, start)
+          particle.position.x += start.x
+          particle.position.y += start.y
+          particle.position.z += start.z
+        }
         return particle
       },
       (particle) => {

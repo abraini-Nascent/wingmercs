@@ -2,6 +2,7 @@ import SamJs from 'sam-js';
 import { Engine, Sound } from '@babylonjs/core';
 import { translateIPA } from '../data/IAP';
 import { AppContainer } from '../app.container';
+import { Entity, world } from '../world/world';
 /**
    * Test if a bit is set.
    * @param {Number} bits The bits.
@@ -66,7 +67,6 @@ export type Voice = {
 export function VoiceSound(phoneticSentence: string, voice: Voice): Sound | undefined {
   const samSentence = translateIPA(phoneticSentence, AppContainer.instance.debug)
   // console.log(`${bark.english}: \\${samSentence}\\`)
-  return
   const sam = new SamJs({
     debug: AppContainer.instance.debug,
     phonetic: true,
@@ -81,6 +81,22 @@ export function VoiceSound(phoneticSentence: string, voice: Voice): Sound | unde
     return sound
   } else {
     return undefined
+  }
+}
+export function PlayVoiceSound(sound: Sound | undefined, entity: Entity) {
+  if (sound) {
+    sound.maxDistance = 10000
+    sound.spatialSound = true
+    sound.attachToMesh(entity.node);
+    sound.play()
+    world.addComponent(entity, "speaking", sound)
+    sound.onEndedObservable.addOnce(() => {
+      if (entity.speaking == sound) {
+        world.removeComponent(entity, "speaking")
+      }
+      sound.detachFromMesh()
+      sound.dispose()
+    })
   }
 }
 export function RenderAudioBuffer(audiobuffer): Uint8Array {

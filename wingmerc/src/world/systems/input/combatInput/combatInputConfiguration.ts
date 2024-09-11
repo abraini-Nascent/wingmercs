@@ -1,3 +1,5 @@
+import { Direction } from 'yoga-layout';
+import { KeyboardMap } from "../../../../utils/keyboard"
 
 const CombatInputConfigurationStorageKey = "wingMerc_CombatInputConfiguration"
 
@@ -72,62 +74,103 @@ export const KeyboardKeys = {
   "Yaw": "Left/\nRight",
 }
 
+export type ControllerInputAssignment = {
+  mod?: number;
+  button?: number;
+  held?: boolean
+  axis?: number
+  direction?: number
+} | number
+
+export const GamepadAssignedButton = {
+  "Afterburner": GenericButtons.LS,
+  "AutoPilot": KeyboardMap.A,
+  "Brake": { held: true, button: GenericButtons.B },
+  "Drift": { held: true, button: GenericButtons.LB },
+  "SpeedUp": GenericButtons.A,
+  "SpeedDown": GenericButtons.B,
+  "WeaponFire": GenericButtons.LT,
+  "WeaponSelect": GenericButtons.Left,
+  "GunFire": GenericButtons.RT,
+  "GunSelect": GenericButtons.Right,
+  "Target": GenericButtons.Y,
+  "Lock": { held: true, button: GenericButtons.Y },
+  "Navigation": GenericButtons.Down,
+  "PitchUp": { axis: 1, direction: 1 },
+  "PitchDown": { axis: 1, direction: -1 },
+  "YawLeft": { axis: 0, direction: -1 },
+  "YawRight": { axis: 0, direction: 1 },
+  "RollLeft": { axis: 2, direction: -1 },
+  "RollRight": { axis: 2, direction: 1 },
+  "VDULeft": { mod: GenericButtons.RS, button: GenericButtons.Left },
+  "VDURight": { mod: GenericButtons.RS, button: GenericButtons.Right },
+  "CameraLeft": { mod: GenericButtons.RS, axis: 2, direction: -1 },
+  "CameraRight": { mod: GenericButtons.RS, axis: 2, direction: 1 },
+  "CameraUp": { mod: GenericButtons.RS, axis: 3, direction: 1 },
+  "CameraDown": { mod: GenericButtons.RS, axis: 3, direction: -1 },
+  "CameraReset": GenericButtons.RS,
+  "CameraToggle": GenericButtons.Up,
+}
+export type GamepadAssignedButton = keyof typeof GamepadAssignedButton;
+export type GamepadAssignedButtons = { [button in GamepadAssignedButton]: ControllerInputAssignment };
+
+export type AssignedKeyConfig = {
+  mod: number;
+  key: number;
+} | number | number[]
+
+export const KeyboardAssignedKey = {
+  "Afterburner": KeyboardMap.TAB,
+  "AutoPilot": KeyboardMap.A,
+  "Brake": KeyboardMap.ALT,
+  "Drift": KeyboardMap.Z,
+  "SpeedUp": KeyboardMap["0"],
+  "SpeedDown": KeyboardMap["9"],
+  "WeaponFire": KeyboardMap.ENTER,
+  "WeaponSelect": KeyboardMap.W,
+  "GunFire": [KeyboardMap.CONTROL, KeyboardMap.SPACE],
+  "GunSelect": KeyboardMap.G,
+  "Target": KeyboardMap.T,
+  "Lock": KeyboardMap.L,
+  "Navigation": KeyboardMap.N,
+  "PitchUp": KeyboardMap.UP,
+  "PitchDown": KeyboardMap.DOWN,
+  "RollLeft": {mod: KeyboardMap.SHIFT, key: KeyboardMap.LEFT},
+  "RollRight": {mod: KeyboardMap.SHIFT, key: KeyboardMap.RIGHT},
+  "YawLeft": KeyboardMap.LEFT,
+  "YawRight": KeyboardMap.RIGHT,
+  "VDULeft": KeyboardMap.OPEN_BRACKET,
+  "VDURight": KeyboardMap.CLOSE_BRACKET,
+  "CameraLeft": { mod: KeyboardMap.SLASH, key: KeyboardMap.LEFT },
+  "CameraRight": { mod: KeyboardMap.SLASH, key: KeyboardMap.RIGHT },
+  "CameraUp": { mod: KeyboardMap.SLASH, key: KeyboardMap.UP },
+  "CameraDown": { mod: KeyboardMap.SLASH, key: KeyboardMap.DOWN },
+  "CameraReset": { mod: KeyboardMap.SLASH, key: KeyboardMap.PERIOD },
+  "CameraToggle": KeyboardMap.C,
+}
+
+export type KeyboardAssignedKey = keyof typeof KeyboardAssignedKey;
+export type KeyboardAssignedKeys = { [button in KeyboardAssignedKey]: AssignedKeyConfig };
+
 class CombatInputConfiguration {
 
-  Afterburner: number
-  Brake: number
-  Drift: number
-  Camera: number
-  SpeedUp: number
-  SpeedDown: number
-  WeaponFire: number
-  WeaponSelect: number
-  GunFire: number
-  GunSelect: number
-  Target: number
-  Pitch: string
-  Roll: string
-  Yaw: string
+  gamepadConfig: GamepadAssignedButtons
+  keyboardConfig: KeyboardAssignedKeys
 
   private useMemory = null
 
   constructor() {
     if (this.load() == false) {
       // load default
-      this.Afterburner = GenericButtons.LS
-      this.Brake = GenericButtons.LB
-      this.Drift = GenericButtons.B
-      this.Camera = GenericButtons.Up
-      this.SpeedUp = GenericButtons.A
-      this.SpeedDown = GenericButtons.B
-      this.WeaponFire = GenericButtons.X
-      this.WeaponSelect = GenericButtons.Left
-      this.GunFire = GenericButtons.RT
-      this.GunSelect = GenericButtons.Right
-      this.Target = GenericButtons.Y
-      // TODO these should be broken into the axis number
-      this.Pitch = "leftStick"
-      this.Roll = "rightStick"
-      this.Yaw = "leftStick"
+      this.gamepadConfig = { ...GamepadAssignedButton }
+      this.keyboardConfig = { ...KeyboardAssignedKey }
     }
   }
   save() {
     if (this.isLocalStorageAvailable()) {
       const payload = {
-        Afterburner: this.Afterburner,
-        Brake: this.Brake,
-        Drift: this.Drift,
-        Camera: this.Camera,
-        SpeedUp: this.SpeedUp,
-        SpeedDown: this.SpeedDown,
-        WeaponFire: this.WeaponFire,
-        WeaponSelect: this.WeaponSelect,
-        GunFire: this.GunFire,
-        GunSelect: this.GunSelect,
-        Target: this.Target,
-        Pitch: this.Pitch,
-        Roll: this.Roll,
-        Yaw: this.Yaw,
+        gamepad: this.gamepadConfig,
+        keyboard: this.keyboardConfig,
       }
       localStorage.setItem(CombatInputConfigurationStorageKey, JSON.stringify(payload))
     }
@@ -140,19 +183,12 @@ class CombatInputConfiguration {
       }
       try {
         const payload = JSON.parse(payloadString)
-        this.Brake = payload.Brake
-        this.Drift = payload.Drift
-        this.Camera = payload.Camera
-        this.SpeedUp = payload.SpeedUp
-        this.SpeedDown = payload.SpeedDown
-        this.WeaponFire = payload.WeaponFire
-        this.WeaponSelect = payload.WeaponSelect
-        this.GunFire = payload.GunFire
-        this.GunSelect = payload.GunSelect
-        this.Target = payload.Target
-        this.Pitch = payload.Pitch
-        this.Roll = payload.Roll
-        this.Yaw = payload.Yaw
+        if (payload.keyboard) {
+          this.keyboardConfig = payload.keyboard as KeyboardAssignedKeys
+        }
+        if (payload.gamepad) {
+          this.gamepadConfig = payload.gamepad as GamepadAssignedButtons
+        }
         return true
       } catch (e) {
         console.error("[CombatInputConfiguration] load failed", e)

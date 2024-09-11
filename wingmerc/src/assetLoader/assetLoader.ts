@@ -1,5 +1,5 @@
 import HavokPhysics from '@babylonjs/havok';
-import { AssetsManager, HavokPlugin, TransformNode, Vector3 } from "@babylonjs/core"
+import { AssetsManager, HavokPlugin, Mesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { Models } from "./models"
 import { AppContainer } from "../app.container"
 import { ObjModels } from "./objModels"
@@ -11,7 +11,7 @@ export function loadAssets(onFinishedLoading: () => void) {
   engine.displayLoadingUI()
   let assetsManager = new AssetsManager(scene)
   
-  for (let [modelName, nodeName, modelPath] of Models) {
+  for (let [modelName, nodeName, modelPath, scale] of Models) {
     let objMeshTask = assetsManager.addMeshTask(
       modelName,
       nodeName,
@@ -22,8 +22,15 @@ export function loadAssets(onFinishedLoading: () => void) {
       if (task.loadedTransformNodes[0] != undefined) {
         task.loadedTransformNodes[0]
           .getChildMeshes()
-          .forEach((m) => (m.isVisible = false))
+          .forEach((m: Mesh) => {
+            m.isVisible = false
+            if (scale != undefined) {
+              m.scaling.setAll(scale)
+              m.bakeCurrentTransformIntoVertices()
+            }
+          })
         ObjModels[modelName] = task.loadedTransformNodes[0] as TransformNode
+        console.log(`[Assets] loaded transform for: ${modelName}`)
       } else {
         let node = new TransformNode(modelName, scene)
         for (const mesh of task.loadedMeshes) {
@@ -32,7 +39,12 @@ export function loadAssets(onFinishedLoading: () => void) {
           mesh.position.y = 0
           mesh.position.z = 0
           mesh.setParent(node)
+          if (scale) {
+            mesh.scaling.setAll(scale);
+            (mesh as Mesh).bakeCurrentTransformIntoVertices()
+          }
         }
+        console.log(`[Assets] loaded meshes for: ${modelName}`)
         ObjModels[modelName] = node
       }
       // this.objModels[modelName].isVisible = false

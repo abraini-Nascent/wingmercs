@@ -1,10 +1,38 @@
-import { Scalar, SolidParticle, TmpVectors, Vector3 } from "@babylonjs/core";
+import { Matrix, Scalar, SolidParticle, TmpVectors, Vector3 } from "@babylonjs/core";
 import { random } from "../random";
-import { pointInSphere } from "../math";
+import { pointInSphere, pointOnSphere } from "../math";
 
 export interface MercParticlesEmitter {
   initialPositionFunction: (particle: SolidParticle) => SolidParticle
   initialDirectionFunction: (particle: SolidParticle) => SolidParticle
+}
+
+export class MercParticleSphereSurfaceEmitter implements MercParticlesEmitter {
+  position: Vector3 = new Vector3();
+
+  constructor(public radius: number) {
+
+  }
+
+  initialPositionFunction = (particle: SolidParticle): SolidParticle => {
+    let offset = Matrix.Translation(particle.position.x, particle.position.y, particle.position.z)
+    pointOnSphere(this.radius, offset, particle.position)
+    const phi = random() * Math.PI * 2
+    const costheta = 2 * random() - 1
+    const theta = Math.acos(costheta)
+    const x = 2 * Math.sin(theta) * Math.cos(phi)
+    const y = 2 * Math.sin(theta) * Math.sin(phi)
+    const z = 2 * Math.cos(theta)
+
+    particle.position.x = this.position.x+x
+    particle.position.y = this.position.y+y
+    particle.position.z = this.position.z+z
+    particle.props.startPos = particle.position.clone()
+    return particle
+  }
+  initialDirectionFunction = (particle: SolidParticle): SolidParticle => {
+    return particle
+  }
 }
 
 export class MercParticleSphereEmitter implements MercParticlesEmitter {

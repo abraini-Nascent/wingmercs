@@ -3,7 +3,49 @@
 
 import { Color4, ColorGradient, FactorGradient, GradientHelper, IValueGradient, Mesh, MeshBuilder, Nullable, Observer, Scalar, Scene, SolidParticle, SolidParticleSystem, Vector3 } from "@babylonjs/core";
 import { MercParticlePointEmitter, MercParticlesEmitter } from "./mercParticleEmitters";
+import { queries } from "../../world/world";
+import { Vector3FromObj } from "../math";
 
+type MercParticleProps = {
+  age: number
+  lifeTime: number
+  direction: Vector3
+  scaledDirection: Vector3
+  // game position
+  gamePosition: Vector3
+  // color
+  currentColor1: Color4
+  currentColor2: Color4
+  currentColorGradient: IValueGradient
+  // rotation
+  rotation: Vector3
+  currentRotation1: Vector3
+  currentRotation2: Vector3
+  currentRotationGradient: IValueGradient
+  // angular speed
+  angle: Vector3
+  angularSpeed: Vector3
+  currentAngularSpeed1: Vector3
+  currentAngularSpeed2: Vector3
+  currentAngularSpeedGradient: IValueGradient
+  // velocity
+  currentVelocity1: number
+  currentVelocity2: number
+  currentVelocityGradient: IValueGradient
+  // limit velocity
+  currentLimitVelocity1: number
+  currentLimitVelocity2: number
+  currentLimitVelocityGradient: IValueGradient
+  // drag
+  currentDrag1: number
+  currentDrag2: number
+  currentDragGradient: IValueGradient
+  // size
+  currentSize1: number
+  currentSize2: number
+  currentSizeGradient: IValueGradient
+
+}
 export class MercParticleSystem {
   
   private emitted: Set<number> = new Set()
@@ -53,7 +95,7 @@ export class MercParticleSystem {
 
   private sceneObserver: Observer<Scene>
 
-  constructor(name: string, private scene: Scene, type: number | ((system: SolidParticleSystem) => {}) = 1, size: number = 1, count: number = 1000)  {
+  constructor(name: string, private scene: Scene, type: number | ((system: SolidParticleSystem) => void) = 1, size: number = 1, count: number = 1000)  {
     // Set variables
     this.speed = 1.5;
     this.gravity = new Vector3(0, -0.01, 0);
@@ -124,10 +166,11 @@ export class MercParticleSystem {
     if (particle.props == undefined) {
       particle.props = {};
     }
-    particle.props.age = 0;
-    particle.props.lifeTime = 3;
-    // if (particle.props.startPos) {
-      // let start: Vector3 = particle.props.startPos
+    const props = particle.props as MercParticleProps
+    props.age = 0;
+    props.lifeTime = 3;
+    // if (props.startPos) {
+      // let start: Vector3 = props.startPos
       // let length = start.subtract(particle.position).length()
       // console.log("travel length:", length)
     // }
@@ -145,147 +188,152 @@ export class MercParticleSystem {
           const factorGradient2 = <FactorGradient>nextGradient;
           const lifeTime1 = factorGradient1.getFactor();
           const lifeTime2 = factorGradient2.getFactor();
-          particle.props.lifeTime = Scalar.Lerp(lifeTime1, lifeTime2, scale);
+          props.lifeTime = Scalar.Lerp(lifeTime1, lifeTime2, scale);
       });
     } else {
-      particle.props.lifeTime = 0;
+      props.lifeTime = 0;
     }
 
     /// Direction
-    if (particle.props.direction == undefined) {
-      particle.props.direction = Vector3.Zero().copyFrom(this.direction)
+    if (props.direction == undefined) {
+      props.direction = Vector3.Zero().copyFrom(this.direction)
     } else {
-      (particle.props.direction as Vector3).copyFrom(this.direction)
+      (props.direction as Vector3).copyFrom(this.direction)
     }
-    if (particle.props.scaledDirection == undefined) {
-      particle.props.scaledDirection = Vector3.Zero()
+    if (props.scaledDirection == undefined) {
+      props.scaledDirection = Vector3.Zero()
     } else {
-      (particle.props.scaledDirection as Vector3).setAll(0)
+      (props.scaledDirection as Vector3).setAll(0)
     }
-    particle.props.currentColorGradient = undefined
+    props.currentColorGradient = undefined
 
     /// Color
     if (this.colorGradients != undefined && this.colorGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.colorGradients, (currentGradient, nextGradient) => {
-        particle.props.currentColor1 = new Color4();
-        particle.props.currentColor2 = new Color4();
-        particle.props.currentColorGradient = currentGradient;
-        (currentGradient as ColorGradient).getColorToRef(particle.props.currentColor1);
-        (nextGradient as ColorGradient).getColorToRef(particle.props.currentColor2);
+        props.currentColor1 = new Color4();
+        props.currentColor2 = new Color4();
+        props.currentColorGradient = currentGradient;
+        (currentGradient as ColorGradient).getColorToRef(props.currentColor1);
+        (nextGradient as ColorGradient).getColorToRef(props.currentColor2);
       })
     } else {
-      particle.props.currentColorGradient = undefined
-      particle.props.currentColor1 = undefined
-      particle.props.currentColor2 = undefined
+      props.currentColorGradient = undefined
+      props.currentColor1 = undefined
+      props.currentColor2 = undefined
     }
 
     /// Rotation
     if (this.rotationGradients && this.rotationGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.rotationGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentRotationGradient = currentGradient;
-        if (particle.props.currentRotation1 == undefined) { 
-          particle.props.currentRotation1 = new Vector3();
+        props.currentRotationGradient = currentGradient;
+        if (props.currentRotation1 == undefined) { 
+          props.currentRotation1 = new Vector3();
         }
-        if (particle.props.currentRotation2 == undefined) { 
-          particle.props.currentRotation2 = new Vector3();
+        if (props.currentRotation2 == undefined) { 
+          props.currentRotation2 = new Vector3();
         }
-        if (particle.props.rotation == undefined) {
-          particle.props.rotation = new Vector3();
+        if (props.rotation == undefined) {
+          props.rotation = new Vector3();
         }
-        particle.props.currentRotation1 = (<Vector3Gradient>currentGradient).getVectorToRef(particle.props.currentRotation1);
-        particle.props.currentRotation2 = (<Vector3Gradient>nextGradient).getVectorToRef(particle.props.currentRotation1);
-        particle.props.rotation = Vector3.LerpToRef(particle.props.currentRotation1, particle.props.currentRotation2, scale, particle.props.rotation);
+        props.currentRotation1 = (<Vector3Gradient>currentGradient).getVectorToRef(props.currentRotation1);
+        props.currentRotation2 = (<Vector3Gradient>nextGradient).getVectorToRef(props.currentRotation1);
+        props.rotation = Vector3.LerpToRef(props.currentRotation1, props.currentRotation2, scale, props.rotation);
       });
     } else {
-      particle.props.currentRotationGradient = undefined
-      particle.props.currentRotation1 = undefined
-      particle.props.currentRotation2 = undefined
-      if (particle.props.rotation == undefined) {
-        particle.props.rotation = new Vector3()
+      props.currentRotationGradient = undefined
+      props.currentRotation1 = undefined
+      props.currentRotation2 = undefined
+      if (props.rotation == undefined) {
+        props.rotation = new Vector3()
       }
     }
 
     /// Angular Velocity
     if (this.angularSpeedGradients && this.angularSpeedGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.angularSpeedGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentAngularSpeedGradient = currentGradient;
-        if (particle.props.currentAngularSpeed1 == undefined) {
-          particle.props.currentAngularSpeed1 = new Vector3();
+        props.currentAngularSpeedGradient = currentGradient;
+        if (props.currentAngularSpeed1 == undefined) {
+          props.currentAngularSpeed1 = new Vector3();
         }
-        if (particle.props.currentAngularSpeed2 == undefined) {
-          particle.props.currentAngularSpeed2 = new Vector3();
+        if (props.currentAngularSpeed2 == undefined) {
+          props.currentAngularSpeed2 = new Vector3();
         }
-        if (particle.props.angularSpeed == undefined) {
-          particle.props.angularSpeed = new Vector3();
+        if (props.angularSpeed == undefined) {
+          props.angularSpeed = new Vector3();
         }
-        particle.props.currentAngularSpeed1 = (<Vector3Gradient>currentGradient).getVectorToRef(particle.props.currentAngularSpeed1);
-        particle.props.currentAngularSpeed2 = (<Vector3Gradient>nextGradient).getVectorToRef(particle.props.currentAngularSpeed2);
-        particle.props.angularSpeed = Vector3.LerpToRef(particle.props.currentAngularSpeed1, particle.props.currentAngularSpeed2, scale, particle.props.angularSpeed);
+        props.currentAngularSpeed1 = (<Vector3Gradient>currentGradient).getVectorToRef(props.currentAngularSpeed1);
+        props.currentAngularSpeed2 = (<Vector3Gradient>nextGradient).getVectorToRef(props.currentAngularSpeed2);
+        props.angularSpeed = Vector3.LerpToRef(props.currentAngularSpeed1, props.currentAngularSpeed2, scale, props.angularSpeed);
       });
     } else {
-      particle.props.currentAngularSpeedGradient = undefined;
-      particle.props.currentAngularSpeed1 = undefined;
-      particle.props.currentAngularSpeed2 = undefined;
-      particle.props.angularSpeed = undefined;
+      props.currentAngularSpeedGradient = undefined;
+      props.currentAngularSpeed1 = undefined;
+      props.currentAngularSpeed2 = undefined;
+      props.angularSpeed = undefined;
     }
-    if (particle.props.angle == undefined) {
-      particle.props.angle = new Vector3();
+    if (props.angle == undefined) {
+      props.angle = new Vector3();
     } else {
-      (particle.props.angle as Vector3).setAll(0);
+      (props.angle as Vector3).setAll(0);
     }
 
     /// Velocity
     if (this.velocityGradients && this.velocityGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.velocityGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentVelocityGradient = currentGradient
-        particle.props.currentVelocity1 = (<FactorGradient>currentGradient).getFactor();
-        particle.props.currentVelocity2 = (<FactorGradient>nextGradient).getFactor();
+        props.currentVelocityGradient = currentGradient
+        props.currentVelocity1 = (<FactorGradient>currentGradient).getFactor();
+        props.currentVelocity2 = (<FactorGradient>nextGradient).getFactor();
       });
     } else {
-      particle.props.currentVelocityGradient = undefined
-      particle.props.currentVelocity1 = undefined
-      particle.props.currentVelocity2 = undefined
+      props.currentVelocityGradient = undefined
+      props.currentVelocity1 = undefined
+      props.currentVelocity2 = undefined
     }
 
     /// Limit velocity
     if (this.limitVelocityGradients && this.limitVelocityGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.limitVelocityGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentLimitVelocityGradient = <FactorGradient>currentGradient;
-        particle.props.currentLimitVelocity1 = (<FactorGradient>currentGradient).getFactor();
-        particle.props.currentLimitVelocity2 = (<FactorGradient>nextGradient).getFactor();
+        props.currentLimitVelocityGradient = <FactorGradient>currentGradient;
+        props.currentLimitVelocity1 = (<FactorGradient>currentGradient).getFactor();
+        props.currentLimitVelocity2 = (<FactorGradient>nextGradient).getFactor();
       });
     } else {
-      particle.props.currentLimitVelocityGradient = undefined
-      particle.props.currentLimitVelocity1 = undefined
-      particle.props.currentLimitVelocity2 = undefined
+      props.currentLimitVelocityGradient = undefined
+      props.currentLimitVelocity1 = undefined
+      props.currentLimitVelocity2 = undefined
     }
 
     /// Drag
     if (this.dragGradients && this.dragGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.dragGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentDragGradient = currentGradient
-        particle.props.currentDrag1 = (currentGradient as FactorGradient).getFactor();
-        particle.props.currentDrag2 = (nextGradient as FactorGradient).getFactor();
+        props.currentDragGradient = currentGradient
+        props.currentDrag1 = (currentGradient as FactorGradient).getFactor();
+        props.currentDrag2 = (nextGradient as FactorGradient).getFactor();
       });
     } else {
-      particle.props.currentDragGradient = undefined
-      particle.props.currentDrag1 = undefined
-      particle.props.currentDrag2 = undefined
+      props.currentDragGradient = undefined
+      props.currentDrag1 = undefined
+      props.currentDrag2 = undefined
     }
     
     /// Size
     if (this.sizeGradients && this.sizeGradients.length > 0) {
       GradientHelper.GetCurrentGradient(0, this.sizeGradients, (currentGradient, nextGradient, scale) => {
-        particle.props.currentSize1 = (<FactorGradient>currentGradient).getFactor();
-        particle.props.currentSize2 = (<FactorGradient>nextGradient).getFactor();
-        particle.props.currentSizeGradient = <FactorGradient>currentGradient;
+        props.currentSize1 = (<FactorGradient>currentGradient).getFactor();
+        props.currentSize2 = (<FactorGradient>nextGradient).getFactor();
+        props.currentSizeGradient = <FactorGradient>currentGradient;
       });
     } else {
-      particle.props.currentSizeGradient = undefined
-      particle.props.currentSize1 = undefined
-      particle.props.currentSize2 = undefined
+      props.currentSizeGradient = undefined
+      props.currentSize1 = undefined
+      props.currentSize2 = undefined
     }
 
+    if (props.gamePosition == undefined) {
+      props.gamePosition = new Vector3();
+    } else {
+      props.gamePosition.setAll(0);
+    }
     particle.isVisible = false;
     particle.position.setAll(0);
     particle.rotation.setAll(0);
@@ -359,6 +407,7 @@ export class MercParticleSystem {
       this.emittedCount += 1;
       if (this.initialPositionFunction) {
         this.initialPositionFunction(particle);
+        (particle.props as MercParticleProps).gamePosition.copyFrom(particle.position)
       }
       if (this.initialDirectionFunction) {
         this.initialDirectionFunction(particle);
@@ -489,8 +538,9 @@ export class MercParticleSystem {
         particle.scaling.setAll(Scalar.Lerp(particle.props.currentSize1, particle.props.currentSize2, scale));
       });
     }
-
-    particle.position.addInPlace(particle.props.scaledDirection)
+    const origin = queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : Vector3.ZeroReadOnly
+    particle.props.gamePosition.addInPlace(particle.props.scaledDirection)
+    particle.position.copyFrom(particle.props.gamePosition).subtractInPlace(origin)
     particle.rotation.copyFrom(particle.props.rotation)
 
     return particle;
@@ -499,13 +549,14 @@ export class MercParticleSystem {
 
 export class MercParticleSystemPool {
   count = 0
-  systems = new Map<number, MercParticleSystem>()
+  systems = new Map<string, MercParticleSystem>()
   pool: MercParticleSystem[] = []
   factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem
   constructor(factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem) {
     this.factory = factory
   }
   prime(count: number) {
+    return
     if (this.count < count) {
       count = count - this.count
     }
@@ -517,7 +568,7 @@ export class MercParticleSystemPool {
       }, 1)
     }
   }
-  getSystem(entityId: number, emitter: MercParticlesEmitter): MercParticleSystem {
+  getSystem(entityId: string, emitter: MercParticlesEmitter): MercParticleSystem {
     if (this.pool.length == 0) {
       this.count += 1
       let sps = this.factory(this.count, emitter)
@@ -546,7 +597,7 @@ export class MercParticleSystemPool {
     for (const sps of this.systems.values()) {
       sps.dispose()
     }
-    this.systems = new Map<number, MercParticleSystem>()
+    this.systems = new Map<string, MercParticleSystem>()
   }
 }
 

@@ -1,14 +1,15 @@
 import { EntityForId } from './../../world';
-import { HavokPlugin, PhysicsEngineV2, PhysicsRaycastResult, Quaternion, ShapeCastResult, Vector3 } from "@babylonjs/core"
+import { HavokPlugin, PhysicsEngineV2, Quaternion, ShapeCastResult, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
 import { registerHit } from "../../damage"
-import { QuaternionFromObj } from "../../../utils/math"
 
+const DEBUG = false
 const shapeLocalResult = new ShapeCastResult()
 const hitWorldResult = new ShapeCastResult()
 const DEFAULT_ROTATION = Quaternion.Zero()
 export function particleSystem() {
+  const origin = queries.origin.first?.position ?? Vector3.ZeroReadOnly 
   for (const entity of queries.particle) {
     const { position, particleRange, body } = entity
     if (position == undefined) {
@@ -30,8 +31,10 @@ export function particleSystem() {
     hitWorldResult.reset()
     // check if particle passed through an entity
     // var raycastResult = new PhysicsRaycastResult()
-    var start = new Vector3(particleRange.lastPosition.x, particleRange.lastPosition.y, particleRange.lastPosition.z)
-    var end = new Vector3(position.x, position.y, position.z)
+    // physics bodies are tied to the render nodes and are affected by the floating origin, so we need to take the game position of the particles and contert them to the floating game position
+    
+    var start = new Vector3(particleRange.lastPosition.x - origin.x, particleRange.lastPosition.y - origin.y, particleRange.lastPosition.z - origin.z)
+    var end = new Vector3(position.x - origin.x, position.y - origin.y, position.z - origin.z)
     const physicsEngine = AppContainer.instance.scene.getPhysicsEngine() as PhysicsEngineV2
     const havok = physicsEngine.getPhysicsPlugin() as HavokPlugin
     havok.shapeCast({

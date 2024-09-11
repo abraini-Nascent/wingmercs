@@ -1,5 +1,13 @@
 // [game name, node name in file, file url]
-export const Models: [string, string, string][] = [
+export const Models: [string, string, string, number?][] = [
+  ["frigate3", "Frigate_3", "./assets/models/frigate_3.glb"],
+  ["liteCarrier", "Light cruiser_04", "./assets/models/lite-carrier.glb", 100],
+  ["dirk_1st", "Node_3", "./assets/models/dirk_1st.glb"],
+  ["dirk_3rd", "Node_3", "./assets/models/dirk_3rd.glb"],
+  ["dirk_cockpit", "Node_3", "./assets/models/dirk_cockpit.glb"],
+  ["uni_1st", "Node_3", "./assets/models/uni_1st.glb"],
+  ["uni_3rd", "Node_3", "./assets/models/uni_3rd.glb"],
+  ["uni_cockpit", "Node_3", "./assets/models/uni_cockpit.glb"],
   ["craftMiner", "craft_miner", "./assets/models/craft_miner_scaled.glb"],
   ["craftMinerHull", "craft_miner", "./assets/models/craft_miner_hull.glb"],
   ["craftSpeederA", "craft_speederA", "./assets/models/craft_speederA_scaled.glb"],

@@ -16,10 +16,14 @@ export class TargetBoxesSystem implements IDisposable {
   targetBoxTexture: Texture
   lockBoxTexture: Texture
   interceptBoxTexture: Texture
+  destinationTexture: Texture
   constructor() {
     this.targetQuery = queries.targets.with("node")
     this.targetQuery.onEntityAdded.subscribe(this.targetableOnEntityAdded)
     this.targetQuery.onEntityRemoved.subscribe(this.targetableOnEntityRemoved)
+    const destinationTexture = new Texture("assets/crosshairs/crosshairs_16.png", undefined, undefined, false, Texture.NEAREST_LINEAR)
+    destinationTexture.hasAlpha = true
+    this.destinationTexture = destinationTexture
   }
   
   dispose(): void {
@@ -28,7 +32,7 @@ export class TargetBoxesSystem implements IDisposable {
   }
 
   targetableOnEntityAdded = (entity: Entity) => {
-    if (AppContainer.instance.player && entity.playerId == PlayerAgent.playerId) {
+    if (entity.currentPlayer || (AppContainer.instance.player && entity.playerId == PlayerAgent.playerId)) {
       // no target box on player
       DEBUG && console.log("[TargetBoxesSystem] no target box around the player's ship")
       return
@@ -57,11 +61,20 @@ export class TargetBoxesSystem implements IDisposable {
     let targetColor: Color3
     switch (entity.isTargetable) {
       case "enemy": {
-        targetColor = Color3.Red()
+        const player = AppContainer.instance.player?.playerEntity
+        if (player && entity.teamId == player.teamId) {
+          targetColor = Color3.Blue()
+        } else {
+          targetColor = Color3.Red()
+        }
         break;
       }
       case "player": {
         targetColor = Color3.Blue()
+        break;
+      }
+      case "nav": {
+        targetColor = Color3.White()
         break;
       }
       default: {
@@ -69,7 +82,7 @@ export class TargetBoxesSystem implements IDisposable {
         break;
       }
     }
-
+    targetBoxMaterial.diffuseTexture = this.targetBoxTexture
     targetBoxMaterial.diffuseColor = targetColor
     targetBoxMaterial.emissiveColor = targetColor
     targetBoxMaterial.specularColor = Color3.Black()
@@ -78,11 +91,11 @@ export class TargetBoxesSystem implements IDisposable {
     targetBoxPlane.ignoreCameraMaxZ = true
     targetBoxPlane.material = targetBoxMaterial
     targetBoxPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
-    targetBoxPlane.edgesWidth = 4.0
+    targetBoxPlane.edgesWidth = 10.0
     targetBoxPlane.edgesColor = new Color4(1, 0, 0, 1)
 
     // Position the plane at the mesh position
-    targetBoxPlane.parent = node
+    // targetBoxPlane.parent = node
 
     const interceptBoxMaterial = new StandardMaterial("interceptBoxMaterial")
     interceptBoxMaterial.diffuseTexture = this.interceptBoxTexture
@@ -96,45 +109,74 @@ export class TargetBoxesSystem implements IDisposable {
     interceptBoxPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
     interceptBoxPlane.isVisible = false
     let edgeRendering = false
-    let observer = targetBoxPlane.onBeforeRenderObservable.add(() => {
+    let observer = targetBoxPlane.getScene().onBeforeRenderObservable.add(() => {
       const camera = AppContainer.instance.camera
+      const originEntity = queries.origin.first
+      const origin = Vector3FromObj(originEntity.position)
 
       // Get the current distance from the camera to the mesh
-      const distance = Vector3.Distance(camera.position, node.position)
+      let distance = Vector3.Distance(origin, Vector3FromObj(entity.position))
+      let newLocation = Vector3FromObj(entity.position, TmpVectors.Vector3[3])
+      if (distance > 1000) {
+        // if we are further than a 1000m radius we will move the node to 1000m in the direction of the target
+        let entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
+        let directionToEntity = entityPosition.subtractToRef(origin, TmpVectors.Vector3[1])
+        let alpha = 1000 / distance
+        let offset = directionToEntity.multiplyByFloats(alpha, alpha, alpha)
+        newLocation = TmpVectors.Vector3[2].copyFrom(origin).addInPlace(offset)
+        // console.log("[TargetBoxesSystem] new position and distance", newLocation, distance * alpha, alpha)
+        distance = distance * alpha
+      }
 
       // Calculate the new size for the plane
       const newSize = referenceSize * (distance / referenceDistance)
       const player = AppContainer.instance.player.playerEntity
-      if (player && player.targeting && player.targeting.target == entity.id) {
-        if (player.targeting.locked) {
-          if (targetBoxMaterial.diffuseTexture != this.lockBoxTexture) {
-            targetBoxMaterial.diffuseTexture = this.lockBoxTexture
+      if (player && player.targeting && (player.targeting.target == entity.id || player.targeting.destination == entity.id)) {
+        targetBoxPlane.isVisible = true
+        if (player.targeting.destination == entity.id) {
+          targetBoxMaterial.diffuseTexture = this.destinationTexture
+        } else {
+          if (player.targeting.locked) {
+            if (targetBoxMaterial.diffuseTexture != this.lockBoxTexture) {
+              targetBoxMaterial.diffuseTexture = this.lockBoxTexture
+            }
+          } else {
+            if (targetBoxMaterial.diffuseTexture != this.targetBoxTexture) {
+              targetBoxMaterial.diffuseTexture = this.targetBoxTexture
+            }
+          }
+        
+          if (player.targeting.gunInterceptPosition) {
+            interceptBoxPlane.isVisible = true
+            interceptBoxPlane.position.x = player.targeting.gunInterceptPosition.x - origin.x
+            interceptBoxPlane.position.y = player.targeting.gunInterceptPosition.y - origin.y
+            interceptBoxPlane.position.z = player.targeting.gunInterceptPosition.z - origin.z
+
+            const interceptDistance = Vector3.Distance(origin, Vector3FromObj(player.targeting.gunInterceptPosition, TmpVectors.Vector3[0]))
+            const interceptSize = referenceSize * (interceptDistance / referenceDistance)
+            interceptBoxPlane.scaling.x = interceptSize
+            interceptBoxPlane.scaling.y = interceptSize
+          } else {
+            interceptBoxPlane.isVisible = false
           }
         }
-        if (entity.speaking != undefined && edgeRendering == false) {
-          targetBoxPlane.enableEdgesRendering()
-          edgeRendering = true
-        } else if (entity.speaking == undefined && edgeRendering == true) {
-          targetBoxPlane.disableEdgesRendering()
-          edgeRendering = false
-        }
-        if (player.targeting.gunInterceptPosition) {
-          interceptBoxPlane.isVisible = true
-          interceptBoxPlane.position.x = player.targeting.gunInterceptPosition.x
-          interceptBoxPlane.position.y = player.targeting.gunInterceptPosition.y
-          interceptBoxPlane.position.z = player.targeting.gunInterceptPosition.z
-
-          const interceptDistance = Vector3.Distance(camera.position, Vector3FromObj(player.targeting.gunInterceptPosition, TmpVectors.Vector3[0]))
-          const interceptSize = referenceSize * (interceptDistance / referenceDistance)
-          interceptBoxPlane.scaling.x = interceptSize
-          interceptBoxPlane.scaling.y = interceptSize
-        }
       } else {
-        if (targetBoxMaterial.diffuseTexture != this.targetBoxTexture) {
-          targetBoxMaterial.diffuseTexture = this.targetBoxTexture
-        }
+        targetBoxPlane.isVisible = false
+        interceptBoxPlane.isVisible = false
       }
-      // Update the plane size
+      if (entity.speaking != undefined && edgeRendering == false) {
+        targetBoxPlane.isVisible = true
+        targetBoxPlane.enableEdgesRendering()
+        edgeRendering = true
+      } else if (entity.speaking == undefined && edgeRendering == true) {
+        targetBoxPlane.isVisible = false
+        targetBoxPlane.disableEdgesRendering()
+        edgeRendering = false
+      }
+      // Update the plane position and size
+      targetBoxPlane.position.x = newLocation.x - origin.x
+      targetBoxPlane.position.y = newLocation.y - origin.y
+      targetBoxPlane.position.z = newLocation.z - origin.z
       targetBoxPlane.scaling.x = newSize
       targetBoxPlane.scaling.y = newSize
     })

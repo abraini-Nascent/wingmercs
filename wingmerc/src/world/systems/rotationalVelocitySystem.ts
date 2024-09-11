@@ -28,9 +28,6 @@ export function rotationalVelocitySystem() {
 
     Quaternion.RotationAxisToRef(axis.set(0, 1, 0), ToRadians(yaw), partRotQuat);
     rotationQuaternionB.multiplyInPlace(partRotQuat);
-
-    
-    
     rotationQuaternionB.toEulerAnglesToRef(rotationVec);
 
     // move the values back into the entity
@@ -55,5 +52,9 @@ export function rotationalVelocitySystem() {
       up.y = newUp.y
       up.z = newUp.z
     }
+    // clear the rotational velocity
+    rotationalVelocity.pitch = 0
+    rotationalVelocity.roll = 0
+    rotationalVelocity.yaw = 0
   }
 }

@@ -11,10 +11,10 @@ import { GunAffix } from '../data/affixes/gunAffix';
 import { Voice } from '../utils/speaking';
 import { RNG, rand, random, randomItem } from '../utils/random';
 import { Axis, Color3, Mesh, MeshBuilder, Space, StandardMaterial, Texture, Vector3 } from '@babylonjs/core';
-import { SpaceInterestTextures, TextureUrls } from '../assetLoader/textures';
 import { QuaternionFromObj, ToRadians, Vector3FromObj } from '../utils/math';
 import { nearestEnemy } from './systems/ai/shipIntelligence';
 import { SoundEffects } from '../utils/sounds/soundEffects';
+import { Mission } from '../data/missions/missionData';
 
 
 export function applyModifier(value: number, modifier: ComponentModifier): number {
@@ -27,8 +27,8 @@ export function applyModifier(value: number, modifier: ComponentModifier): numbe
   return value + modifier.value
 }
 
-export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: number, teamId?: number, groupId?): Entity {
-  console.log(`[CreateShip] creating new custom ship ${ship.name}`)
+export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: number, teamId?: number, groupId?, player?: true): Entity {
+  console.log(`[CreateShip] creating new custom ship ${ship.name} team[${teamId}] group[${groupId}]`)
   let guns: ShipGuns;
   const gunMounts: ShipGunsMount[] = Object.values(StructureSections).reduce((allMounts, structureSection) => {
     const structure: ShipStructureSection = ship.structure[structureSection]
@@ -271,7 +271,7 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       weapons: ship.systems.base.weapons,
     }
   }
-  const enemyEntity = CreateEntity({
+  const shipEntityProps = {
     owner: net.id,
     local: true,
     teamId: teamId,
@@ -279,12 +279,14 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
     ai: { type: "shipIntelegence", blackboard: {}, pilot: ship.pilot },
     voice: randomVoice(),
     meshName: ship.modelDetails.base,
+    cockpitName: ship.modelDetails.cockpit,
+    firstPersonMeshName: ship.modelDetails.firstPerson,
     shieldMeshName: ship.modelDetails.shield,
     physicsMeshName: ship.modelDetails.physics,
     targetName: ship.name,
     bodyType: "animated",
     trail: true,
-    trailOptions: ship.modelDetails.trails.map((trail) => { return { start: { ...trail.start }, color: { ...trail.color }}}),
+    trailOptions: ship.modelDetails.trails.map((trail) => { return { start: { ...trail.start }, color: { ...trail.color }, width: trail.width, length: trail.length}}),
     planeTemplate: ship.class,
     position: {x, y, z},
     velocity: {x: 0, y: 0, z: 0},
@@ -316,13 +318,17 @@ export function createCustomShip(ship: ShipTemplate, x: number, y: number, z: nu
       targetingDirection: { x: 0, y: 0, z: -1 },
       gunInterceptPosition: undefined,
       target: "",
+      destination: undefined,
       locked: false,
       targetingTime: 0,
       timeToLock: -1,
     },
     isTargetable: "enemy",
-    // scale: { x: 2, y: 2, z: 2 }
-  })
+  } as Partial<Entity>
+  if (player) {
+    shipEntityProps.currentPlayer = player
+  }
+  const enemyEntity = CreateEntity(shipEntityProps)
   return enemyEntity
 }
 
@@ -427,70 +433,6 @@ export function allGunSelections(): GunSelection[] {
   return selections
 }
 
-const poiRandom = new RNG(Date.now())
-const poiScales = {
-  blackhole1Animated: 2,
-  galaxy1Animated: 1,
-  asteroid1Single: 0.5,
-  asteroid2Single: 0.5
-}
-const poiStatic = {
-  asteroid1Single: true,
-  asteroid2Single: true
-}
-export function createSpaceBackgroundInterest(type?: SpaceInterestTextures | undefined): Mesh {
-  const textureName = type ?? poiRandom.randomItem(Object.keys(SpaceInterestTextures))
-  const scale = poiScales[textureName] ?? 1
-  const planet = MeshBuilder.CreatePlane(`si-${textureName}`, {
-    size: 1000 * scale
-  })
-  // Rotate the plane by 180 degrees around the Y axis to flip it
-  planet.rotate(Axis.Y, Math.PI, Space.LOCAL);
-
-  // Bake the rotation into the mesh
-  planet.bakeCurrentTransformIntoVertices();
-  
-  const planetTexture = new Texture(TextureUrls[textureName], undefined, undefined, false)
-  planetTexture.onLoadObservable.addOnce((texture) => {
-    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE)
-    texture.hasAlpha = true
-  })
-  if (!poiStatic[textureName]) {
-    planetTexture.uScale = 1 / 24
-  }
-  
-  const planetMat = new StandardMaterial(`si-${textureName}-mat`)
-  // planetMat.backFaceCulling = false;
-  // planetMat.disableLighting = true;
-  planetMat.diffuseTexture = planetTexture
-  planetMat.emissiveTexture = planetTexture
-  planetMat.specularColor = Color3.Black()
-  planet.material = planetMat
-  planet.billboardMode = Mesh.BILLBOARDMODE_X & Mesh.BILLBOARDMODE_Y
-  planet.onAfterRenderObservable.addOnce(() => {
-    planet.position.setAll(1500)
-    planet.lookAt(Vector3.Zero())
-    planet.rotateAround(Vector3.Zero(), Axis.Y, ToRadians(poiRandom.rand(0, 359)))
-    planet.infiniteDistance = true
-  })
-  if (!poiStatic[textureName]) {
-    let accu = 0
-    let observer = planet.onBeforeRenderObservable.add(() => {
-      if (planet.isDisposed()) {
-        observer.remove()
-        return
-      }
-      let dt = planet.getEngine().getDeltaTime()
-      accu += dt
-      if (accu > (60000 / 24)) {
-        planetTexture.uOffset += 1 / 24
-        accu -= (60000 / 24)
-      }
-    })
-  }
-  return planet
-}
-
 export function gunSelectionName(part: GunSelection): [id: string, name: string] {
   const gun = GunData[part.type]
   let name = gun.name
@@ -565,4 +507,13 @@ export function randomVoice(): Voice {
     throat
   }
   return voice
+}
+
+export function buildMission(mission: Mission): Entity[] {
+  const entities: Entity[] = []
+
+  for (const encounter of mission.encounters) {
+    
+  }
+  return entities
 }

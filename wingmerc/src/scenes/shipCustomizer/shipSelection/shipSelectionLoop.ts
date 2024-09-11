@@ -53,11 +53,13 @@ export class ShipSelectionScene implements GameScene, IDisposable {
   }
 
   setup() {
-    const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
+    const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "Razor", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
     for (const ship of ships) {
       const shipData = Ships[ship] as ShipTemplate
       this.shipModels[ship] = CreateEntity({
-        meshName: shipData.modelDetails.base
+        meshName: shipData.modelDetails.base,
+        shieldMeshName: shipData.modelDetails.shield,
+        physicsMeshName: shipData.modelDetails.physics
       })
     }
     queueMicrotask(() => {

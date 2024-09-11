@@ -1,4 +1,3 @@
-import { MissionType } from './systems/ai/engagementState';
 import {
   IDisposable,
   InstancedMesh,
@@ -20,7 +19,7 @@ import { UtilityModifierDetails } from '../data/ships/shipTemplate';
 import { Voice } from '../utils/speaking';
 import { SerializableType, SerializeAs, serialize } from '../utils/serialize';
 import { generateUUIDv4 } from '../utils/random';
-import { Pool } from '../utils/pool';
+import { MissionDetails, ObjectiveDetails } from '../data/missions/missionData';
 
 
 export type EntityUUID = string
@@ -33,7 +32,17 @@ export type MovementCommand = {
   brake: number
   deltaSpeed: number
 }
-export type FireCommand = { gun: number; weapon: number; lock: boolean }
+export type FireCommand = { gun: number; weapon: number; lock: boolean; target: boolean; nav: boolean }
+export type AutoPilotCommand = {
+  autopilot: true
+  running?: true
+  runTime: number
+  location: { x: number; y: number; z: number }
+  wingmen: {
+    id: EntityUUID
+    offset: { x: number; y: number; z: number }
+  }[]
+}
 export type ShipPowerPlant = {
   rate: number
   maxCapacity: number
@@ -162,17 +171,19 @@ export type ShipSystems = {
     weapons: number
   }
 }
-export type Display = "damage" | "target" | "armor" | "weapons" | "guns"
+export type Display = "damage" | "destination" | "target" | "armor" | "weapons" | "guns"
 export type VDUState = {
   left: Display
   right: Display
 }
+export type Vector3Object = { x: number; y: number; z: number }
 export type TargetState = {
   gunInterceptPosition: { x: number; y: number; z: number }
   targetingDirection: { x: number; y: number; z: number }
   targetingTime: number
   timeToLock: number
   target: EntityUUID
+  destination: EntityUUID
   locked: boolean
   missileLocked: boolean
 }
@@ -203,10 +214,14 @@ export type HitsTracked = {
   recentResetCountdown: number
   hits: { shooter: EntityUUID; victim: EntityUUID; }[]
 }
-export type MissionDetails = {
-  mission: MissionType
-  destroy?: EntityUUID
-  patrolPoints?: Vector3[]
+export type CameraDirection = {
+  x: number,
+  y: number,
+  z: number
+}
+export type CameraMovement = {
+  x: number,
+  y: number
 }
 // TODO: organize this... :S
 export type Entity = {
@@ -223,14 +238,18 @@ export type Entity = {
   groupId?: number
   wingleader?: { wingmen: EntityUUID[] }
   missionDetails?: MissionDetails
+  objectiveDetails?: ObjectiveDetails
 
   // UI Components
   targetName?: string
-  camera?: "cockpit" | "follow" | "debug"
+  camera?: "cockpit" | "follow" | "dramatic" | "debug"
+  cameraDirection?: CameraDirection
+  cameraMovement?: CameraMovement
   vduState?: VDUState
   paused?: true
 
   // Position and Movement Components
+  floatingOrigin?: true
   position?: { x: number; y: number; z: number }
   velocity?: { x: number; y: number; z: number }
   afterburnerVelocity?: { x: number; y: number; z: number }
@@ -252,7 +271,9 @@ export type Entity = {
 
   // Input Components
   movementCommand?: MovementCommand
+  pauseMovement?: true
   fireCommand?: FireCommand
+  autoPilotCommand? :AutoPilotCommand
 
   // Modeling and Rendering Components
   visible?: boolean
@@ -264,6 +285,8 @@ export type Entity = {
   physicsMesh?: Mesh
   physicsRadius?: number
   meshName?: string
+  cockpitName?: string
+  firstPersonMeshName?: string
   meshColor?: { r: number; g: number; b: number; a?: number }
   meshInstance?: InstancedMesh
   nerdStats?: NerdStats
@@ -292,10 +315,11 @@ export type Entity = {
     current: number
     base: number
   }
+  currentPlayer?: true
   playerId?: string
   planeTemplate?: string
   targeting?: TargetState
-  isTargetable?: "player" | "enemy" | "missile"
+  isTargetable?: "player" | "enemy" | "missile" | "nav"
   guns?: ShipGuns
   gunAmmo?: ShipGunAmmoCounts
   weapons?: ShipWeapons
@@ -312,6 +336,8 @@ export type Entity = {
   deathRattle?: boolean
   voice?: Voice
   speaking?: Sound
+  /** the ship was removed from combat, fleeing or died */
+  outOfCombat?: true
 
   // Gun Particle Components
   particleRange?: {
@@ -370,7 +396,9 @@ export const queries = {
   systemsDamaged: world.with("systemsDamaged"),
   deathComes: world.with("deathRattle"),
   damageable: world.with("health"),
+  outOfCombat: world.with("outOfCombat"),
   cameras: world.with("camera"),
+  origin: world.with("floatingOrigin", "position"),
   hits: world.with("hitsTaken"),
   missileEngine: world.with("missileEngine", "node"),
 }
@@ -486,6 +514,7 @@ SerializeAs("GFrame", "armor")
 SerializeAs("GFrame", "hitsTaken")
 SerializeAs("GFrame", "deathRattle")
 SerializeAs("GFrame", "voice")
+SerializeAs("GFrame", "outOfCombat")
 
 // Weapon and Particle Components
 SerializeAs("GFrame", "originatorId")

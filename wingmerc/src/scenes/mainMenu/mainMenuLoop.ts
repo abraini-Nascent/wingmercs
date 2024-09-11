@@ -1,3 +1,6 @@
+import { SpaceDebrisSystem } from './../../world/systems/visualsSystems/spaceDebrisSystem';
+import { SkyboxPlanetSystem } from './../../world/systems/visualsSystems/skyboxPlanetSystem';
+import { StarfieldSystem } from './../../world/systems/visualsSystems/starfieldSystem';
 import { DriftTrailSystem } from './../../world/systems/renderSystems/driftTrailSystem';
 import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
@@ -33,6 +36,8 @@ import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/sys
 import { MusicPlayer } from "../../utils/music/musicPlayer";
 import { fuelConsumptionSystem } from "../../world/systems/shipSystems/fuelConsumptionSystem";
 import { moveCommandSystem } from "../../world/systems/controlSystems/moveCommandSystem";
+import { SkyboxNebulaSystem } from '../../world/systems/visualsSystems/skyboxNebulaSystem';
+import { SkyboxSystems } from '../../world/systems/visualsSystems/skyboxSystems';
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 
@@ -48,6 +53,8 @@ export class MainMenuScene implements IDisposable {
   teamC = new Set<Entity>()
 
   // systems
+  skyboxSystems: SkyboxSystems
+  spaceDebrisSystem: SpaceDebrisSystem
   missileEngineSoundSystem = new MissileEngineSoundSystem()
   deathRattleSystem = new DeathRattleSystem()
   updatePhysicsSystem = new UpdatePhysicsSystem()
@@ -71,6 +78,7 @@ export class MainMenuScene implements IDisposable {
 
     appContainer.camera.attachControl()
     appContainer.camera.maxZ = 50000
+    appContainer.camera.minZ = 1
     this.cameraEntity = CreateEntity({
       targetName: "debug camera",
       camera: "debug"
@@ -88,6 +96,8 @@ export class MainMenuScene implements IDisposable {
       }
     })
     MusicPlayer.instance.playSong("theme")
+    this.skyboxSystems = new SkyboxSystems(appContainer.scene)
+    this.spaceDebrisSystem = new SpaceDebrisSystem(appContainer.scene)
   }
 
   dispose(): void {
@@ -111,6 +121,8 @@ export class MainMenuScene implements IDisposable {
     this.camera = undefined
 
     // systems
+    this.skyboxSystems.dispose()
+    this.spaceDebrisSystem.dispose()
     // dispose systems last since they help with cleanup
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()
@@ -152,7 +164,14 @@ export class MainMenuScene implements IDisposable {
     const newPosition = pointInSphere(4000, undefined, TmpVectors.Vector3[0])
     let newShip = createCustomShip(shipClass, newPosition.x, newPosition.y, newPosition.z, team, 1)
     world.addComponent(newShip, "missionDetails", {
-      patrolPoints: [new Vector3(0,0,0)],
+      missionLocations: [
+        {
+          id: 1,
+          name: "Arena Point",
+          isNavPoint: false,
+          position: { x: 0, y: 0, z: 0 }
+        }
+      ],
       mission: "Patrol"
     })
     this.demoShips.add(newShip)
@@ -165,6 +184,8 @@ export class MainMenuScene implements IDisposable {
     // don't start the game while menu is open
     this.screen.updateScreen(delta);
 
+    this.skyboxSystems.update(delta)
+    this.spaceDebrisSystem.update(delta)
     // systems for demo ships
     gunCooldownSystem(delta)
     shieldRechargeSystem(delta)
@@ -221,7 +242,8 @@ export class MainMenuScene implements IDisposable {
     if (isNaN(behind.x)) {
       debugger
     }
-    this.camera.position.copyFrom(behind)
+    Vector3.LerpToRef(this.camera.position, behind, 0.1, this.camera.position)
+    // this.camera.position.copyFrom(behind)
     this.camera.setTarget(firstPosition)
     return
     // let newPosition = TmpVectors.Vector3[2]

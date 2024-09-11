@@ -7,7 +7,7 @@ import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } 
 import { MercScreen } from "../screen";
 import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../app.container";
-import { SpaceCombatScene } from '../spaceCombat/spaceCombatLoop.singlePlayer';
+import { TrainSimScene } from '../spaceCombat/trainSim/trainSimLoop.singlePlayer';
 import { AfterburnerTypes, Afterburners } from '../../data/components/afterburners';
 import { Gun, GunType } from '../../data/guns/gun';
 import * as Guns from '../../data/guns';
@@ -162,7 +162,7 @@ export class ShipCustomizerScreen extends MercScreen {
       // navigate to next screen
       let oldScene = AppContainer.instance.gameScene
       oldScene.dispose()
-      let nextScene = new SpaceCombatScene(this.ship)
+      let nextScene = new TrainSimScene(this.ship)
       AppContainer.instance.gameScene = nextScene
     }), 120)
     bottomButtonSection.addControl(select)

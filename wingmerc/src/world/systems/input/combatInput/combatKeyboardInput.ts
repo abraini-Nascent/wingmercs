@@ -1,18 +1,35 @@
+import { AutoPilotCommand } from './../../../world';
 import { DeviceSourceManager, DeviceType, PointerInput, Scalar, TransformNode } from "@babylonjs/core"
 import { Display, FireCommand, MovementCommand, world } from "../../../world"
 import { KeyboardMap } from "../../../../utils/keyboard"
 import { Inspector } from "@babylonjs/inspector"
 import { AppContainer } from "../../../../app.container"
 import { DebounceTimedMulti } from "../../../../utils/debounce"
+import { inputConfiguration } from "./combatInputConfiguration"
+import { ToRadians } from '../../../../utils/math';
 
 const LeftDisplays: Display[] = ["damage", "guns", "weapons"]
-const RightDisplays: Display[] = ["target"]
+const RightDisplays: Display[] = ["target", "destination"]
 
 const FastThreshold = 333
 let dsm: DeviceSourceManager
 let inputDebounce = new DebounceTimedMulti()
 let ramp = 0
 
+const DebounceIds = {
+  Autopilot: 101,
+  VDULeft: 102,
+  VDURight: 103,
+  WeaponSelect: 104,
+  GunSelect: 105,
+  CameraSelect: 106,
+  SpeedUp: 107,
+  SpeedDown: 108,
+  WeaponFire: 109,
+  Lock: 110,
+  Target: 111,
+  Navigation: 112,
+}
 
 function lockPointer() {
   // Pointer lock
@@ -51,7 +68,8 @@ export function combatKeyboardInput(dt: number) {
   let fire = 0
   let weapon = 0
   let lock = false
-  let target = 0
+  let target = false
+  let nav = false
   /// STEER / ROLL PITCH YAW
   let up = 0,
     down = 0,
@@ -63,15 +81,8 @@ export function combatKeyboardInput(dt: number) {
   const keyboard = dsm.getDeviceSource(DeviceType.Keyboard)
   const mouse = dsm.getDeviceSource(DeviceType.Mouse)
 
-  // "SHIFT" [16]
-  const mod = keyboard?.getInput(KeyboardMap.SHIFT) ? true : false
-  // "Z" [90]
-  const drift = keyboard?.getInput(KeyboardMap.Z) ? true : false
-  if (drift) {
-    movementCommand.drift = 1
-  }
-
-  /// capture mouse?!
+  /// MOUSE INPUT
+  // capture mouse?!
   if (mouse.getInput(PointerInput.LeftClick) && captured == false) {
     // lockPointer()
     document.body.style.cursor = "url('assets/crosshairs/crosshairs_01.png'), auto";
@@ -117,39 +128,79 @@ export function combatKeyboardInput(dt: number) {
   } else {
     ramp = 0
   }
-  // "UP" [38]
-  if (keyboard?.getInput(KeyboardMap.UP)) {
+
+  const ic = inputConfiguration.keyboardConfig
+
+  /// HELPER
+  const checkAssignedKey = (assignedKey: number | number[] | { mod: number, key: number }) => {
+    const checkKey = (key: number): boolean => {
+      return keyboard?.getInput(key) > 0 ?? false
+    }
+    if (Array.isArray(assignedKey)) {
+      return assignedKey.some((key) => checkKey(key))
+    }
+    if (typeof assignedKey === 'object' && 'mod' in assignedKey && 'key' in assignedKey) {
+      // Do something with the mod and key properties
+      const modKeyPressed = checkKey(assignedKey.mod);
+      const keyKeyPressed = checkKey(assignedKey.key);
+      return modKeyPressed && keyKeyPressed;
+    }
+  
+    if (typeof assignedKey === 'number') {
+      return checkKey(assignedKey);
+    }
+    return false
+  }
+
+  /// Autopilot
+  if (checkAssignedKey(ic.AutoPilot)) {
+    if (inputDebounce.tryNow(DebounceIds.Autopilot)) {
+      const autoPilotCommand: AutoPilotCommand = {
+        autopilot: true,
+        runTime: 0,
+        wingmen: [],
+        location: { x: 100, y: 100, z: 0 } // TODO this should come from the current targeted nav becon
+      }
+      world.addComponent(playerEntity, "autoPilotCommand", autoPilotCommand)
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.Autopilot)
+  }
+
+  /// PITCH & YAW
+  // pitch down
+  if (checkAssignedKey(ic.PitchDown)) {
     up = Scalar.Lerp(0, 1, Math.min(1, ramp / FastThreshold))
     movementCommand.pitch = up
   }
-  // "DOWN" [40]
-  if (keyboard?.getInput(KeyboardMap.DOWN)) {
+  // pitch up
+  if (checkAssignedKey(ic.PitchUp)) {
     down = Scalar.Lerp(0, -1, Math.min(1, ramp / FastThreshold))
     movementCommand.pitch = down
   }
-  // "RIGHT" [39]
-  if (keyboard?.getInput(KeyboardMap.RIGHT)) {
-    if (mod) {
-      rollRight = 1
-      movementCommand.roll = 1
-    } else {
+  // roll/yaw right
+  if (checkAssignedKey(ic.RollRight)) {
+    rollRight = 1
+      movementCommand.roll = -1
+  }
+  else if (checkAssignedKey(ic.YawRight)) {
       right = Scalar.Lerp(0, 1, Math.min(1, ramp / FastThreshold))
       movementCommand.yaw = right
-    }
+  } 
+  // roll/yaw left
+  if (checkAssignedKey(ic.RollLeft)) {
+    rollLeft = 1
+    movementCommand.roll = 1
   }
-  // "LEFT" [37]
-  if (keyboard?.getInput(KeyboardMap.LEFT)) {
-    if (mod) {
-      rollLeft = 1
-      movementCommand.roll = -1
-    } else {
-      left = Scalar.Lerp(0, -1, Math.min(1, ramp / FastThreshold))
-      movementCommand.yaw = left
-    }
-  }
-  // "OPEN_BRACKET", // [219]
-  if (keyboard?.getInput(KeyboardMap.OPEN_BRACKET)) {
-    if (inputDebounce.tryNow(KeyboardMap.OPEN_BRACKET)) {
+  else if (checkAssignedKey(ic.YawLeft)) {
+    left = Scalar.Lerp(0, -1, Math.min(1, ramp / FastThreshold))
+    movementCommand.yaw = left
+}
+
+  /// DISPLAYS
+  // left vdu
+  if (checkAssignedKey(ic.VDULeft)) {
+    if (inputDebounce.tryNow(DebounceIds.VDULeft)) {
       let displayIdx =
         LeftDisplays.findIndex((d) => {
           return d == playerEntity.vduState.left
@@ -160,11 +211,11 @@ export function combatKeyboardInput(dt: number) {
       playerEntity.vduState.left = LeftDisplays[displayIdx]
     }
   } else {
-    inputDebounce.clear(KeyboardMap.OPEN_BRACKET)
+    inputDebounce.clear(DebounceIds.VDULeft)
   }
-  // "CLOSE_BRACKET", // [221]
-  if (keyboard?.getInput(KeyboardMap.CLOSE_BRACKET)) {
-    if (inputDebounce.tryNow(KeyboardMap.CLOSE_BRACKET)) {
+  // right vdu
+  if (checkAssignedKey(ic.VDURight)) {
+    if (inputDebounce.tryNow(DebounceIds.VDURight)) {
       let displayIdx =
         RightDisplays.findIndex((d) => {
           return d == playerEntity.vduState.right
@@ -175,109 +226,170 @@ export function combatKeyboardInput(dt: number) {
       playerEntity.vduState.right = RightDisplays[displayIdx]
     }
   } else {
-    inputDebounce.clear(KeyboardMap.CLOSE_BRACKET)
+    inputDebounce.clear(DebounceIds.VDURight)
   }
 
-  // WEAPONS SELECT
-  if (keyboard?.getInput(KeyboardMap.W) && inputDebounce.tryNow(KeyboardMap.W)) {
-    const player = AppContainer.instance.player.playerEntity
-    player.vduState.left = "weapons"
-    player.weapons.selected += 1
-    let weaponCount = player.weapons.mounts.length
-    if (player.weapons.selected >= weaponCount) {
-      player.weapons.selected = 0
-    }
+  /// CAMERA Controls
+  if (checkAssignedKey(ic.CameraLeft)) {
+    playerEntity.cameraMovement.x -= ToRadians((180 / 1000)) * dt // 5 degrees per second
   }
-  // GUN SELECT
-  if (keyboard?.getInput(KeyboardMap.G) && inputDebounce.tryNow(KeyboardMap.G)) {
-    const player = AppContainer.instance.player.playerEntity
-    player.vduState.left = "guns"
-    player.guns.selected += 1
-    let gunGroupCount = player.guns.groups.length
-    if (player.guns.selected >= gunGroupCount) {
-      player.guns.selected = 0
-    }
+  if (checkAssignedKey(ic.CameraRight)) {
+    playerEntity.cameraMovement.x += ToRadians((180 / 1000)) * dt // 5 degrees per second
   }
-  // VIEW SELECT
-  if (keyboard?.getInput(KeyboardMap.V) && inputDebounce.tryNow(KeyboardMap.V)) {
-    let follow = false
-    if (AppContainer.instance.player.playerEntity.camera == "follow") {
-      world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
-    } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
-      world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
-      follow = true
-    } else {
-      world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
-      follow = true
+  if (checkAssignedKey(ic.CameraUp)) {
+    playerEntity.cameraMovement.y -= ToRadians((180 / 1000)) * dt // 5 degrees per second
+  }
+  if (checkAssignedKey(ic.CameraDown)) {
+    playerEntity.cameraMovement.y += ToRadians((180 / 1000)) * dt // 5 degrees per second
+  }
+  if (checkAssignedKey(ic.CameraReset)) {
+    playerEntity.cameraDirection.x = 0
+    playerEntity.cameraDirection.y = 0
+  }
+
+  /// WEAPONS SELECT
+  if (checkAssignedKey(ic.VDURight)) {
+    if (inputDebounce.tryNow(DebounceIds.VDURight)) {
     }
-    if (follow) {
-      world.update(AppContainer.instance.player.playerEntity, "visible", true)
-    } else {
-      world.update(AppContainer.instance.player.playerEntity, "visible", false)
+  } else {
+    inputDebounce.clear(DebounceIds.VDURight)
+  }
+
+  if (checkAssignedKey(ic.WeaponSelect)) {
+    if (inputDebounce.tryNow(DebounceIds.WeaponSelect)) {
+      const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "weapons"
+      player.weapons.selected += 1
+      let weaponCount = player.weapons.mounts.length
+      if (player.weapons.selected >= weaponCount) {
+        player.weapons.selected = 0
+      }
     }
+  } else {
+    inputDebounce.clear(DebounceIds.WeaponSelect)
+  }
+
+  /// GUN SELECT
+  if (checkAssignedKey(ic.GunSelect)) {
+    if (inputDebounce.tryNow(DebounceIds.GunSelect)) {
+      const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "guns"
+      player.guns.selected += 1
+      let gunGroupCount = player.guns.groups.length
+      if (player.guns.selected >= gunGroupCount) {
+        player.guns.selected = 0
+      }
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.GunSelect)
+  }
+
+  /// VIEW SELECT
+  if (checkAssignedKey(ic.CameraToggle)) {
+    if (inputDebounce.tryNow(DebounceIds.CameraSelect)) {
+      let follow = false
+      if (AppContainer.instance.player.playerEntity.camera == "follow") {
+        world.update(AppContainer.instance.player.playerEntity, "camera", "cockpit")
+      } else if (AppContainer.instance.player.playerEntity.camera == "cockpit") {
+        world.update(AppContainer.instance.player.playerEntity, "camera", "follow")
+        follow = true
+      } else {
+        world.addComponent(AppContainer.instance.player.playerEntity, "camera", "follow")
+        follow = true
+      }
+      if (follow) {
+        world.update(AppContainer.instance.player.playerEntity, "visible", true)
+      } else {
+        world.update(AppContainer.instance.player.playerEntity, "visible", false)
+      }
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.CameraSelect)
   }
 
   /// AFTERBURNER - ACCELERATE
-  if (keyboard?.getInput(KeyboardMap.TAB)) {
+  if (checkAssignedKey(ic.Afterburner)) {
     movementCommand.afterburner = 1
   }
   /// BRAKE
-  if (keyboard?.getInput(KeyboardMap.ALT)) {
+  if (checkAssignedKey(ic.Brake)) {
     movementCommand.brake = 1
   }
   /// DRIFT
-  if (keyboard?.getInput(KeyboardMap.Z)) {
+  if (checkAssignedKey(ic.Drift)) {
     movementCommand.drift = 1
   }
   /// SPEED UP
-  if (keyboard?.getInput(KeyboardMap["9"])) {
-    if (inputDebounce.tryNow(KeyboardMap["9"])) {
+  if (checkAssignedKey(ic.SpeedUp)) {
+    if (inputDebounce.tryNow(DebounceIds.SpeedUp)) {
       movementCommand.deltaSpeed = -25
       let newSpeed = Math.max(playerEntity.setSpeed - 25, 0)
       world.update(playerEntity, "setSpeed", newSpeed)
     }
   } else {
-    inputDebounce.clear(KeyboardMap["9"])
+    inputDebounce.clear(DebounceIds.SpeedUp)
   }
   /// SPEED DOWN
-  if (keyboard?.getInput(KeyboardMap["0"])) {
-    if (inputDebounce.tryNow(KeyboardMap["0"])) {
+  if (checkAssignedKey(ic.SpeedDown)) {
+    if (inputDebounce.tryNow(DebounceIds.SpeedDown)) {
       movementCommand.deltaSpeed = +25
       let newSpeed = Math.min(playerEntity.setSpeed + 25, playerEntity.engine.cruiseSpeed)
       world.update(playerEntity, "setSpeed", newSpeed)
     }
   } else {
-    inputDebounce.clear(KeyboardMap["0"])
+    inputDebounce.clear(DebounceIds.SpeedDown)
   }
 
+  /// ASSIGN Movement Command
   world.update(playerEntity, "movementCommand", movementCommand)
-  /// FIRE PROJECTILES
-  // "CONTROL" 17
-  // "SPACE" [32]
-  if (keyboard?.getInput(KeyboardMap.SPACE)) {
-    fire = 1
-  }
-  if (keyboard?.getInput(KeyboardMap.CONTROL)) {
+
+  /// WEAPON COMMANDS
+  /// FIRE GUNS
+  if (checkAssignedKey(ic.GunFire)) {
     fire = 1
   }
   /// FIRE WEAPONS
-  // "ENTER" 13
-  if (keyboard?.getInput(KeyboardMap.ENTER) && inputDebounce.tryNow(KeyboardMap.ENTER)) {
-    weapon = 1
+  if (checkAssignedKey(ic.WeaponFire)) {
+    if (inputDebounce.tryNow(DebounceIds.WeaponFire)) {
+      weapon = 1
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.WeaponFire)
   }
   /// LOCK TARGET
-  // "L" [76]
-  if (keyboard?.getInput(KeyboardMap.L) && inputDebounce.tryNow(KeyboardMap.L)) {
-    lock = true
+  if (checkAssignedKey(ic.Lock)) {
+    if (inputDebounce.tryNow(DebounceIds.Lock)) {
+      lock = true
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.Lock)
   }
-  if (fire || weapon || lock || target) {
-    const fireCommand: FireCommand = { gun: fire, weapon, lock }
+  /// TARGET
+  if (checkAssignedKey(ic.Target)) {
+    if (inputDebounce.tryNow(DebounceIds.Target)) {
+      target = true
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.Target)
+  }
+  /// NEXT NAVIGATION DESTINATION
+  if (checkAssignedKey(ic.Navigation)) {
+    if (inputDebounce.tryNow(DebounceIds.Navigation)) {
+      nav = true
+    }
+  } else {
+    inputDebounce.clear(DebounceIds.Navigation)
+  }
+
+  /// ASSIGN FIRE COMMAND
+  if (fire || weapon || lock || target || nav) {
+    const fireCommand: FireCommand = { gun: fire, weapon, lock, target, nav }
     world.addComponent(playerEntity, "fireCommand", fireCommand)
   }
 
   // "TILDE", // [176]
   // ... YOUR SCENE CREATION
-  if (keyboard?.getInput(KeyboardMap.TILDE)) {
+  if (keyboard?.getInput(KeyboardMap.BACK_QUOTE)) {
     Inspector.Show(AppContainer.instance.scene, {})
   }
 }

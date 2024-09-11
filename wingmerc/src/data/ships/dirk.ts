@@ -8,31 +8,23 @@ export const Dirk: ShipTemplate = Object.seal({
   maxWeight: 14,
   baseWeight: 7,
   modelDetails: {
-    base: "craftMiner",
+    scale: 100,
+    base: "dirk_3rd",
+    cockpit: "dirk_cockpit",
+    firstPerson: "dirk_1st",
     physics: "craftMinerHull",
     shield: "craftMinerHull",
     trails: [
       {
         start: {
-          x: 5,
-          y: -5,
-          z: -5,
+          x: 0,
+          y: -1,
+          z: 10,
         },
+        width: 5,
         color: {
           r: 1,
-          g: 0,
-          b: 0,
-        },
-      },
-      {
-        start: {
-          x: -5,
-          y: -5,
-          z: -5,
-        },
-        color: {
-          r: 1,
-          g: 0,
+          g: 1,
           b: 0,
         },
       },
