@@ -9,6 +9,7 @@ export const Saber: ShipTemplate = Object.seal({
   baseWeight: 17,
   modelDetails: {
     base: "spaceCraft3",
+    cockpit: "cockpit",
     physics: "spaceCraft3Hull",
     shield: "spaceCraft3Hull",
     trails: [

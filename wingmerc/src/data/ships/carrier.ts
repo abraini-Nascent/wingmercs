@@ -14,6 +14,7 @@ export const LiteCarrier: ShipTemplate = Object.seal({
     trails: []
   },
   pilot: "Heavy02",
+  hanger: true,
   afterburnerSlot: {
     maxSize: "Medium",
     base: {

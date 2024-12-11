@@ -279,5 +279,20 @@ export const barks = {
       ipa: "/kəˈmændər, wɪr ɔl ˈsɪstəmz ɡoʊ. lɛts meɪk ðɪs ˈmɪʃən kaʊnt./",
       sam: "",
     },
-  ]
+  ],
+  hangerLandingRequestGranted: {
+    english: "Landing request granted.",
+    ipa: "/ˈɔtəˌmeɪtɪd ˈlændɪŋ ˈsɪstəm ɪnˈɡeɪʤd./", // todo this doesnt match english
+    sam: "",
+  },
+  hangerLandingWarning: {
+    english: "Now entering an automatic landing zone.",
+    ipa: "/naʊ ˈɛntərɪŋ ən ˌɔtəˈmætɪk ˈlændɪŋ zoʊn./",
+    sam: "",
+  },
+  hangerLanding: {
+    english: "Automated landing system engaged.",
+    ipa: "/ˈɔtəˌmeɪtɪd ˈlændɪŋ ˈsɪstəm ɪnˈɡeɪʤd./",
+    sam: "",
+  },
 }

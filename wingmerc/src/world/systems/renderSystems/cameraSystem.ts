@@ -1,7 +1,8 @@
-import { Camera, FreeCamera, Quaternion, TargetCamera, Vector3 } from "@babylonjs/core";
+import { Camera, FreeCamera, Quaternion, TargetCamera, Vector3, WebXRState } from "@babylonjs/core";
 import { RubberbandCameraController } from "../../../camera/rubberbandCameraController";
 import { Entity, queries } from "../../world";
 import { Vector3FromObj } from "../../../utils/math";
+import { VRSystem } from "./vrSystem";
 
 let playerFollowCamera: RubberbandCameraController = undefined;
 export function cameraFollowSystem(player: Entity, camera: TargetCamera) {
@@ -15,19 +16,27 @@ export function cameraFollowSystem(player: Entity, camera: TargetCamera) {
   }
 }
 
-let dramaticCamera: any = {}
+let dramaticCamera: {
+  worldPosition?: Vector3
+  position?: Vector3
+} = {}
 export function dramaticCameraSystem(target: Entity, camera: TargetCamera) {
   if (target?.node == undefined || camera == undefined) { return }
 
+  const origin = queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : Vector3.Zero()
   if (dramaticCamera.position == undefined) {
     let forwardOffset = Vector3FromObj(target.direction)
     forwardOffset = forwardOffset.multiplyByFloats(250, 250, 250)
     forwardOffset.x += 50 // lower than plane
-    dramaticCamera.position = Vector3FromObj(target.position).addInPlace(forwardOffset)
+    dramaticCamera.worldPosition = Vector3FromObj(target.position).addInPlace(forwardOffset)
+    dramaticCamera.position = Vector3FromObj(target.position).addInPlace(forwardOffset).subtractInPlace(origin)
+    camera.position.copyFrom(dramaticCamera.position)
+  } else {
+    dramaticCamera.position = dramaticCamera.worldPosition.subtract(origin)
     camera.position.copyFrom(dramaticCamera.position)
   }
   // console.log("[DramaticCamera] tracking target", target.position)
-  camera.setTarget(Vector3FromObj(target.position))
+  camera.setTarget(Vector3FromObj(target.position).subtractInPlace(origin))
 }
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
@@ -36,6 +45,22 @@ export function cameraSystem(cameraEntity: Entity, camera: Camera) {
   if (cameraEntity == undefined) { return }
   let { rotationQuaternion, position } = cameraEntity
   const cameraOverride = queries.cameras.first
+  if (VRSystem.xr && VRSystem.xr.baseExperience && VRSystem.xr.baseExperience.state == WebXRState.IN_XR) {
+    // do xr camera stuff
+    // console.log(VRSystem.xr.baseExperience.camera.rotation)
+    const vrCamera = VRSystem.xrCameraParent
+    vrCamera.position.x = position.x - origin.x
+    vrCamera.position.y = position.y - origin.y
+    vrCamera.position.z = position.z - origin.z
+    if (vrCamera.rotationQuaternion == undefined) {
+      vrCamera.rotationQuaternion = Quaternion.Identity()
+    }
+    vrCamera.rotationQuaternion.x = rotationQuaternion.x
+    vrCamera.rotationQuaternion.y = rotationQuaternion.y
+    vrCamera.rotationQuaternion.z = rotationQuaternion.z
+    vrCamera.rotationQuaternion.w = rotationQuaternion.w
+    return
+  }
   if (cameraOverride != undefined && cameraOverride.camera == "dramatic") {
     dramaticCameraSystem(cameraOverride, camera as TargetCamera)
     return

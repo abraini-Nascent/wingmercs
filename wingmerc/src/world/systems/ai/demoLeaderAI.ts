@@ -1,13 +1,11 @@
-import { Color3, Mesh, MeshBuilder, StandardMaterial, TmpVectors, Vector3 } from "@babylonjs/core";
-import { random } from "../../../utils/random";
-import { Entity, FireCommand, MovementCommand, world } from "../../world";
-import { aiTimer } from "./aiTimer";
-import { SteeringHardNormalizeClamp, SteeringHardTurnClamp, SteeringSoftNormalizeClamp, calculateSteering } from "./basicSteering";
-import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math";
-import { SteeringBehaviours } from "./steeringBehaviours";
+import { Color3, Mesh, MeshBuilder, StandardMaterial, Vector3 } from "@babylonjs/core"
+import { Entity, FireCommand, MovementCommand, SetComponent } from "../../world"
+import { aiTimer } from "./aiTimer"
+import { SteeringHardTurnClamp } from "./basicSteering"
+import { SteeringBehaviours } from "./steeringBehaviours"
 
 export function demoLeaderAI(entity: Entity, dt: number) {
-  const { ai, position, rotationQuaternion} = entity;
+  const { ai } = entity
   const { blackboard } = ai
   let movementCommand = {
     pitch: 0,
@@ -21,7 +19,7 @@ export function demoLeaderAI(entity: Entity, dt: number) {
 
   let fireCommand = {
     gun: 0,
-    weapon: 0
+    weapon: 0,
   } as FireCommand
   // afterburner demo
   aiTimer(blackboard, "afterburner", dt, 15000, 5000, () => {
@@ -46,22 +44,21 @@ export function demoLeaderAI(entity: Entity, dt: number) {
     blackboard.holdState = {
       finished: false,
       headingHoldLength: 0,
-      headingIndex: 0
+      headingIndex: 0,
     } as SteeringBehaviours.HeadingHoldState
     //{X: 0 Y: -0.7071067811865476 Z: 0.7071067811865476}
-    blackboard.headings = [
-      new Vector3(0, -1, 0),
-      new Vector3(0, -1, 0),
-      new Vector3(0, 1, 0),
-      new Vector3(0, 1, 0),
-    ]
-    blackboard.timings = [
-      0,0,
-      0,0,
-    ]
+    blackboard.headings = [new Vector3(0, -1, 0), new Vector3(0, -1, 0), new Vector3(0, 1, 0), new Vector3(0, 1, 0)]
+    blackboard.timings = [0, 0, 0, 0]
   } else {
     if (blackboard.holdState.finished == false) {
-      let input = SteeringBehaviours.headingHold(dt, entity, blackboard.headings, blackboard.timings, blackboard.holdState, SteeringHardTurnClamp)
+      let input = SteeringBehaviours.headingHold(
+        dt,
+        entity,
+        blackboard.headings,
+        blackboard.timings,
+        blackboard.holdState,
+        SteeringHardTurnClamp
+      )
       // if (blackboard.holdState.finished) {
       //   blackboard.holdState = {
       //     finished: false,
@@ -108,18 +105,18 @@ export function demoLeaderAI(entity: Entity, dt: number) {
     }
   }
   */
-  world.update(entity, "setSpeed", 250)
-  world.update(entity, "movementCommand", movementCommand)
-  world.update(entity, "fireCommand", fireCommand)
+  SetComponent(entity, "setSpeed", 250)
+  SetComponent(entity, "movementCommand", movementCommand)
+  SetComponent(entity, "fireCommand", fireCommand)
 }
 
 function moveTargetBox(blackboard: any, position: Vector3) {
   let box = blackboard.targetBox as Mesh
   if (box == undefined) {
-    let newBox = MeshBuilder.CreateBox("ai target box", {size: 150})
+    let newBox = MeshBuilder.CreateBox("ai target box", { size: 150 })
     let mat = new StandardMaterial("target box")
     mat.emissiveColor = new Color3(1, 0.2, 0.2)
-    mat.specularColor = new Color3(0,0,0)
+    mat.specularColor = new Color3(0, 0, 0)
     mat.diffuseColor = new Color3(1, 0.2, 0.2)
     newBox.material = mat
     blackboard.targetBox = newBox

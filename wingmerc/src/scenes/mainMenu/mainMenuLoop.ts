@@ -1,45 +1,48 @@
-import { SpaceDebrisSystem } from './../../world/systems/visualsSystems/spaceDebrisSystem';
-import { SkyboxPlanetSystem } from './../../world/systems/visualsSystems/skyboxPlanetSystem';
-import { StarfieldSystem } from './../../world/systems/visualsSystems/starfieldSystem';
-import { DriftTrailSystem } from './../../world/systems/renderSystems/driftTrailSystem';
-import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core";
-import { AppContainer } from "../../app.container";
-import { MainMenuScreen } from "./mainMenuScreen";
-import { CreateEntity, Entity, queries, world } from "../../world/world";
-import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem";
-import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem";
-import { powerPlantRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem";
-import { aiSystem } from "../../world/systems/ai/aiSystem";
-import {  moveSystem, } from "../../world/systems/moveSystem";
-import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem";
-import { radarTargetingSystem } from "../../world/systems/shipSystems/radarTargetingSystem";
-import { particleSystem } from "../../world/systems/weaponsSystems/particleSystem";
-import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missileSteeringSystem";
-import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem";
-import { shieldPulserSystem } from "../../world/damage";
-import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem";
-import { createCustomShip } from "../../world/factories";
-import { ShipTemplate } from "../../data/ships/shipTemplate";
-import * as Ships from "../../data/ships";
-import { randomItem } from "../../utils/random";
-import { QuaternionFromObj, Vector3FromObj, pointInSphere } from "../../utils/math";
-import { MissileEngineSoundSystem } from "../../world/systems/soundSystems/missileEngineSoundSystem";
-import { DeathRattleSystem } from "../../world/systems/deathRattleSystem";
-import { UpdatePhysicsSystem } from "../../world/systems/renderSystems/updatePhysicsSystem";
-import { WeaponCommandSystem } from "../../world/systems/controlSystems/weaponCommandSystem";
-import { MeshedSystem } from "../../world/systems/renderSystems/meshedSystem";
-import { TrailersSystem } from "../../world/systems/renderSystems/trailersSystem";
-import { AfterburnerSoundSystem } from "../../world/systems/soundSystems/afterburnerSoundSystem";
-import { DriftSoundSystem } from "../../world/systems/soundSystems/driftSoundSystem";
-import { AfterburnerTrailsSystem } from "../../world/systems/renderSystems/afterburnerTrailsSystem";
-import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/systemsDamagedSpraySystem";
-import { MusicPlayer } from "../../utils/music/musicPlayer";
-import { fuelConsumptionSystem } from "../../world/systems/shipSystems/fuelConsumptionSystem";
-import { moveCommandSystem } from "../../world/systems/controlSystems/moveCommandSystem";
-import { SkyboxNebulaSystem } from '../../world/systems/visualsSystems/skyboxNebulaSystem';
-import { SkyboxSystems } from '../../world/systems/visualsSystems/skyboxSystems';
+import { SpaceDebrisSystem } from "./../../world/systems/visualsSystems/spaceDebrisSystem"
+import { SkyboxPlanetSystem } from "./../../world/systems/visualsSystems/skyboxPlanetSystem"
+import { StarfieldSystem } from "./../../world/systems/visualsSystems/starfieldSystem"
+import { DriftTrailSystem } from "./../../world/systems/renderSystems/driftTrailSystem"
+import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core"
+import { AppContainer } from "../../app.container"
+import { MainMenuScreen } from "./mainMenuScreen"
+import { CreateEntity, Entity, queries, world } from "../../world/world"
+import { gunCooldownSystem } from "../../world/systems/shipSystems/gunCooldownSystem"
+import { shieldRechargeSystem } from "../../world/systems/shipSystems/shieldRechargeSystem"
+import { powerPlantRechargeSystem } from "../../world/systems/shipSystems/engineRechargeSystem"
+import { aiSystem } from "../../world/systems/ai/aiSystem"
+import { moveSystem } from "../../world/systems/moveSystem"
+import { rotationalVelocitySystem } from "../../world/systems/rotationalVelocitySystem"
+import { radarTargetingSystem } from "../../world/systems/shipSystems/radarTargetingSystem"
+import { particleSystem } from "../../world/systems/weaponsSystems/particleSystem"
+import { missileSteeringSystem } from "../../world/systems/weaponsSystems/missileSteeringSystem"
+import { missileTargetingSystem } from "../../world/systems/weaponsSystems/missileTargetingSystem"
+import { shieldPulserSystem } from "../../world/damage"
+import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem"
+import { createCustomShip } from "../../world/factories"
+import { ShipTemplate } from "../../data/ships/shipTemplate"
+import * as Ships from "../../data/ships"
+import { randomItem } from "../../utils/random"
+import { QuaternionFromObj, Vector3FromObj, pointInSphere } from "../../utils/math"
+import { MissileEngineSoundSystem } from "../../world/systems/soundSystems/missileEngineSoundSystem"
+import { DeathRattleSystem } from "../../world/systems/deathRattleSystem"
+import { UpdatePhysicsSystem } from "../../world/systems/renderSystems/updatePhysicsSystem"
+import { MeshedSystem } from "../../world/systems/renderSystems/meshedSystem"
+import { TrailersSystem } from "../../world/systems/renderSystems/trailersSystem"
+import { AfterburnerSoundSystem } from "../../world/systems/soundSystems/afterburnerSoundSystem"
+import { DriftSoundSystem } from "../../world/systems/soundSystems/driftSoundSystem"
+import { AfterburnerTrailsSystem } from "../../world/systems/renderSystems/afterburnerTrailsSystem"
+import { SystemsDamagedSpraySystem } from "../../world/systems/renderSystems/systemsDamagedSpraySystem"
+import { MusicPlayer } from "../../utils/music/musicPlayer"
+import { fuelConsumptionSystem } from "../../world/systems/shipSystems/fuelConsumptionSystem"
+import { moveCommandSystem } from "../../world/systems/controlSystems/moveCommandSystem"
+import { SkyboxNebulaSystem } from "../../world/systems/visualsSystems/skyboxNebulaSystem"
+import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems"
+import { VRSystem } from "../../world/systems/renderSystems/vrSystem"
+import { MotionHands } from "../../world/systems/input/vr/motionHands"
+import { weaponCommandSystem } from "../../world/systems/controlSystems/weaponCommandSystem"
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
+const divFps = document.getElementById("fps")
 
 export class MainMenuScene implements IDisposable {
   screen: MainMenuScreen
@@ -47,6 +50,8 @@ export class MainMenuScene implements IDisposable {
   screenEntities = new Set<Entity>()
   demoShips = new Set<Entity>()
   camera: TargetCamera
+
+  keepSkybox: boolean = false
 
   teamA = new Set<Entity>()
   teamB = new Set<Entity>()
@@ -58,7 +63,6 @@ export class MainMenuScene implements IDisposable {
   missileEngineSoundSystem = new MissileEngineSoundSystem()
   deathRattleSystem = new DeathRattleSystem()
   updatePhysicsSystem = new UpdatePhysicsSystem()
-  weaponCommandSystem = new WeaponCommandSystem()
   meshedSystem = new MeshedSystem()
   trailersSystem = new TrailersSystem()
   afterburnerSoundsSystem = new AfterburnerSoundSystem()
@@ -66,6 +70,8 @@ export class MainMenuScene implements IDisposable {
   driftTrailSystem = new DriftTrailSystem()
   afterburnerTrailsSystem = new AfterburnerTrailsSystem()
   systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
+
+  handsSystem = new MotionHands()
 
   constructor() {
     this.screen = new MainMenuScreen()
@@ -78,10 +84,10 @@ export class MainMenuScene implements IDisposable {
 
     appContainer.camera.attachControl()
     appContainer.camera.maxZ = 50000
-    appContainer.camera.minZ = 1
+    appContainer.camera.minZ = 0.1
     this.cameraEntity = CreateEntity({
       targetName: "debug camera",
-      camera: "debug"
+      camera: "debug",
     })
 
     world.onEntityAdded.subscribe(this.onScreenEntityAdded)
@@ -89,7 +95,7 @@ export class MainMenuScene implements IDisposable {
 
     queries.deathComes.onEntityRemoved.subscribe(this.onDeath)
 
-    const teams = [this.teamA,this.teamB,this.teamB]
+    const teams = [this.teamA, this.teamB, this.teamB]
     teams.forEach((team, teamId) => {
       for (let i = 0; i < 3; i += 1) {
         team.add(this.addShip(teamId + 1))
@@ -121,13 +127,14 @@ export class MainMenuScene implements IDisposable {
     this.camera = undefined
 
     // systems
-    this.skyboxSystems.dispose()
+    if (!this.keepSkybox) {
+      this.skyboxSystems.dispose()
+    }
     this.spaceDebrisSystem.dispose()
     // dispose systems last since they help with cleanup
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()
     this.updatePhysicsSystem.dispose()
-    this.weaponCommandSystem.dispose()
     this.meshedSystem.dispose()
     this.trailersSystem.dispose()
     this.afterburnerSoundsSystem.dispose()
@@ -135,6 +142,8 @@ export class MainMenuScene implements IDisposable {
     this.driftTrailSystem.dispose()
     this.afterburnerTrailsSystem.dispose()
     this.systemsDamagedSpraySystem.dispose()
+
+    this.handsSystem.dispose()
   }
 
   onScreenEntityAdded = (entity: Entity) => {
@@ -169,10 +178,10 @@ export class MainMenuScene implements IDisposable {
           id: 1,
           name: "Arena Point",
           isNavPoint: false,
-          position: { x: 0, y: 0, z: 0 }
-        }
+          position: { x: 0, y: 0, z: 0 },
+        },
       ],
-      mission: "Patrol"
+      mission: "Patrol",
     })
     this.demoShips.add(newShip)
     return newShip
@@ -182,7 +191,7 @@ export class MainMenuScene implements IDisposable {
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
     // don't start the game while menu is open
-    this.screen.updateScreen(delta);
+    this.screen.updateScreen(delta)
 
     this.skyboxSystems.update(delta)
     this.spaceDebrisSystem.update(delta)
@@ -193,6 +202,7 @@ export class MainMenuScene implements IDisposable {
     fuelConsumptionSystem(delta)
     aiSystem(delta)
     moveCommandSystem(delta)
+    weaponCommandSystem()
     rotationalVelocitySystem()
     moveSystem(delta)
     radarTargetingSystem(delta)
@@ -200,44 +210,58 @@ export class MainMenuScene implements IDisposable {
     missileSteeringSystem(delta)
     missileTargetingSystem(delta)
     shieldPulserSystem.update(delta)
+
+    this.handsSystem.update(delta)
+
     updateRenderSystem()
     this.cameraSystem()
 
+    this.screen.update()
     scene.render()
-    return;
+    divFps.innerHTML = engine.getFps().toFixed() + " fps"
+    return
   }
 
   cameraSystem() {
     // Calculate the center point between the two nodes
+    if (VRSystem.inXR) {
+      VRSystem.xrCameraParent.position.setAll(0)
+      // console.log(VRSystem.xr.baseExperience.camera.position)
+      return
+    }
     // follow cam
-    const first = Array.from(this.teamA.keys())[0]  // this is heavy handed...
+    const first = Array.from(this.teamA.keys())[0] // this is heavy handed...
     const second = Array.from(this.teamB.keys())[0]
     const firstPosition = Vector3FromObj(first.position, TmpVectors.Vector3[0])
     const firstRotation = QuaternionFromObj(first.rotationQuaternion, TmpVectors.Quaternion[1])
     const firstDirection = Vector3FromObj(first.direction)
     const secondPosition = Vector3FromObj(second.position, TmpVectors.Vector3[1])
     // console.log(firstPosition, secondPosition)
-    const center = Vector3.Center(firstPosition, secondPosition);
+    const center = Vector3.Center(firstPosition, secondPosition)
 
     // Calculate the distance between the two nodes
-    const distance = Vector3.Distance(firstPosition, secondPosition);
+    const distance = Vector3.Distance(firstPosition, secondPosition)
 
     // Calculate the angle of the camera's field of view
-    const fov = this.camera.fov;
+    const fov = this.camera.fov
 
     // Calculate the required distance for the camera
-    const requiredDistance = distance / (2 * Math.tan(fov / 2));
+    const requiredDistance = distance / (2 * Math.tan(fov / 2))
 
     // Set camera position to look at the center of the two nodes with the required distance
-    let newPosition = this.camera.position.subtract(center).normalize().scale(requiredDistance);
+    let newPosition = this.camera.position.subtract(center).normalize().scale(requiredDistance)
     newPosition.set(Math.abs(newPosition.x), Math.abs(newPosition.y), Math.abs(newPosition.z))
     newPosition = center.subtract(newPosition)
 
-
-    const behind = firstDirection.multiplyByFloats(-1, -1, -1).multiplyByFloats(150 * 5,150 * 5,150 * 5).addInPlace(firstPosition)
+    const backDistanceOffset = 50
+    const upDistanceOffset = 50
+    const behind = firstDirection
+      .multiplyByFloats(-1, -1, -1)
+      .multiplyByFloats(backDistanceOffset, backDistanceOffset, backDistanceOffset)
+      .addInPlace(firstPosition)
     const upOffset = Vector3.Up()
     upOffset.rotateByQuaternionToRef(firstRotation, upOffset)
-    upOffset.multiplyInPlace(TmpVectors.Vector3[5].set(150 * 5, 150 * 5, 150 * 5))
+    upOffset.multiplyInPlace(TmpVectors.Vector3[5].set(upDistanceOffset, upDistanceOffset, upDistanceOffset))
     behind.addInPlace(upOffset)
     if (isNaN(behind.x)) {
       debugger
@@ -257,4 +281,3 @@ export class MainMenuScene implements IDisposable {
     this.camera.setTarget(center)
   }
 }
-

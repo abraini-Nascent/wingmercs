@@ -10,7 +10,7 @@ export const Dirk: ShipTemplate = Object.seal({
   modelDetails: {
     scale: 100,
     base: "dirk_3rd",
-    cockpit: "dirk_cockpit",
+    cockpit: "cockpit",
     firstPerson: "dirk_1st",
     physics: "craftMinerHull",
     shield: "craftMinerHull",

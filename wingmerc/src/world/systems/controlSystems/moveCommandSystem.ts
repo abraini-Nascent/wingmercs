@@ -1,18 +1,17 @@
-import { Matrix, Quaternion, TmpVectors, Vector3 } from "@babylonjs/core"
-import { Entity, queries, world } from "../../world"
-import * as Ships from '../../../data/ships';
-import { QuaternionFromObj, Vector3FromObj } from '../../../utils/math';
+import { Matrix, Quaternion, Vector3 } from "@babylonjs/core"
+import { Entity, queries, SetComponent, world } from "../../world"
+import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
 
-const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
+const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0)
 // TODO: use tmp vectors to save on object creation
 
 /**
- * 
+ *
  * @param dt delta time in milliseconds
  */
 export function moveCommandSystem(dt: number) {
   for (const entity of queries.moveCommanded) {
-    const { movementCommand } = entity;
+    const { movementCommand } = entity
     if (entity.pauseMovement) {
       // clear movement command
       movementCommand.afterburner = 0
@@ -28,25 +27,27 @@ export function moveCommandSystem(dt: number) {
 }
 
 function updateVelocityNewtonian(dt: number, entity: Entity) {
-  const { systems, velocity, driftVelocity, afterburnerVelocity, breakingPower, rotationalVelocity, rotationQuaternion, currentSpeed, fuel, engine, thrusters } = entity
+  const { systems, velocity, rotationalVelocity, engine, thrusters } = entity
   let { setSpeed } = entity
   const { movementCommand } = entity
   // Get the forward direction based on the ship's rotation quaternion
-  
+
   let forward = new Vector3(0, 0, -1)
   let rot = QuaternionFromObj(entity.rotationQuaternion).toRotationMatrix(Matrix.Identity())
   forward = Vector3.TransformCoordinates(forward, rot)
 
-  const maxDamagedSpeed = engine.maxSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
-  const maxDamagedCruiseSpeed = engine.cruiseSpeed * Math.max(0.2, ((systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1)))
+  const maxDamagedSpeed =
+    engine.maxSpeed * Math.max(0.2, (systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1))
+  const maxDamagedCruiseSpeed =
+    engine.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1))
 
   if (movementCommand?.deltaSpeed != 0) {
-    setSpeed = (Math.max(0, Math.min(engine.cruiseSpeed, setSpeed + movementCommand.deltaSpeed)))
+    setSpeed = Math.max(0, Math.min(engine.cruiseSpeed, setSpeed + movementCommand.deltaSpeed))
     entity.setSpeed = setSpeed
   }
   if (maxDamagedCruiseSpeed < setSpeed) {
     setSpeed = maxDamagedCruiseSpeed
-    world.update(entity, "setSpeed", setSpeed)
+    SetComponent(entity, "setSpeed", setSpeed)
   }
 
   if (movementCommand != undefined) {
@@ -57,45 +58,65 @@ function updateVelocityNewtonian(dt: number, entity: Entity) {
     rotationalVelocity.roll = 0
     //// change direction of the ship...
     if (movementCommand.yaw != undefined || movementCommand.pitch != undefined || movementCommand.roll != undefined) {
-
-      let pitchSpeed = Math.max(40, thrusters.pitch * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters))) // Degrees per second, min 4dps capability even if "destroyed"
-      let yawSpeed   = Math.max(40, thrusters.yaw * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))   // Degrees per second, min 4dps capability even if "destroyed"
-      let rollSpeed  = Math.max(40, thrusters.roll * Math.max(0.1, (systems.state.thrusters / systems.base.thrusters)))  // Degrees per second, min 4dps capability even if "destroyed"
+      let pitchSpeed = Math.max(40, thrusters.pitch * Math.max(0.1, systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 4dps capability even if "destroyed"
+      let yawSpeed = Math.max(40, thrusters.yaw * Math.max(0.1, systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 4dps capability even if "destroyed"
+      let rollSpeed = Math.max(40, thrusters.roll * Math.max(0.1, systems.state.thrusters / systems.base.thrusters)) // Degrees per second, min 4dps capability even if "destroyed"
       // Positive for roll left, negative for roll right
-      const deltaRoll = (((rollSpeed * (movementCommand.roll ?? 0))) / 1000) * dt;
+      const deltaRoll = ((rollSpeed * (movementCommand.roll ?? 0)) / 1000) * dt
       // Positive for down, negative for up
-      const deltaPitch = (((pitchSpeed * (movementCommand.pitch ?? 0))) / 1000) * dt;
+      const deltaPitch = ((pitchSpeed * (movementCommand.pitch ?? 0)) / 1000) * dt
       // Positive for right, negative for left
-      const deltaYaw = (((yawSpeed * (movementCommand.yaw ?? 0))) / 1000) * dt;
-      
+      const deltaYaw = ((yawSpeed * (movementCommand.yaw ?? 0)) / 1000) * dt
+
       // call modify method
       rotationalVelocity.pitch = deltaPitch
       rotationalVelocity.yaw = deltaYaw
       rotationalVelocity.roll = deltaRoll
     }
-    world.update(entity, "rotationalVelocity", rotationalVelocity);
+    SetComponent(entity, "rotationalVelocity", rotationalVelocity)
   }
 
   // take the current velocity and get it's normal
   const velocityVector = Vector3FromObj(velocity)
   const oldVelocityNormal = velocityVector.clone().normalize()
   // const newForward = oldVelocityNormal.add(forward).normalize()
-  const cruiseAcceleration = (engine.accelleration * Math.max(0.1, (systems.state.engines / systems.base.engines)) / 1000) * dt
-  const afterburnerAcceleration = (engine.afterburnerAccelleration * Math.max(0.1, (systems.state.afterburners / systems.base.afterburners)) / 1000) * dt
+  const cruiseAcceleration =
+    ((engine.accelleration * Math.max(0.1, systems.state.engines / systems.base.engines)) / 1000) * dt
+  const afterburnerAcceleration =
+    ((engine.afterburnerAccelleration * Math.max(0.1, systems.state.afterburners / systems.base.afterburners)) / 1000) *
+    dt
   let accelleration = cruiseAcceleration
   if (movementCommand && movementCommand.afterburner) {
     setSpeed = maxDamagedSpeed
     accelleration = afterburnerAcceleration
+    if (!entity.afterburnerActive) {
+      world.addComponent(entity, "afterburnerActive", true)
+    }
+  } else {
+    if (entity.afterburnerActive) {
+      world.removeComponent(entity, "afterburnerActive")
+    }
   }
   if (movementCommand && movementCommand.brake) {
     setSpeed = Math.max(150, setSpeed / 2)
+    if (!entity.brakingActive) {
+      world.addComponent(entity, "brakingActive", true)
+    }
+  } else {
+    if (entity.brakingActive) {
+      world.removeComponent(entity, "brakingActive")
+    }
   }
-  const dragCoefficient = 4; // Increase this value to apply more drag
+  const dragCoefficient = 4 // Increase this value to apply more drag
   let drag = oldVelocityNormal
     .multiplyByFloats(-dragCoefficient, -dragCoefficient, -dragCoefficient)
-    .multiplyByFloats(accelleration, accelleration, accelleration);
+    .multiplyByFloats(accelleration, accelleration, accelleration)
 
-  let newCruise = forward.multiplyByFloats(accelleration * dragCoefficient * 2, accelleration * dragCoefficient * 2, accelleration * dragCoefficient * 2)
+  let newCruise = forward.multiplyByFloats(
+    accelleration * dragCoefficient * 2,
+    accelleration * dragCoefficient * 2,
+    accelleration * dragCoefficient * 2
+  )
   velocityVector.addInPlace(drag)
   if (velocityVector.length() < setSpeed) {
     velocityVector.addInPlace(newCruise)
@@ -108,7 +129,14 @@ function updateVelocityNewtonian(dt: number, entity: Entity) {
     velocityVector.normalizeToRef(velocityVector).scaleInPlace(maxDamagedSpeed)
   }
   if (movementCommand && movementCommand.drift) {
+    if (!entity.driftActive) {
+      world.addComponent(entity, "driftActive", true)
+    }
     return
+  } else {
+    if (entity.driftActive) {
+      world.removeComponent(entity, "driftActive")
+    }
   }
   velocity.x = velocityVector.x
   velocity.y = velocityVector.y

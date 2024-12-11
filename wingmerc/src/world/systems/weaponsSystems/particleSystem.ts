@@ -1,4 +1,4 @@
-import { EntityForId } from './../../world';
+import { EntityForId } from "./../../world"
 import { HavokPlugin, PhysicsEngineV2, Quaternion, ShapeCastResult, Vector3 } from "@babylonjs/core"
 import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
@@ -9,7 +9,7 @@ const shapeLocalResult = new ShapeCastResult()
 const hitWorldResult = new ShapeCastResult()
 const DEFAULT_ROTATION = Quaternion.Zero()
 export function particleSystem() {
-  const origin = queries.origin.first?.position ?? Vector3.ZeroReadOnly 
+  const origin = queries.origin.first?.position ?? Vector3.ZeroReadOnly
   for (const entity of queries.particle) {
     const { position, particleRange, body } = entity
     if (position == undefined) {
@@ -32,28 +32,44 @@ export function particleSystem() {
     // check if particle passed through an entity
     // var raycastResult = new PhysicsRaycastResult()
     // physics bodies are tied to the render nodes and are affected by the floating origin, so we need to take the game position of the particles and contert them to the floating game position
-    
-    var start = new Vector3(particleRange.lastPosition.x - origin.x, particleRange.lastPosition.y - origin.y, particleRange.lastPosition.z - origin.z)
+
+    /// update the mesh position
+    // const mesh = entity.boltMesh
+    // mesh.position.set(entity.position.x - origin.x, entity.position.y - origin.y, entity.position.z - origin.z)
+
+    var start = new Vector3(
+      particleRange.lastPosition.x - origin.x,
+      particleRange.lastPosition.y - origin.y,
+      particleRange.lastPosition.z - origin.z
+    )
     var end = new Vector3(position.x - origin.x, position.y - origin.y, position.z - origin.z)
     const physicsEngine = AppContainer.instance.scene.getPhysicsEngine() as PhysicsEngineV2
     const havok = physicsEngine.getPhysicsPlugin() as HavokPlugin
-    havok.shapeCast({
-      shape: entity.body.shape,
-      rotation: DEFAULT_ROTATION,
-      startPosition: start,
-      endPosition: end,
-      shouldHitTriggers: false,
-      ignoreBody: entity.body
-  }, shapeLocalResult, hitWorldResult)
-    
+    havok.shapeCast(
+      {
+        shape: entity.body.shape,
+        rotation: DEFAULT_ROTATION,
+        startPosition: start,
+        endPosition: end,
+        shouldHitTriggers: false,
+        ignoreBody: entity.body,
+      },
+      shapeLocalResult,
+      hitWorldResult
+    )
+
     // physicsEngine.raycastToRef(start, end, raycastResult);
     // if (shapeLocalResult.hasHit) {
     //   debugger;
     // }
-    if (shapeLocalResult.hasHit && entity.originatorId != ""+hitWorldResult.body.entityId) {
+    if (shapeLocalResult.hasHit && entity.originatorId != "" + hitWorldResult.body.entityId) {
       const hitEntity = EntityForId(hitWorldResult.body.entityId)
       if (hitEntity == undefined) {
-        console.error("we collided with a mesh that has an entity id that doesn't exist in the world!", hitWorldResult.body, hitWorldResult.body.entityId)
+        console.error(
+          "we collided with a mesh that has an entity id that doesn't exist in the world!",
+          hitWorldResult.body,
+          hitWorldResult.body.entityId
+        )
         continue
       }
       if (entity.originatorId == hitEntity.originatorId) {

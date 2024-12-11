@@ -12,6 +12,7 @@ export const Epee: ShipTemplate = Object.seal({
   // 3d model
   modelDetails: {
     base: "spaceCraft5",
+    cockpit: "cockpit",
     physics: "spaceCraft5Hull",
     shield: "spaceCraft5Hull",
     trails: [

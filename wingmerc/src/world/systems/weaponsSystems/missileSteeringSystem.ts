@@ -1,15 +1,14 @@
 import * as Weapons from "../../../data/weapons"
-import { Weapon } from '../../../data/weapons/weapon';
+import { Weapon } from "../../../data/weapons/weapon"
 import { Vector3 } from "@babylonjs/core"
 import { EntityForId, queries, world } from "../../world"
-import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../../utils/math";
-import { SoundEffects } from "../../../utils/sounds/soundEffects";
-import { registerHit } from "../../damage";
-import { missileExplosionFrom } from "../../../visuals/missileExplosionParticles";
+import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderIntercept } from "../../../utils/math"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { registerHit } from "../../damage"
+import { missileExplosionFrom } from "../../../visuals/missileExplosionParticles"
 
 export function missileSteeringSystem(dt: number) {
-  missiles:
-  for (const entity of queries.missiles) {
+  missiles: for (const entity of queries.missiles) {
     const { position, missileRange } = entity
     if (position == undefined) {
       // lul wut
@@ -28,7 +27,8 @@ export function missileSteeringSystem(dt: number) {
     // FOR NOW: we are assuming a target sparse environment
     // if it has health, it can make us explode
     const weaponClass = Weapons[missileRange.type] as Weapon
-    if (missileRange.total > 200) { // minimum range before warhead is active
+    if (missileRange.total > 200) {
+      // minimum range before warhead is active
       for (const possibleTarget of queries.damageable) {
         if (possibleTarget.id != entity.originatorId) {
           const possibleTargetPosition = Vector3FromObj(possibleTarget.position)
@@ -50,7 +50,7 @@ export function missileSteeringSystem(dt: number) {
             SoundEffects.Explosion(Vector3FromObj(position))
             missileExplosionFrom(end)
             world.remove(entity)
-            continue missiles;
+            continue missiles
           }
         }
       }
@@ -64,26 +64,33 @@ export function missileSteeringSystem(dt: number) {
         console.log("[MissileSystem] exploded")
         missileExplosionFrom(end)
         world.remove(entity)
-        continue missiles;
+        continue missiles
       }
       const targetPosition = Vector3FromObj(target.position)
       const targetVelocity = Vector3FromObj(target.velocity)
-      const pointToIntercept = firstOrderIntercept(end, Vector3.Zero(), targetPosition, targetVelocity, weaponClass.speed)
+      const pointToIntercept = firstOrderIntercept(
+        end,
+        Vector3.Zero(),
+        targetPosition,
+        targetVelocity,
+        weaponClass.speed
+      )
       if (pointToIntercept) {
-
         const currentRoration = QuaternionFromObj(entity.rotationQuaternion)
-        const deltaAngle = 180 * dt / 1000
+        const deltaAngle = (180 * dt) / 1000
         const deltas = calculateSteering(end, currentRoration, pointToIntercept)
         const rotationalVelocity = { pitch: 0, roll: 0, yaw: 0, ...entity.rotationalVelocity }
         rotationalVelocity.pitch = deltas.pitch * deltaAngle
-        rotationalVelocity.roll  = deltas.roll  * deltaAngle
-        rotationalVelocity.yaw   = deltas.yaw   * deltaAngle
-        world.update(entity, "rotationalVelocity", rotationalVelocity)
+        rotationalVelocity.roll = deltas.roll * deltaAngle
+        rotationalVelocity.yaw = deltas.yaw * deltaAngle
         const forward = new Vector3(0, 0, -1)
         const movement = forward.multiplyByFloats(weaponClass.speed, weaponClass.speed, weaponClass.speed)
         movement.applyRotationQuaternionInPlace(QuaternionFromObj(currentRoration)) // this means the rotation is one frame behind :\
         let newVelocity = movement
-        world.update(entity, "velocity", newVelocity)
+        world.update(entity, {
+          rotationalVelocity: rotationalVelocity,
+          velocity: newVelocity,
+        })
       }
     }
     // check if missile is end of life

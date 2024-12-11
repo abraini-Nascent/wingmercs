@@ -1,4 +1,5 @@
 import {
+  DeepImmutableObject,
   IDisposable,
   InstancedMesh,
   Mesh,
@@ -11,18 +12,31 @@ import {
 import { World } from "miniplex"
 import { net } from "./systems/netSystems/net"
 import { AIType } from "./systems/ai/aiSystem"
-import { PilotAIType } from '../data/pilotAI/pilotAI';
-import { WeaponType } from '../data/weapons/weapon';
-import { GunStats } from '../data/guns/gun';
-import { GunAffix } from '../data/affixes/gunAffix';
-import { UtilityModifierDetails } from '../data/ships/shipTemplate';
-import { Voice } from '../utils/speaking';
-import { SerializableType, SerializeAs, serialize } from '../utils/serialize';
-import { generateUUIDv4 } from '../utils/random';
-import { MissionDetails, ObjectiveDetails } from '../data/missions/missionData';
+import { PilotAIType } from "../data/pilotAI/pilotAI"
+import { Weapon, WeaponType } from "../data/weapons/weapon"
+import { Gun, GunStats } from "../data/guns/gun"
+import { GunAffix } from "../data/affixes/gunAffix"
+import { ModifierDetails, ShipTemplate, StructureSections, UtilityModifierDetails } from "../data/ships/shipTemplate"
+import { Voice } from "../utils/speaking"
+import { SerializableType, SerializeAs, serialize } from "../utils/serialize"
+import { generateUUIDv4 } from "../utils/random"
+import { Mission, MissionDetails, Objective } from "../data/missions/missionData"
+import { Vector3FromObj } from "../utils/math"
 
-
+export type Disposables = Set<IDisposable>
 export type EntityUUID = string
+export type Campaign = {
+  currentMission: Mission
+  stats: NerdStats
+  score: Score
+  salvage: SalvageClaims
+  ships: ShipTemplate[]
+  pilots: any[]
+}
+export type CommsCommand = {
+  open?: boolean
+  option?: number
+}
 export type MovementCommand = {
   pitch: number
   roll: number
@@ -32,7 +46,13 @@ export type MovementCommand = {
   brake: number
   deltaSpeed: number
 }
-export type FireCommand = { gun: number; weapon: number; lock: boolean; target: boolean; nav: boolean }
+export type FireCommand = {
+  gun: number
+  weapon: number
+  lock: boolean
+  target?: boolean
+  nav?: boolean
+}
 export type AutoPilotCommand = {
   autopilot: true
   running?: true
@@ -47,6 +67,7 @@ export type ShipPowerPlant = {
   rate: number
   maxCapacity: number
   currentCapacity: number
+  location: StructureSections
 }
 export type FuelTank = {
   currentCapacity: number
@@ -60,6 +81,7 @@ export type ShipShields = {
   currentAft: number
   rechargeRate: number
   energyDrain: number
+  location: StructureSections
 }
 export type ShipArmor = {
   front: number
@@ -74,18 +96,20 @@ export type ShipArmor = {
   }
 }
 export type ShipEngine = {
-  cruiseSpeed: number;
-  accelleration: number;
-  maxSpeed: number;
-  afterburnerAccelleration: number;
-  fuelConsumeRate: number;
+  cruiseSpeed: number
+  accelleration: number
+  maxSpeed: number
+  afterburnerAccelleration: number
+  fuelConsumeRate: number
+  location: StructureSections
 }
 export type ShipThrusters = {
-  pitch: number;
-  roll: number;
-  yaw: number;
-  breakingForce: number;
-  breakingLimit: number;
+  pitch: number
+  roll: number
+  yaw: number
+  breakingForce: number
+  breakingLimit: number
+  location: StructureSections
 }
 export type ShipGunsMount = {
   class: string
@@ -101,15 +125,27 @@ export type ShipUtility = {
   name: string
   modifier: UtilityModifierDetails
   currentHealth: number
+  location: StructureSections
 }
 export type ShipUtilities = ShipUtility[]
 export type ShipGuns = {
-  mounts: { [gunId: number]: ShipGunsMount },
-  selected: number,
-  groups: number[][],
+  mounts: { [gunId: number]: ShipGunsMount }
+  selected: number
+  groups: number[][]
 }
-export type ShipGunAmmoCounts = { [type: string]: { base: number, current: number } }
-export type ShipWeaponMount = { type: WeaponType; count: number, baseCount: number }
+export type ShipGunAmmoCounts = {
+  [type: string]: { base: number; current: number }
+}
+export type ShipWeaponMount = {
+  type: WeaponType
+  count: number
+  baseCount: number
+  position: {
+    x: number
+    y: number
+    z: number
+  }
+}
 export type ShipWeapons = {
   mounts: ShipWeaponMount[]
   selected: number
@@ -171,14 +207,40 @@ export type ShipSystems = {
     weapons: number
   }
 }
-export type Display = "damage" | "destination" | "target" | "armor" | "weapons" | "guns"
+export interface ActiveObjective extends Objective {
+  complete: boolean
+  currentStep: number
+  completedSteps: number[]
+}
+export type LandingDetails = {
+  [id: EntityUUID]: LandingDetailsForEntity
+}
+export type LandingDetailsForEntity = {
+  warned: boolean
+  permisionGranted: boolean
+  /** time since last warning */
+  lastWarned: number
+  landing: boolean
+  landed: boolean
+}
+export type Display =
+  | "comms"
+  | "damage"
+  | "destination"
+  | "target"
+  | "armor"
+  | "weapons"
+  | "guns"
+  | "objectives" /* debug screens */
+  | "debugAi"
+  | "debugInput"
 export type VDUState = {
   left: Display
   right: Display
 }
 export type Vector3Object = { x: number; y: number; z: number }
 export type TargetState = {
-  gunInterceptPosition: { x: number; y: number; z: number }
+  gunInterceptPosition: { x: number; y: number; z: number; inRange: boolean; active: boolean }
   targetingDirection: { x: number; y: number; z: number }
   targetingTime: number
   timeToLock: number
@@ -186,6 +248,12 @@ export type TargetState = {
   destination: EntityUUID
   locked: boolean
   missileLocked: boolean
+}
+export type SalvageClaims = {
+  shipParts: any[]
+  weapons: any[]
+  guns: any[]
+  hulls: any[]
 }
 export type NerdStats = {
   missilesDodged: number
@@ -212,17 +280,18 @@ export type HitsTracked = {
   hitCount: number
   hitCountRecent: number
   recentResetCountdown: number
-  hits: { shooter: EntityUUID; victim: EntityUUID; }[]
+  hits: { shooter: EntityUUID; victim: EntityUUID }[]
 }
 export type CameraDirection = {
-  x: number,
-  y: number,
+  x: number
+  y: number
   z: number
 }
 export type CameraMovement = {
-  x: number,
+  x: number
   y: number
 }
+type Hazard = "nebula" | "radiation"
 // TODO: organize this... :S
 export type Entity = {
   // net code components
@@ -233,12 +302,12 @@ export type Entity = {
   // end netcode components
 
   // AI Components
-  ai?: { type: AIType; pilot: PilotAIType, blackboard: AIBlackboard }
+  ai?: { type: AIType; pilot: PilotAIType; blackboard: AIBlackboard }
   teamId?: number
   groupId?: number
   wingleader?: { wingmen: EntityUUID[] }
   missionDetails?: MissionDetails
-  objectiveDetails?: ObjectiveDetails
+  objectiveDetails?: ActiveObjective[]
 
   // UI Components
   targetName?: string
@@ -257,7 +326,6 @@ export type Entity = {
   driftActive?: true
   brakingActive?: true
   barkedSpooked?: true
-  driftVelocity?: { x: number; y: number; z: number }
   breakingPower?: number
   breakingVelocity?: { x: number; y: number; z: number }
   setSpeed?: number
@@ -268,28 +336,32 @@ export type Entity = {
   rotationalVelocity?: { roll: number; pitch: number; yaw: number }
   rotationQuaternion?: { x: number; y: number; z: number; w: number }
   rotation?: { x: number; y: number; z: number }
+  inHazard?: { [hazard in Hazard]?: boolean }
 
   // Input Components
+  commsCommand?: CommsCommand
   movementCommand?: MovementCommand
   pauseMovement?: true
   fireCommand?: FireCommand
-  autoPilotCommand? :AutoPilotCommand
+  autoPilotCommand?: AutoPilotCommand
 
   // Modeling and Rendering Components
-  visible?: boolean
-  scale?: { x: number; y: number; z: number }
-  engineMesh?: Mesh
   shieldMeshName?: string
-  shieldMesh?: Mesh
   physicsMeshName?: string
-  physicsMesh?: Mesh
   physicsRadius?: number
   meshName?: string
+  linemeshName?: string
   cockpitName?: string
   firstPersonMeshName?: string
-  meshColor?: { r: number; g: number; b: number; a?: number }
+  engineMesh?: Mesh
+  shieldMesh?: Mesh
   meshInstance?: InstancedMesh
-  nerdStats?: NerdStats
+  boltMesh?: InstancedMesh
+  meshColor?: { r: number; g: number; b: number; a?: number }
+  scale?: { x: number; y: number; z: number }
+  visible?: boolean
+  disposables: Disposables
+
   trail?: true
   trailOptions?: {
     width?: number
@@ -298,7 +370,7 @@ export type Entity = {
     start?: { x: number; y: number; z: number; a?: number }
   }[]
   trailMeshs?: {
-    trails: {trail: TrailMesh, node: TransformNode}[]
+    trails: { trail: TrailMesh; node: TransformNode }[]
     disposables: IDisposable[]
   }
   bodyType?: "animated" | "static" | "dynamic"
@@ -309,6 +381,9 @@ export type Entity = {
   worth?: number
   totalScore?: number
   score?: Score
+  nerdStats?: NerdStats
+  salvageClaims?: SalvageClaims
+  campaign?: Campaign
 
   // Ship Stats Components
   health?: {
@@ -317,8 +392,11 @@ export type Entity = {
   }
   currentPlayer?: true
   playerId?: string
+  hangerBay?: true
+  landing?: LandingDetails
   planeTemplate?: string
   targeting?: TargetState
+  openComms?: EntityUUID
   isTargetable?: "player" | "enemy" | "missile" | "nav"
   guns?: ShipGuns
   gunAmmo?: ShipGunAmmoCounts
@@ -330,14 +408,18 @@ export type Entity = {
   systems?: ShipSystems
   thrusters?: ShipThrusters
   fuel?: FuelTank
+  shipModifiers?: ModifierDetails[]
   systemsDamaged?: boolean
   armor?: ShipArmor
   hitsTaken?: HitsTracked
   deathRattle?: boolean
   voice?: Voice
   speaking?: Sound
+  canAutopilot?: boolean
   /** the ship was removed from combat, fleeing or died */
   outOfCombat?: true
+  /** collision obstacle */
+  obstacle?: true
 
   // Gun Particle Components
   particleRange?: {
@@ -346,7 +428,7 @@ export type Entity = {
     lastPosition: { x: number; y: number; z: number }
   }
   originatorId?: string
-  
+
   // Weapon Particle Components
   missileRange?: {
     max: number
@@ -363,44 +445,44 @@ export const world = new World<Entity>()
 export const worldIds = new Map<string, Partial<Entity>>()
 /* Create some queries: */
 export const queries = {
-  updateRender: world.with("position", "node"),
-  moving: world.with("position", "velocity", "acceleration"),
-  moveCommanded: world.with("movementCommand"),
-  rotating: world.with(
-    "direction",
-    "rotation",
-    "rotationQuaternion",
-    "rotationalVelocity"
-  ),
-  meshed: world.with("meshName"),
-  physics: world.with("node", "bodyType"),
-  colliders: world.with("body"),
-  guns: world.with("guns"),
-  weapons: world.with("weapons"),
-  powerPlant: world.with("powerPlant"),
-  fuel: world.with("fuel"),
-  afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   afterburner: world.with("afterburnerActive"),
-  drift: world.with("driftActive"),
-  brake: world.with("brakingActive"),
-  shields: world.with("shields"),
-  particle: world.with("particleRange"),
-  missiles: world.with("missileRange"),
-  targeting: world.with("targeting"),
-  local: world.with("local"),
-  players: world.with("playerId"),
-  trailers: world.with("trail"),
-  fireCommands: world.with("fireCommand"),
-  targets: world.with("isTargetable"),
+  afterburnerTrails: world.with("afterburnerActive", "trailMeshs"),
   ai: world.with("ai"),
-  systemsDamaged: world.with("systemsDamaged"),
-  deathComes: world.with("deathRattle"),
-  damageable: world.with("health"),
-  outOfCombat: world.with("outOfCombat"),
+  brake: world.with("brakingActive"),
   cameras: world.with("camera"),
-  origin: world.with("floatingOrigin", "position"),
+  campaign: world.with("campaign"),
+  carriers: world.with("hangerBay"),
+  colliders: world.with("body"),
+  comms: world.with("openComms"),
+  commsCommand: world.with("commsCommand"),
+  damageable: world.with("health"),
+  deathComes: world.with("deathRattle"),
+  drift: world.with("driftActive"),
+  fireCommands: world.with("fireCommand"),
+  fuel: world.with("fuel"),
+  guns: world.with("guns"),
   hits: world.with("hitsTaken"),
+  local: world.with("local"),
   missileEngine: world.with("missileEngine", "node"),
+  missiles: world.with("missileRange"),
+  moveCommanded: world.with("movementCommand"),
+  moving: world.with("position", "velocity", "acceleration"),
+  obstacles: world.with("obstacle"),
+  obstaclesWithPhysics: world.with("obstacle", "body"),
+  origin: world.with("floatingOrigin", "position"),
+  outOfCombat: world.with("outOfCombat"),
+  particle: world.with("particleRange"),
+  physics: world.with("node", "bodyType"),
+  players: world.with("playerId"),
+  powerPlant: world.with("powerPlant"),
+  rotating: world.with("direction", "rotation", "rotationQuaternion", "rotationalVelocity"),
+  shields: world.with("shields"),
+  systemsDamaged: world.with("systemsDamaged"),
+  targeting: world.with("targeting"),
+  targets: world.with("isTargetable"),
+  trailers: world.with("node", "trail"),
+  updateRender: world.with("position", "node"),
+  weapons: world.with("weapons"),
 }
 export const CreateEntity = (entity: Partial<Entity>): Entity => {
   if (entity.id == undefined) {
@@ -409,6 +491,9 @@ export const CreateEntity = (entity: Partial<Entity>): Entity => {
     worldIds.set(uuid, entity)
   } else {
     worldIds.set(entity.id, entity)
+  }
+  if (entity.disposables == undefined) {
+    entity.disposables = new Set()
   }
   world.add(entity as Entity)
   return entity as Entity
@@ -425,13 +510,41 @@ export const LocalEntity = (entity: Entity): Entity => {
   return entity
 }
 export const EntityForId = (id: string) => {
+  if (id == undefined) {
+    return undefined
+  }
   return worldIds.get(id) as Entity
 }
 world.onEntityRemoved.subscribe((entity) => {
   worldIds.delete(entity.id)
+  if (entity.disposables) {
+    for (const disposable of entity.disposables) {
+      disposable.dispose()
+    }
+    entity.disposables.clear()
+  }
 })
-
-const DeepCloneTransform = (value) => { return structuredClone(value) }
+/** Will add or replace component on entity */
+export const SetComponent = <Component extends keyof Entity>(
+  entity: Entity,
+  component: Component,
+  value: Entity[Component]
+) => {
+  if (entity[component] != undefined) {
+    entity[component] = value
+  } else {
+    world.addComponent(entity, component, value)
+  }
+}
+export const Origin = (): DeepImmutableObject<Vector3> => {
+  const origin =
+    (queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : undefined) ??
+    Vector3.ZeroReadOnly
+  return origin
+}
+const DeepCloneTransform = (value) => {
+  return structuredClone(value)
+}
 SerializableType("GFrame")
 // net code components
 SerializeAs("GFrame", "id")
@@ -462,7 +575,6 @@ SerializeAs("GFrame", "afterburnerActive")
 SerializeAs("GFrame", "driftActive")
 SerializeAs("GFrame", "brakingActive")
 SerializeAs("GFrame", "barkedSpooked")
-SerializeAs("GFrame", "driftVelocity")
 SerializeAs("GFrame", "breakingPower")
 SerializeAs("GFrame", "breakingVelocity")
 SerializeAs("GFrame", "setSpeed")
@@ -492,6 +604,7 @@ SerializeAs("GFrame", "trail")
 SerializeAs("GFrame", "trailOptions", DeepCloneTransform)
 
 // Ship Stats Components
+SerializeAs("GFrame", "hangerBay")
 SerializeAs("GFrame", "health")
 SerializeAs("GFrame", "totalScore")
 SerializeAs("GFrame", "worth")

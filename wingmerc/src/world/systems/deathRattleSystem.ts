@@ -1,4 +1,4 @@
-import { IDisposable } from '@babylonjs/core';
+import { IDisposable } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { MercParticles } from "../../utils/particles/mercParticles"
@@ -16,7 +16,6 @@ import { SoundEffects } from "../../utils/sounds/soundEffects"
 
 let i = 0
 export class DeathRattleSystem implements IDisposable {
-
   constructor() {
     queries.deathComes.onEntityAdded.subscribe(this.onEntityAdded)
   }
@@ -41,34 +40,43 @@ export class DeathRattleSystem implements IDisposable {
       return particle
     }
     world.removeComponent(entity, "trail")
-    let bark: { english: string; ipa: string; sam: string; } = randomItem(barks.enemyDeath)
+    let bark: { english: string; ipa: string; sam: string } = randomItem(barks.enemyDeath)
     setTimeout(() => {
-      let voice = entity.voice ?? SAM 
-      const sound = VoiceSound(bark.ipa, voice)
-      if (sound) {
-        sound.maxDistance = 10000
-        sound.spatialSound = true
-        sound.attachToMesh(entity.node);
-        sound.play()
-        if (entity.speaking != undefined) {
-          entity.speaking.detachFromMesh()
-          entity.speaking.dispose()
-          world.removeComponent(entity, "speaking")
-          queueMicrotask(() => {
-            world.addComponent(entity, "speaking", sound)
-            sound.onEndedObservable.addOnce(() => {
-              if (entity.speaking == sound) {
-                world.removeComponent(entity, "speaking")
-              }
-              sound.detachFromMesh()
-              sound.dispose()
+      let voice = entity.voice ?? SAM
+      VoiceSound(bark.ipa, voice).then((sound) => {
+        if (sound) {
+          sound.maxDistance = 10000
+          sound.spatialSound = true
+          sound.attachToMesh(entity.node)
+          sound.play()
+          if (entity.speaking != undefined) {
+            entity.speaking.detachFromMesh()
+            entity.speaking.dispose()
+            world.removeComponent(entity, "speaking")
+            queueMicrotask(() => {
+              world.addComponent(entity, "speaking", sound)
+              sound.onEndedObservable.addOnce(() => {
+                if (entity.speaking == sound) {
+                  world.removeComponent(entity, "speaking")
+                }
+                sound.detachFromMesh()
+                sound.dispose()
+              })
             })
-          })
+          }
         }
-      }
+      })
     }, 1)
     let sps = MercParticles.fireSmokeTrail(`death-rattle-${i}`, scene, pointEmitter)
     sps.begin()
+    const sphereEmitter = new MercParticleSphereEmitter()
+    sphereEmitter.initialPositionFunction = (particle) => {
+      Vector3FromObj(entity.position, particle.position)
+      return particle
+    }
+    Vector3FromObj(entity.position, sphereEmitter.position)
+    let fire = MercParticles.onFire(`death-on-fire-${i}`, scene, sphereEmitter)
+    fire.begin()
     // is there a better way than using a timeout...
     setTimeout(() => {
       let fade = 300
@@ -76,18 +84,11 @@ export class DeathRattleSystem implements IDisposable {
         let dt = scene.getEngine().getDeltaTime()
         fade -= dt
         let st = dt / 1000
-        
+
         entity.node.scaling.x -= st
         entity.node.scaling.y -= st
         entity.node.scaling.z -= st
-        
-        // for (let mesh of entity.node.getChildMeshes()) {
-        //   mesh.material.alphaMode = Material.MATERIAL_ALPHATEST
-        //   mesh.material.alpha -= st
-        //   if (mesh.material.alpha <= 0) {
-        //     mesh.material.alpha = 0
-        //   }
-        // }
+
         if (fade <= 0) {
           SoundEffects.Explosion(Vector3FromObj(entity.position))
           const sphereEmitter = new MercParticleSphereEmitter()
@@ -96,8 +97,11 @@ export class DeathRattleSystem implements IDisposable {
           observer.remove()
           observer = undefined
           world.addComponent(entity, "outOfCombat", true)
-          queueMicrotask(() => { world.remove(entity) })
+          queueMicrotask(() => {
+            world.remove(entity)
+          })
           sps.stopped = true
+          fire.stopped = true
           sps.onDone = () => {
             sps.dispose()
             sps = undefined

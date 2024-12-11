@@ -1,136 +1,47 @@
 import { Color3, IDisposable, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
-import { Entity, queries, world } from "../../world"
+import { Entity, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
-
+import { GreasedLineModel } from "../../../utils/greasedLineModel"
 
 const DEBUG = false
 let i = 0
 
-/**
- * creates the meshes and transform node for an entity based on it's "meshName" component
- */
 export class MeshedSystem implements IDisposable {
+  disposables = new Set<() => void>()
+  queries = {
+    meshed: world.with("meshName"),
+    shielded: world.with("node", "shieldMeshName"),
+  }
   constructor() {
-    queries.meshed.onEntityAdded.subscribe(this.meshedOnEntityAdded)
-    queries.meshed.onEntityRemoved.subscribe(this.meshedOnEntityRemoved)
+    this.disposables.add(this.queries.meshed.onEntityAdded.subscribe(this.meshedOnEntityAdded))
+    this.disposables.add(this.queries.shielded.onEntityAdded.subscribe(this.shieldedOnEntityAdded))
+    this.disposables.add(this.queries.meshed.onEntityRemoved.subscribe(this.meshedOnEntityRemoved))
   }
 
   dispose(): void {
-    queries.meshed.onEntityAdded.unsubscribe(this.meshedOnEntityAdded)
-    queries.meshed.onEntityRemoved.unsubscribe(this.meshedOnEntityRemoved)
+    for (const disposable of this.disposables) {
+      disposable()
+    }
   }
-  
+
+  shieldedOnEntityAdded = (entity: Entity) => {
+    MeshedSystem.addShieldMesh(entity, entity.shieldMeshName)
+  }
+
   meshedOnEntityAdded = (entity: Entity) => {
-    const visible = entity.visible ?? true
-    const meshNode = ObjModels[entity.meshName] as TransformNode
+    if (!entity.meshName) {
+      return
+    }
     // create the mesh
-    const newNode = new TransformNode(`${entity.meshName}-node-${i}`)
-    const children = meshNode.getChildMeshes()
-    let mat: StandardMaterial = undefined
-    let engineMesh: Mesh = undefined
-    let shieldMesh: Mesh = undefined
-    let cockpitMesh: Mesh = undefined
-    let firstPersonMesh: Mesh = undefined
-    let radius: number = 0
-    let scale = 1
-    newNode.metadata = {
-      keepVisible: true
-    }
-    if (entity.cockpitName) {
-      const cockpitNode = ObjModels[entity.cockpitName] as TransformNode
-      const children = cockpitNode.getChildMeshes()
-      for (let mi = 0; mi < children.length; mi += 1) {
-        const mesh = children[mi]
-        mesh.metadata = {
-          keepVisible: true
-        }
-        const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
-        // instanceMesh.alwaysSelectAsActiveMesh = true
-        instanceMesh.bakeCurrentTransformIntoVertices()
-        if (mat != undefined) {
-          instanceMesh.material = mat
-        }
-        instanceMesh.isVisible = visible
-      }
-    }
-
-    if (entity.firstPersonMeshName) {
-      const planeNode = ObjModels[entity.firstPersonMeshName] as TransformNode
-      const children = planeNode.getChildMeshes()
-      for (let mi = 0; mi < children.length; mi += 1) {
-        const mesh = children[mi]
-        mesh.metadata = {
-          keepVisible: true
-        }
-        const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
-        instanceMesh.alwaysSelectAsActiveMesh = true
-        instanceMesh.bakeCurrentTransformIntoVertices()
-        if (mat != undefined) {
-          instanceMesh.material = mat
-        }
-        instanceMesh.isVisible = visible
-      }
-    }
-
-    if (entity.meshColor != undefined) {
-      mat = new StandardMaterial(`${entity.meshName}-mat-${i}`)
-      mat.emissiveColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
-      mat.diffuseColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
-      mat.specularColor = Color3.Black()
-    }
-    for (let mi = 0; mi < children.length; mi += 1) {
-      const mesh = children[mi]
-      // TODO: we could actually make instances instead of cloning
-      const instanceMesh = (mesh as Mesh).clone(`${entity.meshName}-mesh-${i}-${mi}`, newNode)
-      if (mat != undefined) {
-        instanceMesh.material = mat
-      }
-      if (instanceMesh.material?.name == "engine") {
-        // found the engine mesh
-        engineMesh = instanceMesh
-        engineMesh.material = engineMesh.material.clone(engineMesh.material.name + "_engine")
-      }
-      //.createInstance(`asteroid-mesh-${i}-${mi}`)
-      instanceMesh.isVisible = visible
-      if (instanceMesh.getBoundingInfo().boundingSphere.radiusWorld > radius) {
-        radius = instanceMesh.getBoundingInfo().boundingSphere.radiusWorld
-      }
-      // instanceMesh.setParent(newNode)
-    }
-    if (entity.shieldMeshName) {
-      const hullMesh =  ObjModels[entity.shieldMeshName] as TransformNode
-      const hullChildren = hullMesh.getChildMeshes()
-      for (let mi = 0; mi < hullChildren.length; mi += 1) {
-        const mesh = hullChildren[mi]
-        // TODO: we could actually make instances instead of cloning
-        const instanceMesh = (mesh as Mesh).clone(`${entity.shieldMeshName}-hull-${i}-${mi}`, newNode)
-        const mat = new StandardMaterial(`${entity.shieldMeshName}-mat-${i}`)
-        mat.emissiveColor = new Color3(0, 0, 0.5)
-        mat.diffuseColor = new Color3(0, 0, 0.5)
-        mat.specularColor = Color3.Black()
-        mat.alpha = 0
-        mat.wireframe = true
-        instanceMesh.material = mat
-        instanceMesh.isVisible = visible
-        instanceMesh.isVisible = true
-        if (instanceMesh.getBoundingInfo().boundingSphere.radiusWorld > radius) {
-          radius = instanceMesh.getBoundingInfo().boundingSphere.radiusWorld
-        }
-        shieldMesh = instanceMesh
-      }
-    }
-    world.addComponent(entity, "node", newNode)
-    world.addComponent(entity, "engineMesh", engineMesh)
-    world.addComponent(entity, "physicsRadius", radius)
-    if (shieldMesh) {
-      world.addComponent(entity, "shieldMesh", shieldMesh)
-    }
+    MeshedSystem.addEntityMesh(entity, entity.meshName)
   }
 
   meshedOnEntityRemoved = (entity) => {
     DEBUG && console.log("[meshed] disposing entity", entity)
     const oldNode = entity.node
-    if (oldNode == undefined) { return }
+    if (oldNode == undefined) {
+      return
+    }
     const children = oldNode.getChildMeshes()
     for (let mi = 0; mi < children.length; mi += 1) {
       const mesh = children[mi]
@@ -141,8 +52,138 @@ export class MeshedSystem implements IDisposable {
       mesh.dispose()
     }
     if (entity.trailMeshs) {
-      entity.trailMeshs.disposables.forEach((mesh) => { mesh.dispose() })
+      entity.trailMeshs.disposables.forEach((mesh) => {
+        mesh.dispose()
+      })
     }
     oldNode.dispose()
+  }
+
+  static addLineMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
+    const meshNode = ObjModels[meshName] as TransformNode
+    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    const children = meshNode.getChildMeshes()
+    for (let mi = 0; mi < children.length; mi += 1) {
+      const mesh = children[mi]
+      const lines = GreasedLineModel.fromMesh(mesh, { thresholdAngle: 10, color: "#ff0000" })
+      lines.setParent(node)
+    }
+    if (entity.node == undefined) {
+      world.addComponent(entity, "node", node)
+    }
+  }
+
+  static addWireframeMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
+    const meshNode = ObjModels[meshName] as TransformNode
+    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    const children = meshNode.getChildMeshes()
+    let mat: StandardMaterial = undefined
+    mat = new StandardMaterial(`${meshName}-mat-wireframe-${i}`)
+    mat.emissiveColor = Color3.White()
+    mat.diffuseColor = Color3.White()
+    mat.specularColor = Color3.Black()
+    mat.wireframe = true
+    for (let mi = 0; mi < children.length; mi += 1) {
+      const mesh = children[mi]
+      // TODO: we could actually make instances instead of cloning
+      const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
+      if (mat != undefined) {
+        instanceMesh.material = mat
+      }
+      instanceMesh.isVisible = true
+    }
+  }
+
+  static addEntityMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
+    const meshNode = ObjModels[meshName] as TransformNode
+    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    const children = meshNode.getChildMeshes()
+    let mat: StandardMaterial = undefined
+    let engineMesh: Mesh = undefined
+    let radius = 0
+    if (entity.meshColor != undefined) {
+      mat = new StandardMaterial(`${meshName}-mat-${i}`)
+      mat.emissiveColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
+      mat.diffuseColor = new Color3(entity.meshColor.r, entity.meshColor.g, entity.meshColor.b)
+      mat.specularColor = Color3.Black()
+    }
+    for (let mi = 0; mi < children.length; mi += 1) {
+      const mesh = children[mi]
+      // TODO: we could actually make instances instead of cloning
+      const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
+      instanceMesh.isVisible = true
+      if (mat != undefined) {
+        instanceMesh.material = mat
+      }
+      if (instanceMesh.material?.name == "engine") {
+        // found the engine mesh
+        engineMesh = instanceMesh
+        engineMesh.material = engineMesh.material.clone(engineMesh.material.name + "_engine")
+      }
+      const meshRadius = instanceMesh.getBoundingInfo().boundingSphere.radius
+      if (meshRadius > radius) {
+        radius = meshRadius
+      }
+    }
+    if (entity.node == undefined) {
+      world.addComponent(entity, "node", node)
+    }
+    if (engineMesh) {
+      world.addComponent(entity, "engineMesh", engineMesh)
+    }
+    if (entity.physicsRadius == undefined) {
+      world.addComponent(entity, "physicsRadius", radius)
+    } else if (entity.physicsRadius < radius) {
+      entity.physicsRadius = radius
+    }
+  }
+
+  static addShieldMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
+    let shieldMesh: Mesh
+    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    const hullMesh = ObjModels[meshName] as TransformNode
+    const hullChildren = hullMesh.getChildMeshes()
+    // there should be only one child
+    let radius = 0
+    for (let mi = 0; mi < hullChildren.length; mi += 1) {
+      const mesh = hullChildren[mi]
+      const instanceMesh = (mesh as Mesh).clone(`${meshName}-hull-${i}-${mi}`, node)
+      const mat = new StandardMaterial(`${meshName}-mat-${i}`)
+      mat.emissiveColor = new Color3(0, 0, 0.5)
+      mat.diffuseColor = new Color3(0, 0, 0.5)
+      mat.specularColor = Color3.Black()
+      mat.alpha = 0
+      mat.wireframe = true
+      instanceMesh.material = mat
+      instanceMesh.isVisible = true
+      shieldMesh = instanceMesh
+      let meshRadius = instanceMesh.getBoundingInfo().boundingSphere.radius
+      if (meshRadius > radius) {
+        radius = meshRadius
+      }
+    }
+    if (entity.node == undefined) {
+      world.addComponent(entity, "node", node)
+    }
+    if (entity.physicsRadius == undefined) {
+      world.addComponent(entity, "physicsRadius", radius)
+    } else if (entity.physicsRadius < radius) {
+      entity.physicsRadius = radius
+    }
+    if (shieldMesh) {
+      world.addComponent(entity, "shieldMesh", shieldMesh)
+    }
+  }
+
+  static addCockpitMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
+    const meshNode = ObjModels[meshName] as TransformNode
+    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    const children = meshNode.getChildMeshes()
+    for (let mi = 0; mi < children.length; mi += 1) {
+      const mesh = children[mi]
+      // TODO: we could actually make instances instead of cloning
+      const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
+      instanceMesh.isVisible = true
+    }
   }
 }

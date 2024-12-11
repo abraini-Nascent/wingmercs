@@ -2,19 +2,25 @@ import { IDisposable } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
 import { MultiplayerMenuScreen } from "./multiplayerMenuScreen";
 import { Entity, world } from "../../world/world";
+import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems";
 
 export class MultiplayerMenuScene implements IDisposable {
   screen: MultiplayerMenuScreen
   screenEntities = new Set<Entity>()
+  skyboxSystems: SkyboxSystems
 
   constructor() {
     this.screen = new MultiplayerMenuScreen()
+
+    this.skyboxSystems = new SkyboxSystems(AppContainer.instance.scene)
 
     world.onEntityAdded.subscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.subscribe(this.onScreenEntityRemoved)
   }
 
   dispose(): void {
+    this.skyboxSystems.dispose()
+
     world.onEntityAdded.unsubscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onScreenEntityRemoved)
 
@@ -39,7 +45,8 @@ export class MultiplayerMenuScene implements IDisposable {
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
     // don't start the game while menu is open
-    this.screen.updateScreen(delta);
+    this.screen.updateScreen(delta)
+    this.skyboxSystems.update(delta)
 
     scene.render()
     return;

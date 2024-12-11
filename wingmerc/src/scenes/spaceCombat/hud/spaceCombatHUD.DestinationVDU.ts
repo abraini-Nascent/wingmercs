@@ -1,10 +1,9 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { Vector3 } from "@babylonjs/core";
-import { Entity, EntityForId } from "../../../world/world";
+import { Vector3 } from "@babylonjs/core"
+import { Entity, EntityForId } from "../../../world/world"
 
 export class DestinationVDU {
-
   screen: GUI.Container
   destinationPanel: GUI.StackPanel
   title: TextBlock
@@ -56,7 +55,7 @@ export class DestinationVDU {
     this.destinationName = destinationName
     destinationName.fontFamily = "monospace"
     destinationName.text = "[krant]"
-    destinationName.color = "red"
+    destinationName.color = "gold"
     destinationName.fontSize = 24
     destinationName.height = "24px"
     destinationName.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
@@ -73,15 +72,13 @@ export class DestinationVDU {
     destinationDistance.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
     destinationDistance.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_RIGHT
     destinationPanel.addControl(destinationDistance)
-
   }
 
   update(playerEntity: Entity, dt: number) {
-    
     if (playerEntity.targeting?.destination == undefined || playerEntity.targeting?.destination == "") {
       this.destinationName.text = "[ no destination ]"
       this.destinationDistance.text = "----- m"
-      return 
+      return
     }
     let targetEntity = EntityForId(playerEntity.targeting.destination)
     if (targetEntity == undefined) {
@@ -91,8 +88,11 @@ export class DestinationVDU {
     }
     this.destinationName.text = `[ ${targetEntity.targetName} ]`
     const destinationPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
-    const distance = Math.round(new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
-      .subtract(destinationPosition).length())
+    const distance = Math.round(
+      new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
+        .subtract(destinationPosition)
+        .length()
+    )
     this.destinationDistance.text = `${distance.toString().padStart(5)} m`
   }
 }

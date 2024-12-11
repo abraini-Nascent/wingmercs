@@ -1,4 +1,4 @@
-import { Entity, MovementCommand, world } from "../../world"
+import { Entity, MovementCommand, SetComponent } from "../../world"
 
 export function deathRattleAI(entity: Entity, dt: number) {
   let movementCommand = {
@@ -11,5 +11,5 @@ export function deathRattleAI(entity: Entity, dt: number) {
     brake: 0,
     drift: 0,
   } as MovementCommand
-  world.update(entity, "movementCommand", movementCommand)
+  SetComponent(entity, "movementCommand", movementCommand)
 }

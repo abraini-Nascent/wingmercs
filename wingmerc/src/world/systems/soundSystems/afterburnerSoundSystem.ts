@@ -1,12 +1,11 @@
-import { IDisposable, Sound } from "@babylonjs/core";
-import { Entity, queries } from "../../world";
-import { SoundEffects } from "../../../utils/sounds/soundEffects";
-import { Vector3FromObj } from "../../../utils/math";
+import { IDisposable, Sound } from "@babylonjs/core"
+import { Entity, queries } from "../../world"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { Vector3FromObj } from "../../../utils/math"
 
 export class AfterburnerSoundSystem implements IDisposable {
-
   afterburnerSounds = new Map<Entity, Sound>()
-  
+
   constructor() {
     queries.afterburner.onEntityAdded.subscribe(this.afterburnerOnEntityAdded)
     queries.afterburner.onEntityRemoved.subscribe(this.afterburnerOnEntityRemoved)
@@ -18,11 +17,11 @@ export class AfterburnerSoundSystem implements IDisposable {
     this.afterburnerSounds.forEach((sound) => SoundEffects.Silience(sound))
     this.afterburnerSounds.clear()
   }
-  
+
   afterburnerOnEntityAdded = (entity: Entity) => {
-    // console.log("afterburner on")
+    console.log("afterburner on")
     if (this.afterburnerSounds.has(entity) == false) {
-      let sound = SoundEffects.AfterburnerEngine(Vector3FromObj(entity.position))
+      let sound = SoundEffects.AfterburnerEngine(entity.node.position)
       sound.attachToMesh(entity.node)
       sound.loop = true
       sound.play()
@@ -32,9 +31,10 @@ export class AfterburnerSoundSystem implements IDisposable {
     }
   }
   afterburnerOnEntityRemoved = (entity) => {
-    // console.log("afterburner off")
+    console.log("afterburner off")
     if (this.afterburnerSounds.has(entity)) {
       let sound = this.afterburnerSounds.get(entity)
+      sound.detachFromMesh()
       SoundEffects.Silience(sound)
       this.afterburnerSounds.delete(entity)
     }

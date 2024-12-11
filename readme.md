@@ -61,10 +61,11 @@ the Rapier is a medium fighter and weighs 13.5 tonnes with 7.5, 7.5, 6.5, 6.5 fo
 ## References
 - Sound effects generated from https://pro.sfxr.me/ and https://pixwlk.itch.io/bleeper
 - Music generated from https://krasse.itch.io/wavebots-editor
+- Music generated from https://suno.com
 - 3d Models of ships from Kenney https://www.kenney.nl/assets/space-kit
 - Crosshairs from https://opengameart.org/content/64-crosshairs-pack-split
-- Skybox generated from https://tools.wwwtyro.net/space-3d/index.html
 - Monospaced retro font _KongText_ from https://www.1001fonts.com/kongtext-font.html
+- Flight stick from (https://skfb.ly/6zPJs) by VivernaNeva is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 
 ## License
 This code and project is released under the Creative Commons Attribution-NonCommercial 4.0 International license
@@ -73,9 +74,15 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 ## Bugs:
 - [ ] high score doesn't seem to be saved
 - [ ] if leader is killed before break formation, the chain of leaders is broken and results in undefined property access
+- [x] sounds seem to be tied to the game position and not the engine position, making them silent when moving away from origin
+- [ ] ui elements are still visible in autopilot camera
+  - need a demo mode that disables all gui elements
+- [x] engine trails line meshes don't work with floating origin
+  - switch to triangle particles ejected from engine, use global particle system with a manual emitter
+- [ ] enemies don't seem to be firing missiles
 ## Backlog:
 - [ ] joystick controls
-- [ ] VR controls
+- [x] VR controls
 - [ ] configurable input
   - [ ] message about gamepads being preferred
 - [x] background polish
@@ -93,7 +100,14 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] heat tracking new target if stronger signal in range
 - [ ] ship turrets
 - [ ] performance
-  - [ ] world.update takes ~0.15ms when there are many entities. ship ai and movement command are the largest abusers of update. update should only be used when reindexing. none of our queries have a predicate. a simpler "add component if needed" might be better
+  - [x] world.update takes ~0.15ms when there are many entities. ship ai and movement command are the largest abusers of update. update should only be used when reindexing. none of our queries have a predicate. a simpler "add component if needed" might be better
+  - [ ] draw call is too long on vr headsets.
+    - [ ] 1000 unique meshes for the nebula cell is too much, maybe this could be moved into a shader
+      -  dropped to 100 cells, back to ~60 fps but could be better
+  - [x] computing the voice acting causes a frame skip
+    - move to a background thread?
+  - [x] sounds aren't cached, each sound effect causes a network call
+    - download and store in the asset manager?
   - [ ] server net frame encode takes 0.398 ms, decode 0.033 ms
 ## TODO:
 
@@ -143,44 +157,54 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 
 ### next demo
 - [ ] dynamic missions - instant action mode
+  - [ ] mission types
+    - [x] patrol
+    - [ ] search and destroy
+    - [x] escort
+    - [x] base defense
+    - [x] base assault
   - [ ] autopilot
     - [x] navigation points
     - [x] automatically track next nav point
-    - [ ] progress time during autopilot
+    - [x] progress time during autopilot
     - [x] add friendlies to formation
     - [x] point and exit towards navigation point
     - [x] autopilot cinematic
       - [ ] pause world during cinematic
+    - [ ] autopilot indicator in hud
+    - [ ] VR activate autopilot
+    - [ ] show right model when in autopilot
   - [ ] escort ship
     - [x] move between nav points
     - [x] stop at final nav point
-    - [ ] progress mission on completion
-  - [ ] npc actions
+    - [x] progress mission on completion
+  - [~] npc actions
     - [ ] heal ship
     - [ ] destroy ship
     - [ ] recover ship/item
     - [ ] capture enemy ship
     - [ ] scan area
   - [ ] enemy patrols
-    - [ ] destroy target
+    - [x] destroy target
       - [ ] target enemy cap fighters first
-  - [ ] hazards
-    - [ ] asteroids
-    - [ ] mines
-    - [ ] nebula
-      - [ ] electrical storms
-      - [ ] combat debris
-      - [ ] ice cloud
-  - [ ] item retrieval
-  - [ ] area investigation
-  - [ ] launch from command ship
-  - [ ] land on command ship
-- [ ] command wingmen
-  - [ ] join formation
-  - [ ] break and attack
-  - [ ] attack my target
-  - [ ] protect me
-  - [ ] protect my target
+  - [x] hazards
+    - [x] asteroids
+    - [~] ~mines~
+    - [x] nebula
+    - [x] radiation
+  - [~] item retrieval
+  - [x] area investigation
+  - [~] launch from command ship
+  - [x] land on command ship
+- [ ] communications
+  - [/] command wingmen
+    - [ ] join formation
+    - [ ] break and attack
+    - [ ] attack my target
+    - [ ] protect me
+    - [ ] protect my target
+  - [/] taunt enemies
+  - [x] request landing clearance
 - [x] polish and juice
   - [x] rebuild hud indicators
     - [x] target / lock box
@@ -188,25 +212,42 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
     - [x] ITTS indicator
     - [x] Crosshair
     - [x] ui for who is talking
-### next demo
+### Campaign features
 - [] purchase and maintain ships
 - [] purchase and maintain personnel
 - [] polish and juice
-### next demo
+### AI Enhancement features
 - [] ai nuance
   - [] personalities
   - [] stats that affect combat
 - [] polish and juice
-### next demo
-- [] capitol ships
-- [] polish and juice
-### next demo
+### VR features
 - [] 3d cockpits
-### next demo
-- [] carrier ships
+  - [~] ~render cockpit in fp~
+  - [ ] render joystick and throttle
+    - [ ] ghost stick in zero position
+    - [ ] solid stick in current position
+  - [x] cockpit pilot freelook
+  - [ ] cockpit hud
+    - [x] vdu screens 
+    - [x] power meter
+    - [ ] shields + armor
+    - [ ] speed
+    - [ ] VR interactable
+### Carrier / Bases features
+- [x] carrier ships
+  - [ ] carrier ship collision
+  - [x] carrier ship landing
+  - [x] cargo ships for escort
+  - [ ] carrier ships turrets
+  - [ ] carrier ships main guns
+- [ ] capital ships
+  - [ ] capital ship collisions
+  - [ ] capital ships health
+  - [ ] capital ships turrets
 - [] space stations
 ### v1.0 full release feature complete
-- [] configurable missions
+- [~] configurable missions
 - [] mission selection
 ### v1.1 distribute and .... profit?
 - [] native code capability
@@ -326,7 +367,7 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
   - [x] fix trails and afterburner effects
   - [x] replace laser particle models
   - [x] replace missile models
-  - [ ] 3d cockpit frame model
+  - [x] 3d cockpit frame model
 - [x] code cleanup
 - [x] settings menu for volume
 - [x] controller input help menu

@@ -1,52 +1,54 @@
-import { SkyboxSystems } from '../../world/systems/visualsSystems/skyboxSystems';
-import { SkyboxNebulaSystem } from '../../world/systems/visualsSystems/skyboxNebulaSystem';
-import { Afterburners } from '../../data/components/afterburners';
-import { DebounceTimedMulti } from '../../utils/debounce';
-import { GameScene } from '../gameScene';
-import { AppContainer } from "../../app.container";
-import { DebugTestScreen } from './debugTestScreen';
-import { ArcRotateCamera, Axis, Color3, DeviceSourceManager, DeviceType, IDisposable, Material, Mesh, MeshBuilder, Ray, Sound,  Space,  StandardMaterial,  Texture,  Vector3 } from '@babylonjs/core';
-import { ToRadians } from '../../utils/math';
-import { CreateEntity, Entity, world } from '../../world/world';
-import { MercParticleSystem } from '../../utils/particles/mercParticleSystem';
-import { Broadsword, Dirk, EnemyHeavy01, EnemyLight01, EnemyMedium01, EnemyMedium02, LiteCarrier, Rapier, Saber } from '../../data/ships';
-import { gunCooldownSystem } from '../../world/systems/shipSystems/gunCooldownSystem';
-import { shieldRechargeSystem } from '../../world/systems/shipSystems/shieldRechargeSystem';
-import { powerPlantRechargeSystem } from '../../world/systems/shipSystems/engineRechargeSystem';
-import { aiSystem } from '../../world/systems/ai/aiSystem';
-import { moveSystem} from '../../world/systems/moveSystem';
-import { rotationalVelocitySystem } from '../../world/systems/rotationalVelocitySystem';
-import { radarTargetingSystem } from '../../world/systems/shipSystems/radarTargetingSystem';
-import { particleSystem } from '../../world/systems/weaponsSystems/particleSystem';
-import { missileSteeringSystem } from '../../world/systems/weaponsSystems/missileSteeringSystem';
-import { missileTargetingSystem } from '../../world/systems/weaponsSystems/missileTargetingSystem';
-import { updateRenderSystem } from '../../world/systems/renderSystems/updateRenderSystem';
-import { createCustomShip } from '../../world/factories';
-import { KeyboardMap } from '../../utils/keyboard';
-import { damageSprayParticlePool, registerHit, shieldPulserSystem } from '../../world/damage';
-import SamJs from 'sam-js';
-import { translateIPA } from '../../data/IAP';
-import { barks } from '../../data/barks';
-import { CreatAudioSource } from '../../utils/speaking';
-import { damagedSystemsSprayParticlePool } from '../../visuals/damagedSystemsSprayParticles';
-import { moveCommandSystem } from '../../world/systems/controlSystems/moveCommandSystem';
-import { MissileEngineSoundSystem } from '../../world/systems/soundSystems/missileEngineSoundSystem';
-import { DeathRattleSystem } from '../../world/systems/deathRattleSystem';
-import { UpdatePhysicsSystem } from '../../world/systems/renderSystems/updatePhysicsSystem';
-import { WeaponCommandSystem } from '../../world/systems/controlSystems/weaponCommandSystem';
-import { MeshedSystem } from '../../world/systems/renderSystems/meshedSystem';
-import { TrailersSystem } from '../../world/systems/renderSystems/trailersSystem';
-import { AfterburnerSoundSystem } from '../../world/systems/soundSystems/afterburnerSoundSystem';
-import { DriftSoundSystem } from '../../world/systems/soundSystems/driftSoundSystem';
-import { AfterburnerTrailsSystem } from '../../world/systems/renderSystems/afterburnerTrailsSystem';
-import { SystemsDamagedSpraySystem } from '../../world/systems/renderSystems/systemsDamagedSpraySystem';
-import { DriftTrailSystem } from '../../world/systems/renderSystems/driftTrailSystem';
+import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems"
+import { DebounceTimedMulti } from "../../utils/debounce"
+import { GameScene } from "../gameScene"
+import { AppContainer } from "../../app.container"
+import { DebugTestScreen } from "./debugTestScreen"
+import {
+  ArcRotateCamera,
+  Color3,
+  DeviceSourceManager,
+  DeviceType,
+  IDisposable,
+  Mesh,
+  MeshBuilder,
+  Ray,
+  StandardMaterial,
+  TmpVectors,
+  Vector3,
+} from "@babylonjs/core"
+import { pointInSphere, QuaternionFromObj, ToRadians, Vector3FromObj } from "../../utils/math"
+import { CreateEntity, Entity, world } from "../../world/world"
+import { MercParticleSystem } from "../../utils/particles/mercParticleSystem"
+import {
+  Broadsword,
+  Dirk,
+  EnemyHeavy01,
+  EnemyLight01,
+  EnemyMedium01,
+  EnemyMedium02,
+  LiteCarrier,
+  Rapier,
+  Saber,
+} from "../../data/ships"
+import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem"
+import { createCustomShip } from "../../world/factories"
+import { KeyboardMap } from "../../utils/keyboard"
+import { registerHit } from "../../world/damage"
+import { SpaceDebrisSystem } from "../../world/systems/visualsSystems/spaceDebrisSystem"
+import { CombatSystems } from "../../world/systems/combatSystems"
+import {
+  generateClusteredPoints,
+  generateNoiseAsteroid,
+  generateVoronoiCells,
+  generateVoronoiSeeds,
+} from "../../utils/voronoiAsteroid"
+import { rand } from "../../utils/random"
+import { LoadAsteroidField } from "../../world/systems/missionSystems/missionHazards"
 
-const divFps = document.getElementById("fps");
+const divFps = document.getElementById("fps")
 
-const Radius = 500;
+const Radius = 500
 export class DebugTestLoop implements GameScene, IDisposable {
-
   screen: DebugTestScreen
   scaleBox: Mesh
   cameraEntity: Entity
@@ -58,19 +60,9 @@ export class DebugTestLoop implements GameScene, IDisposable {
   testSPS: MercParticleSystem
 
   // systems
-  missileEngineSoundSystem = new MissileEngineSoundSystem()
-  deathRattleSystem = new DeathRattleSystem()
-  updatePhysicsSystem = new UpdatePhysicsSystem()
-  weaponCommandSystem = new WeaponCommandSystem()
-  meshedSystem = new MeshedSystem()
-  trailersSystem = new TrailersSystem()
-  afterburnerSoundsSystem = new AfterburnerSoundSystem()
-  driftSoundSystem = new DriftSoundSystem()
-  dirsftTrailSystem = new DriftTrailSystem()
-  afterburnerTrailsSystem = new AfterburnerTrailsSystem()
-  systemsDamagedSpraySystem = new SystemsDamagedSpraySystem()
-
+  spaceDebrisSystem: SpaceDebrisSystem
   skyboxSystems: SkyboxSystems
+  combatSystems: CombatSystems = new CombatSystems()
 
   constructor() {
     divFps.style.height = "175px"
@@ -78,25 +70,22 @@ export class DebugTestLoop implements GameScene, IDisposable {
     divFps.style.width = "150px"
     const appContainer = AppContainer.instance
     this.screen = new DebugTestScreen()
-    // let box = MeshBuilder.CreateBox("Scale Box", { size: 100 }, AppContainer.instance.scene)
-    // let wrfrm = new StandardMaterial("Scale Box Wireframe")
-    // wrfrm.wireframe = true
-    // box.material = wrfrm
-    // this.scaleBox = box
-    // box.position.y = 25
-    // box.isPickable = false
-    appContainer.camera.detachControl()
-    appContainer.scene.removeCamera(appContainer.camera)
-    appContainer.camera.dispose
-    appContainer.camera = new ArcRotateCamera("ModelViewerCamera", ToRadians(45), 0, Radius, Vector3.Zero(), appContainer.scene)
-    // appContainer.camera = new ArcFollowCamera("ModelViewerCamera", ToRadians(45), 0, Radius, box, appContainer.scene)
-    appContainer.camera.attachControl()
-    appContainer.camera.maxZ = 50000
+
     this.cameraEntity = CreateEntity({
       targetName: "debug camera",
-      camera: "debug"
+      camera: "debug",
     })
+
+    appContainer.camera.dispose()
+    const canvas = document.getElementById("gameCanvas") as any as HTMLCanvasElement
+    let camera = new ArcRotateCamera("Camera", 0, 0, 500, new Vector3(0, 0, 0))
+    // camera.setPosition(new Vector3(0, 0, -500))
+    camera.attachControl(canvas, true)
+    appContainer.scene.activeCamera = camera
+    appContainer.camera = camera
+
     this.skyboxSystems = new SkyboxSystems(appContainer.scene)
+    // MeshBuilder.CreateBox("box", { size: 10 })
 
     this.setup()
   }
@@ -112,213 +101,115 @@ export class DebugTestLoop implements GameScene, IDisposable {
     // systems
     // dispose systems last since they help with cleanup
     this.skyboxSystems.dispose()
-    this.missileEngineSoundSystem.dispose()
-    this.deathRattleSystem.dispose()
-    this.updatePhysicsSystem.dispose()
-    this.weaponCommandSystem.dispose()
-    this.meshedSystem.dispose()
-    this.trailersSystem.dispose()
-    this.afterburnerSoundsSystem.dispose()
-    this.driftSoundSystem.dispose()
-    this.dirsftTrailSystem.dispose()
-    this.afterburnerTrailsSystem.dispose()
-    this.systemsDamagedSpraySystem.dispose()
+    this.spaceDebrisSystem.dispose()
+    this.combatSystems.dispose()
   }
 
   setup() {
-
     let ship = structuredClone(Broadsword)
-    // let model1 = createCustomShip(Dirk, -100, 0, -1000, 2, 1);
-    let model7 = createCustomShip(LiteCarrier, 0, 0, 0, 2, 1);
-    world.addComponent(model7, "missionDetails", {
-      missionLocations: [
-        {
-          name: "Arena Point",
-          isNavPoint: false,
-          position: { x: 0, y: 0, z: 0 }
-        }
-      ],
-      mission: "Patrol"
+    let model1 = createCustomShip(ship, 0, 0, 0, 2, 1, undefined, {
+      missionDetails: {
+        missionLocations: [
+          {
+            id: 1,
+            name: "Arena Point",
+            isNavPoint: false,
+            position: { x: 0, y: 0, z: 0 },
+          },
+        ],
+        mission: "Patrol",
+      },
+      // floatingOrigin: true,
     })
-
-
-    let model1 = createCustomShip(ship, -100, 0, -1000, 2, 1);
-    world.addComponent(model1, "missionDetails", {
-      missionLocations: [
-        {
-          name: "Arena Point",
-          isNavPoint: false,
-          position: { x: 0, y: 0, z: 0 }
-        }
-      ],
-      mission: "Patrol"
-    })
-    // world.update(model, "ai", { type: "demoLeader", blackboard: model.ai.blackboard })
-    
-    // this.ship.ai.type = undefined
-
-    let model2 = createCustomShip(EnemyMedium01, 100, 0, 1000, 3, 1);
-    world.addComponent(model2, "missionDetails", {
-      missionLocations: [
-        {
-          name: "Arena Point",
-          isNavPoint: false,
-          position: { x: 0, y: 0, z: 0 }
-        }
-      ],
-      mission: "Patrol"
-    })
-
-    
+    this.ships.push(model1)
     this.ship = model1
 
-    // let model3 = createCustomShip(EnemyMedium02, 0, 0, 2000, 1, 1);
-    // world.addComponent(model3, "missionDetails", {
-    //   patrolPoints: [Vector3.Zero()],
-    //   mission: "Patrol"
-    // })
-    // let model4 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    // world.addComponent(model4, "missionDetails", {
-    //   patrolPoints: [Vector3.Zero()],
-    //   mission: "Patrol"
-    // })
-    // let model5 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    // world.addComponent(model5, "missionDetails", {
-    //   patrolPoints: [Vector3.Zero()],
-    //   mission: "Patrol"
-    // })
-    // let model6 = createCustomShip(EnemyHeavy01, -50, 0, 0, 2, 1);
-    // world.addComponent(model6, "missionDetails", {
-    //   patrolPoints: [Vector3.Zero()],
-    //   mission: "Patrol"
-    // })
-    this.ships.push(model1, model2)//, model3)//, model4, model5, model6)
-    // world.addComponent(model2, "missionDetails", {
-    //   patrolPoints: [Vector3.Zero()]
-    // })
-    // world.update(model2, "ai", { type: "demoWingman", blackboard: model.ai.blackboard })
-    // model2.ai.type = undefined
+    const cmat = new StandardMaterial("cmat")
+    const cylinder = MeshBuilder.CreateCylinder("feeler", { height: 500, diameter: 200 })
+    cylinder.rotateAround(Vector3.Zero(), Vector3.Left(), ToRadians(90))
+    cylinder.bakeCurrentTransformIntoVertices()
+    cylinder.position.z = -250
+    cylinder.parent = model1.node
+    cylinder.material = cmat
+    cmat.wireframe = true
 
-    // let model3 = createCustomShip(EnemyMedium02, 50, 0, 0);
-    // world.update(model3, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    // model3.ai.type = undefined
+    function generateDistinctColor(index: number, total: number): Color3 {
+      const hue = (index / total) * 360 // Evenly distribute hues
+      const saturation = 0.8 // High saturation for vibrant colors
+      const lightness = 0.5 // Medium lightness for balanced colors
+      return Color3.FromHSV(hue, saturation, lightness)
+    }
 
-    // let model4 = createCustomShip(EnemyHeavy01, 100, 0, 0);
-    // world.update(model4, "ai", { type: "demoLoop", blackboard: model.ai.blackboard })
-    // model4.ai.type = undefined
+    const mat = new StandardMaterial("test-mat")
+    mat.wireframe = true
+    const sphere = MeshBuilder.CreateSphere("bounding", { diameter: 400 })
+    sphere.material = mat
+    const seeds = generateVoronoiSeeds(20, 200)
+    const cells = generateVoronoiCells(seeds)
+    cells.forEach((c, i) => {
+      const cmat = new StandardMaterial("cell-" + i)
+      cmat.emissiveColor = generateDistinctColor(i, cells.length)
+      cmat.diffuseColor = cmat.emissiveColor
+      cmat.specularColor = Color3.Black()
+      // cmat.wireframe = true
+      c.material = cmat
+    })
+    const first = cells.positions[0]
+    seeds.forEach((p: Vector3, i) => {
+      const box = MeshBuilder.CreateBox("p+" + i, { size: 0.1 })
+      box.position.copyFrom(p)
+    })
 
-    damageSprayParticlePool.prime(50)
-    damagedSystemsSprayParticlePool.prime(10)
-    
-    // let testSpawnEmitter = new MercParticleSphereEmitter()
-    // const scene = AppContainer.instance.scene
-    // this.testSPS = MercParticles.fireSmokeTrail("testSmoke", scene, testSpawnEmitter)
-    // this.testSPS.begin()
-
-    // let pointEmitter = new MercParticlePointEmitter()
-    // pointEmitter.position.y = 25
-    // let explostion = MercParticles.damagedSystemsSpray("damagetest", scene, pointEmitter);
-
-    // let box = MeshBuilder.CreateBox("SPS Box", { size: 100 }, scene)
-    // let wrfrm = new StandardMaterial("meh")
-    // wrfrm.wireframe = true
-    // box.material = wrfrm
-    // let movementDir = 1
-    // let explodeCount = 0
-    // AppContainer.instance.scene.onBeforeRenderObservable.add(() => {
-    //   testSpawnEmitter.position.x += (10 * 1/30) * movementDir
-    //   box.position.x += (10 * 1/30) * movementDir
-    //   if (box.position.x > 100 || box.position.x < -100) {
-    //     movementDir = -movementDir
-    //   }
-    //   explodeCount += 1;
-    //   if (explodeCount > 100) {
-    //     explodeCount -= 100;
-    //     explostion.begin()
-    //   }
-    // })
+    LoadAsteroidField(Vector3.Zero())
+    LoadAsteroidField(Vector3.Zero())
+    LoadAsteroidField(Vector3.Zero())
   }
 
   checkInput(dt: number) {
-
     const appContainer = AppContainer.instance
     const dsm = new DeviceSourceManager(appContainer.engine)
     const kbd = dsm.getDeviceSource(DeviceType.Keyboard)
     const camera = appContainer.camera as ArcRotateCamera
+
+    if (this.ship) {
+      const firstPosition = Vector3FromObj(this.ship.position, TmpVectors.Vector3[0])
+      const firstDirection = Vector3FromObj(this.ship.direction)
+      const firstRotation = QuaternionFromObj(this.ship.rotationQuaternion, TmpVectors.Quaternion[1])
+      const backDistanceOffset = 50
+      const upDistanceOffset = 50
+      const behind = firstDirection
+        .multiplyByFloats(-1, -1, -1)
+        .multiplyByFloats(backDistanceOffset, backDistanceOffset, backDistanceOffset)
+        .addInPlace(firstPosition)
+      const upOffset = Vector3.Up()
+      upOffset.rotateByQuaternionToRef(firstRotation, upOffset)
+      upOffset.multiplyInPlace(TmpVectors.Vector3[5].set(upDistanceOffset, upDistanceOffset, upDistanceOffset))
+      behind.addInPlace(upOffset)
+      if (isNaN(behind.x)) {
+        debugger
+      }
+      Vector3.LerpToRef(camera.position, behind, 0.1, camera.position)
+      // this.camera.position.copyFrom(behind)
+      camera.setTarget(firstPosition)
+    }
     // "UP" [38]
     if (kbd?.getInput(KeyboardMap.D) && this.debouncer.tryNow(KeyboardMap.D)) {
       if (world.has(this.ship)) {
-        const ray = new Ray(camera.position, new Vector3(this.ship.position.x, this.ship.position.y, this.ship.position.z).subtract(camera.position))
+        const ray = new Ray(
+          camera.position,
+          new Vector3(this.ship.position.x, this.ship.position.y, this.ship.position.z).subtract(camera.position)
+        )
         const pickedInfo = appContainer.scene.pickWithRay(ray)
-        // const intersects = ray.intersectsMesh(this.ship.physicsMesh)
         if (pickedInfo.hit) {
           console.log(pickedInfo.pickedPoint)
-          registerHit(this.ship, {damage: 20, originatorId: ""}, pickedInfo.pickedPoint)
-          // let box = MeshBuilder.CreateBox("test box", { size: 1 })
-          // box.position.copyFrom(pickedInfo.pickedPoint)
+          registerHit(this.ship, { id: "asd", damage: 200, originatorId: "" }, pickedInfo.pickedPoint, 200)
         }
       }
     }
-    // "DOWN" [40]
-    if (kbd?.getInput(KeyboardMap.K) && this.debouncer.tryNow(KeyboardMap.K)) {
-      let shipIndex = this.ships.indexOf(this.ship)
-      let nextShip = shipIndex += 1
-      if (nextShip > this.ships.length-1) {
-        nextShip = 0
-      }
-      this.ship = this.ships[nextShip]
-    }
-    if (kbd?.getInput(KeyboardMap.A) && this.debouncer.tryNow(KeyboardMap.A) && world.has(this.ship)) {
-      for (const ship of this.ships) {
-        ship.ai.blackboard.intelligence.objective = "BreakFormation"
-      }
-    }
-    if (kbd?.getInput(KeyboardMap.T) && this.debouncer.tryNow(KeyboardMap.T)) {
-      
-/**
- * DESCRIPTION          SPEED     PITCH     THROAT    MOUTH
- * Elf                   72        64        110       160
- * Little Robot          92        60        190       190
- * Stuffy Guy            82        72        110       105
- * Little Old Lady       82        32        145       145
- * Extra-Terrestrial    100        64        150       200
- * SAM                   72        64        128       128
- */
-    try {
-        let sam = new SamJs({
-          debug: true,
-          phonetic: true, 
-          speed: 52,
-          pitch: 64,
-          throat: 128,
-          mouth: 128
-        })
-        let woof
-        let barkindex = 0
-        woof = () => {
-          let bark = barks.enemyDeath[barkindex]
-          if (!bark) { return }
-          let samSentence = translateIPA(bark.ipa, true)
-          console.log(`${bark.english}: \\${samSentence}\\`)
-          let result = sam.buf32(samSentence, true)
-          if (result instanceof Float32Array) {
-            // const audioBuffer = RenderAudioBuffer(result)
-            const audioBuffer = CreatAudioSource(result)
-            let sound = new Sound("test", audioBuffer, undefined, undefined)
-            sound.onEndedObservable.addOnce(() => {
-              console.log("sam spoke:")
-              if (true) {
-                barkindex += 1
-                setTimeout(() => { woof() }, 1000)
-              }
-            })
-            sound.play()
-          }
-        }
-        woof()
-      }
-      catch(error) {
-        console.log("sam constructor error", error)
+    // "UP" [38]
+    if (kbd?.getInput(KeyboardMap.S) && this.debouncer.tryNow(KeyboardMap.S)) {
+      if (world.has(this.ship)) {
+        world.addComponent(this.ship, "systemsDamaged", true)
       }
     }
   }
@@ -330,36 +221,19 @@ export class DebugTestLoop implements GameScene, IDisposable {
     this.screen.updateScreen(delta)
 
     this.checkInput(delta)
-    gunCooldownSystem(delta)
-    shieldRechargeSystem(delta)
-    powerPlantRechargeSystem(delta)
-    aiSystem(delta)
-    moveCommandSystem(delta)
-    rotationalVelocitySystem()
-    moveSystem(delta)
-    radarTargetingSystem(delta)
-    particleSystem()
-    missileSteeringSystem(delta)
-    missileTargetingSystem(delta)
-    aiSystem(delta)
-    shieldPulserSystem.update(delta)
+    this.combatSystems.update(delta)
     this.skyboxSystems.update(delta)
     updateRenderSystem()
 
-    // if (world.has(this.ship)) {
-    //   let camera = appContainer.camera as ArcRotateCamera
-    //   camera.target.x = this.ship.position.x
-    //   camera.target.y = this.ship.position.y
-    //   camera.target.z = this.ship.position.z
-    // }
-
     scene.render()
-    divFps.innerHTML = engine.getFps().toFixed() + " fps";
-    divFps.innerHTML += "<br/>mission: " +this.ship.ai.blackboard.intelligence.mission
-    divFps.innerHTML += "<br/>objective: " +this.ship.ai.blackboard.intelligence.objective
-    divFps.innerHTML += "<br/>tactic: " +this.ship.ai.blackboard.intelligence.tactic
-    divFps.innerHTML += "<br/>SoH: " +this.ship.ai.blackboard.intelligence.stateOfHealth
-    divFps.innerHTML += "<br/>SoC: " +this.ship.ai.blackboard.intelligence.stateOfConfrontation
-    divFps.innerHTML += "<br/>maneuver: " +this.ship.ai.blackboard.intelligence.maneuver
-  };
+    if (this.ship) {
+      divFps.innerHTML = engine.getFps().toFixed() + " fps"
+      divFps.innerHTML += "<br/>mission: " + this.ship.ai.blackboard.intelligence.mission
+      divFps.innerHTML += "<br/>objective: " + this.ship.ai.blackboard.intelligence.objective
+      divFps.innerHTML += "<br/>tactic: " + this.ship.ai.blackboard.intelligence.tactic
+      divFps.innerHTML += "<br/>SoH: " + this.ship.ai.blackboard.intelligence.stateOfHealth
+      divFps.innerHTML += "<br/>SoC: " + this.ship.ai.blackboard.intelligence.stateOfConfrontation
+      divFps.innerHTML += "<br/>maneuver: " + this.ship.ai.blackboard.intelligence.maneuver
+    }
+  }
 }

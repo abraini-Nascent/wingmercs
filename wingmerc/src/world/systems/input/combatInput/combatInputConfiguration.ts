@@ -146,7 +146,14 @@ export const KeyboardAssignedKey = {
   "CameraUp": { mod: KeyboardMap.SLASH, key: KeyboardMap.UP },
   "CameraDown": { mod: KeyboardMap.SLASH, key: KeyboardMap.DOWN },
   "CameraReset": { mod: KeyboardMap.SLASH, key: KeyboardMap.PERIOD },
-  "CameraToggle": KeyboardMap.C,
+  "CameraToggle": KeyboardMap.V,
+  "CommsOpen": KeyboardMap.C,
+  "CommsOne": KeyboardMap['1'],
+  "CommsTwo": KeyboardMap['2'],
+  "CommsThree": KeyboardMap['3'],
+  "CommsFour": KeyboardMap['4'],
+  "CommsFive": KeyboardMap['5'],
+  "CommsSix": KeyboardMap['6'],
 }
 
 export type KeyboardAssignedKey = keyof typeof KeyboardAssignedKey;

@@ -1,10 +1,10 @@
-import { AdvancedDynamicTexture, Button, InputText, TextBlock } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 import * as GUI from "@babylonjs/gui"
-import { DynamicTexture } from "@babylonjs/core";
 import { AppContainer } from "../../app.container";
-import { Entity, NerdStats, Score, queries, world } from "../../world/world";
-import * as Ships from "../../data/ships";
+import { NerdStats, Score } from "../../world/world";
 import { MainMenuScene } from "../mainMenu/mainMenuLoop";
+import { FluentScrollViewer, FluentTextBlock, FluentVerticalStackPanel } from "../../utils/fluentGui";
+import { Color3 } from "@babylonjs/core";
 
 
 export class StatsScreen {
@@ -14,6 +14,7 @@ export class StatsScreen {
   scorePanel: GUI.StackPanel
   oldHighScore: number
   useMemory: boolean = null
+  onDone: () => void = null
 
   constructor(private score: Score, private stats: NerdStats) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Stats");
@@ -46,6 +47,8 @@ export class StatsScreen {
     // const score = AppContainer.instance.player.playerEntity.score
     
     this.screen = new GUI.Container("screen")
+    this.screen.background = Color3.Gray().toHexString()
+    this.screen.alpha = 0.33
     this.gui.addControl(this.screen)
 
     const scorePanel = new GUI.StackPanel("score panel")
@@ -135,8 +138,12 @@ export class StatsScreen {
     doneButton.textBlock.height = "28px"
     doneButton.heightInPixels = 28
     doneButton.onPointerClickObservable.addOnce(() => {
-      this.dispose()
-      AppContainer.instance.gameScene = new MainMenuScene()
+      if (this.onDone) {
+        this.onDone()
+      } else {
+        this.dispose()
+        AppContainer.instance.gameScene = new MainMenuScene()
+      }
     })
     scorePanel.addControl(doneButton)
 

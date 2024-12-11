@@ -9,8 +9,12 @@ export function fuelConsumptionSystem(dt: number) {
     }
     // scale burn rate based on damage, min 20% burn rate
     // TODO burn rate should come from the afterburner quality
-    const rate = 1 * Math.max(0.2, (systems?.state.afterburners ?? 100) / (systems?.base.afterburners ?? 100))
-    const newFuel = Math.max(0, fuel.currentCapacity - (rate * (dt / 1000)))
+    let rate = 1 * Math.max(0.2, (systems?.state.afterburners ?? 100) / (systems?.base.afterburners ?? 100))
+    if (entity.inHazard && (entity.inHazard.nebula || entity.inHazard.radiation)) {
+      // burn rate doubled in hazards
+      rate = rate * 2
+    }
+    const newFuel = Math.max(0, fuel.currentCapacity - rate * (dt / 1000))
     fuel.currentCapacity = newFuel
   }
 }

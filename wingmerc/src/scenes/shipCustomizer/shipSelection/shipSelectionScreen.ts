@@ -1,25 +1,42 @@
-import { Animation, Color3, IDisposable, Observer, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
-import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify, resizeToFitTextBlock } from "../../../utils/guiHelpers";
-import { MercScreen } from "../../screen";
+import { Animation, Color3, IDisposable, Mesh, Observer, TransformNode, Vector2, Vector3 } from "@babylonjs/core"
+import {
+  Align,
+  Edge,
+  FlexContainer,
+  FlexDirection,
+  FlexItem,
+  Gutter,
+  Justify,
+  resizeToFitTextBlock,
+} from "../../../utils/guiHelpers"
+import { MercScreen } from "../../screen"
 import * as GUI from "@babylonjs/gui"
 import * as Ships from "../../../data/ships"
-import { Entity } from "../../../world/world";
-import { AngleBetweenVectors, ToDegree, generatePointsOnCircle } from "../../../utils/math";
-import { AppContainer } from "../../../app.container";
-import { ShipCustomizerScene } from "../shipCustomizerLoop";
-import { ShipTemplate } from "../../../data/ships/shipTemplate";
-import { Button, ButtonItem, TextBlock } from "../../components";
-import { MainMenuScene } from "../../mainMenu/mainMenuLoop";
+import { Entity } from "../../../world/world"
+import { AngleBetweenVectors, ToDegree, generatePointsOnCircle } from "../../../utils/math"
+import { AppContainer } from "../../../app.container"
+import { ShipCustomizerScene } from "../shipCustomizerLoop"
+import { ShipTemplate } from "../../../data/ships/shipTemplate"
+import { Button, ButtonItem, TextBlock } from "../../components"
+import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
 
 export class ShipSelectionScreen extends MercScreen {
+  // xr
+  xrMode: boolean = false
+  xrPlane: Mesh
+  xrIdealWidth = 1920
+  xrAspectRation = 16 / 9
+
   shipsRoot: FlexContainer
-  shipModels: {[name: string]:Entity} = {}
+  shipModels: { [name: string]: Entity } = {}
   observers = new Set<unknown>()
   carouselPoints: Vector3[] = []
   carouselNames: string[] = []
   carouselNode: TransformNode
   currentIndex: number = 0
   disposibles = new Set<IDisposable>()
+
+  onSelect: (selected: ShipTemplate) => void
 
   // GUI Nodes
   scrollView: FlexContainer
@@ -45,18 +62,19 @@ export class ShipSelectionScreen extends MercScreen {
   }
 
   setupMain(): void {
-
     const shipsRoot = new FlexContainer("shipsRoot", this.gui, undefined, FlexDirection.Row)
     this.shipsRoot = shipsRoot
     shipsRoot.style.setPadding(Edge.All, 10)
     shipsRoot.width = AppContainer.instance.engine.getRenderWidth()
     shipsRoot.height = AppContainer.instance.engine.getRenderHeight()
-    this.observers.add(AppContainer.instance.engine.onResizeObservable.add(() => {
-      shipsRoot.width = AppContainer.instance.engine.getRenderWidth()
-      shipsRoot.height = AppContainer.instance.engine.getRenderHeight()
-      shipsRoot.markDirty()
-      console.log("Resize: ", shipsRoot.width, shipsRoot.height )
-    }))
+    this.observers.add(
+      AppContainer.instance.engine.onResizeObservable.add(() => {
+        shipsRoot.width = AppContainer.instance.engine.getRenderWidth()
+        shipsRoot.height = AppContainer.instance.engine.getRenderHeight()
+        shipsRoot.markDirty()
+        console.log("Resize: ", shipsRoot.width, shipsRoot.height)
+      })
+    )
 
     const shipsScrollView = new GUI.ScrollViewer("scroll1")
     const shipsScroll = new FlexContainer("scroll1", undefined, shipsScrollView)
@@ -76,23 +94,33 @@ export class ShipSelectionScreen extends MercScreen {
     bottomButtonSection.style.setJustifyContent(Justify.SpaceEvenly)
     spacer.addControl(bottomButtonSection)
 
-    const back = ButtonItem(Button(TextBlock("back", "Back", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
-      // navigate to previous screen
-      let oldScene = AppContainer.instance.gameScene
-      let nextScene = new MainMenuScene()
-      AppContainer.instance.gameScene = nextScene
-      oldScene.dispose()
-    }), 120)
+    const back = ButtonItem(
+      Button(TextBlock("back", "Back", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
+        // navigate to previous screen
+        let oldScene = AppContainer.instance.gameScene
+        let nextScene = new MainMenuScene()
+        AppContainer.instance.gameScene = nextScene
+        oldScene.dispose()
+      }),
+      120
+    )
     bottomButtonSection.addControl(back)
 
-    const select = ButtonItem(Button(TextBlock("select", "Select", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
-      let ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
-      ship = structuredClone(ship)
-      let oldScene = AppContainer.instance.gameScene
-      let nextScene = new ShipCustomizerScene(ship)
-      AppContainer.instance.gameScene = nextScene
-      oldScene.dispose()
-    }), 120)
+    const select = ButtonItem(
+      Button(TextBlock("select", "Select", true, undefined, GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER), () => {
+        let ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
+        if (this.onSelect) {
+          this.onSelect(ship)
+        } else {
+          ship = structuredClone(ship)
+          let oldScene = AppContainer.instance.gameScene
+          let nextScene = new ShipCustomizerScene(ship)
+          AppContainer.instance.gameScene = nextScene
+          oldScene.dispose()
+        }
+      }),
+      120
+    )
     bottomButtonSection.addControl(select)
 
     const statsScrollView = new GUI.ScrollViewer("scroll2")
@@ -108,7 +136,7 @@ export class ShipSelectionScreen extends MercScreen {
     const button1 = this.shipButton(name, text, onClick, height)
     const button1FlexItem = new FlexItem(`${name}-flex`, button1)
     GUI.Button.CreateImageWithCenterTextButton
-    button1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+    button1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): { width: number; height: number } => {
       button1.widthInPixels = width
       return { width: button1.widthInPixels, height: button1.heightInPixels }
     }
@@ -117,24 +145,29 @@ export class ShipSelectionScreen extends MercScreen {
 
   shipButton(name: string, text: string, onClick: () => void, height: number = 40): GUI.Button {
     let button1 = new GUI.Button(`${name}-button`)
-    let text1 = this.textblock(name, text);
-    (button1 as any)._textBlock = text1
+    let text1 = this.textblock(name, text)
+    ;(button1 as any)._textBlock = text1
     button1.addControl(text1)
     text1.leftInPixels = 15
     button1.heightInPixels = height
-    this.observers.add(button1.onPointerClickObservable.add(() => {
-      onClick()
-    }))
+    this.observers.add(
+      button1.onPointerClickObservable.add(() => {
+        onClick()
+      })
+    )
     return button1
   }
 
   textItem(name: string, text: string): FlexItem {
     const text1 = this.textblock(name, text)
     const text1FlexItem = new FlexItem(`${name}-flex`, text1)
-    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): { width: number; height: number } => {
       text1.widthInPixels = width
       text1.heightInPixels = text1.computeExpectedHeight()
-      return { width: text1.widthInPixels, height: text1.computeExpectedHeight() }
+      return {
+        width: text1.widthInPixels,
+        height: text1.computeExpectedHeight(),
+      }
     }
     return text1FlexItem
   }
@@ -166,12 +199,12 @@ export class ShipSelectionScreen extends MercScreen {
     this.statsScroll.addControl(this.textItem("yaw", `Yaw: ${ship.thrustersSlot.base.yaw}.dps`))
     this.statsScroll.addControl(this.textItem("roll", `Roll: ${ship.thrustersSlot.base.roll}.dps`))
     this.statsScroll.addControl(this.textItem("durability", `Durability`))
-    this.statsScroll.addControl(this.textItem("shields fore", `Shields Fore: ${ship.shieldsSlot.base.fore/10}(cm)`))
-    this.statsScroll.addControl(this.textItem("shields aft",  `Shields Aft:  ${ship.shieldsSlot.base.aft/10}(cm)`))
-    this.statsScroll.addControl(this.textItem("armor front",  `Armor Front:  ${ship.structure.front.armor/10}(cm)`))
-    this.statsScroll.addControl(this.textItem("armor back",   `Armor Back:   ${ship.structure.back.armor/10}(cm)`))
-    this.statsScroll.addControl(this.textItem("armor left",   `Armor Left:   ${ship.structure.left.armor/10}(cm)`))
-    this.statsScroll.addControl(this.textItem("armor right",  `Armor Right:  ${ship.structure.right.armor/10}(cm)`))
+    this.statsScroll.addControl(this.textItem("shields fore", `Shields Fore: ${ship.shieldsSlot.base.fore / 10}(cm)`))
+    this.statsScroll.addControl(this.textItem("shields aft", `Shields Aft:  ${ship.shieldsSlot.base.aft / 10}(cm)`))
+    this.statsScroll.addControl(this.textItem("armor front", `Armor Front:  ${ship.structure.front.armor / 10}(cm)`))
+    this.statsScroll.addControl(this.textItem("armor back", `Armor Back:   ${ship.structure.back.armor / 10}(cm)`))
+    this.statsScroll.addControl(this.textItem("armor left", `Armor Left:   ${ship.structure.left.armor / 10}(cm)`))
+    this.statsScroll.addControl(this.textItem("armor right", `Armor Right:  ${ship.structure.right.armor / 10}(cm)`))
     this.statsScroll.addControl(this.textItem("systems", `Systems: ${ship.structure.core.health}`))
     this.statsScroll.addControl(this.textItem("guns", `Gun Mounts`))
     this.statsScroll.addControl(this.textItem("weapons", `Weapon Mounts`))
@@ -179,15 +212,17 @@ export class ShipSelectionScreen extends MercScreen {
 
   rotateParentToNextPoint(next: number = 1) {
     // Get the current point position and the next point position
-    const currentPoint = this.carouselPoints[0];
-    const nextPoint = this.carouselPoints[1];
+    const currentPoint = this.carouselPoints[0]
+    const nextPoint = this.carouselPoints[1]
 
     // Calculate the angle between the current direction and the forward direction (1, 0, 0)
     const angle = AngleBetweenVectors(currentPoint, nextPoint)
 
     // Apply the rotation to the parent transform node
     let rotation = angle * next
-    console.log(`next: ${next}, current: ${this.currentIndex}, angle: ${ToDegree(angle)}, rotation: ${ToDegree(rotation)}`)
+    console.log(
+      `next: ${next}, current: ${this.currentIndex}, angle: ${ToDegree(angle)}, rotation: ${ToDegree(rotation)}`
+    )
 
     // Create animation
     const rotateAnimation = new Animation(
@@ -196,32 +231,32 @@ export class ShipSelectionScreen extends MercScreen {
       30, // Frames per second
       Animation.ANIMATIONTYPE_FLOAT,
       Animation.ANIMATIONLOOPMODE_CONSTANT
-    );
+    )
 
     // Define keyframes
-    const keyFrames = [];
+    const keyFrames = []
     keyFrames.push({
-        frame: 0,
-        value: this.carouselNode.rotation.y
-    });
+      frame: 0,
+      value: this.carouselNode.rotation.y,
+    })
     keyFrames.push({
-        frame: 30, // Assuming 30 frames per second, adjust this according to your needs
-        value: rotation
-    });
+      frame: 30, // Assuming 30 frames per second, adjust this according to your needs
+      value: rotation,
+    })
 
     // Set keyframes
-    rotateAnimation.setKeys(keyFrames);
+    rotateAnimation.setKeys(keyFrames)
 
     // Attach animation to the parent transform node
-    this.carouselNode.animations.push(rotateAnimation);
+    this.carouselNode.animations.push(rotateAnimation)
 
     // Start animation
-    AppContainer.instance.scene.beginAnimation(this.carouselNode, 0, 30, false, 2.75);
+    AppContainer.instance.scene.beginAnimation(this.carouselNode, 0, 30, false, 2.75)
 
     this.currentIndex = next
   }
 
-  setModels(models: {[name: string]:Entity} = {}) {
+  setModels(models: { [name: string]: Entity } = {}) {
     this.shipModels = models
     this.carouselNames = []
     const points = generatePointsOnCircle(80, Object.keys(this.shipModels).length)
@@ -233,16 +268,18 @@ export class ShipSelectionScreen extends MercScreen {
       const node = entity.node
       this.carouselNames[index] = name
       node.position.copyFrom(points[index])
-      const direction = center.subtract(node.position);
-      node.lookAt(node.position.add(direction), Math.PI);
+      const direction = center.subtract(node.position)
+      node.lookAt(node.position.add(direction), Math.PI)
       node.parent = this.carouselNode
 
       let shipIndex = index
       let ship = Ships[name] as ShipTemplate
-      this.scrollView.addControl(this.shipButtonItem(name, ship.name, () => {
-        this.rotateParentToNextPoint(shipIndex)
-        this.setShipStats()
-      }))
+      this.scrollView.addControl(
+        this.shipButtonItem(name, ship.name, () => {
+          this.rotateParentToNextPoint(shipIndex)
+          this.setShipStats()
+        })
+      )
     })
     let camera = AppContainer.instance.camera
     camera.position.setAll(0)
@@ -257,5 +294,6 @@ export class ShipSelectionScreen extends MercScreen {
 
   updateScreen(_dt: number): void {
     this.shipsRoot.layout()
+    MercScreen.xrPanel(this)
   }
 }

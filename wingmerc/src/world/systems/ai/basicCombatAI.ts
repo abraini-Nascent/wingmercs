@@ -1,18 +1,18 @@
-import { Vector3 } from "@babylonjs/core";
-import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math";
-import { rand, randomItem } from "../../../utils/random";
-import { Entity, FireCommand, queries, world } from "../../world";
-import { SteeringHardTurnClamp, calculateSteering } from "./basicSteering";
-import { AppContainer } from "../../../app.container";
-import * as Ships from '../../../data/ships';
+import { Vector3 } from "@babylonjs/core"
+import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
+import { rand, randomItem } from "../../../utils/random"
+import { Entity, FireCommand, queries, SetComponent, world } from "../../world"
+import { SteeringHardTurnClamp, calculateSteering } from "./basicSteering"
+import { AppContainer } from "../../../app.container"
+import * as Ships from "../../../data/ships"
 
 export function basicCombatAI(entity: Entity, dt: number) {
-  const { ai, position, rotationQuaternion } = entity;
+  const { ai, position, rotationQuaternion } = entity
 
   // TODO: we should have another way to target what ship to track
   // get the player ship
   let targetEntity: Entity = AppContainer.instance.player?.playerEntity as Entity
-  const { blackboard } = ai;
+  const { blackboard } = ai
   if (targetEntity == undefined) {
     // pick a random other ai
     if (blackboard.target == undefined) {
@@ -35,7 +35,7 @@ export function basicCombatAI(entity: Entity, dt: number) {
     blackboard.target = undefined
     return
   }
-  
+
   const vectorToTarget = Vector3FromObj(position).subtract(Vector3FromObj(targetEntity.position))
   const distanceToTarget = vectorToTarget.length()
   if (distanceToTarget < 250 && !blackboard["backoff"]) {
@@ -61,13 +61,19 @@ export function basicCombatAI(entity: Entity, dt: number) {
     const playerDirection = forward.normalizeToNew()
     const behindPlayerDirection = playerDirection.multiplyByFloats(-1, -1, -1)
     const behindPlayerTarget = behindPlayerDirection.multiplyByFloats(1000, 1000, 1000)
-    
+
     targetPosition = Vector3FromObj(behindPlayerTarget)
     blackboard["backoffTarget"] = targetPosition
   }
   // TODO: if we are being chased we should after burner away before trying to turn back towards the player
   // TODO: if we need to do large turns we should apply brakes while turning
-  let input = calculateSteering(dt, Vector3FromObj(position), QuaternionFromObj(rotationQuaternion), targetPosition, SteeringHardTurnClamp) //SteeringHardNormalizeClamp)
+  let input = calculateSteering(
+    dt,
+    Vector3FromObj(position),
+    QuaternionFromObj(rotationQuaternion),
+    targetPosition,
+    SteeringHardTurnClamp
+  ) //SteeringHardNormalizeClamp)
   // console.log(`[AI] steering`, input)
   let cinamaticRoll = 0
   if (blackboard["backoff"] == false && Math.abs(input.pitch) < 0.1 && Math.abs(input.yaw) < 0.1) {
@@ -81,19 +87,20 @@ export function basicCombatAI(entity: Entity, dt: number) {
       gun = 1
     }
     if (distanceToTarget > 2000) {
-      if (entity.weapons.mounts[0].count > 0 && rand(0, 1) < (0.3 * (dt / 1000))) { // 30% per second
+      if (entity.weapons.mounts[0].count > 0 && rand(0, 1) < 0.3 * (dt / 1000)) {
+        // 30% per second
         weapon = 1
       }
     }
     if (gun || weapon || lock) {
       const command = {
         gun,
-        weapon
+        weapon,
       } as FireCommand
       if (lock) {
         command.lock = lock
       }
-      world.update(entity, "fireCommand", command)
+      SetComponent(entity, "fireCommand", command)
     }
   }
   const brake = Math.abs(input.pitch) > 0.9 || Math.abs(input.yaw) > 0.9 ? 1 : 0
@@ -103,9 +110,9 @@ export function basicCombatAI(entity: Entity, dt: number) {
   }
   const shipTemplateName = entity.planeTemplate
   const shipTemplate: { cruiseSpeed: number } = Ships[shipTemplateName] ?? Ships.EnemyLight01
-  world.update(entity, "rotationalVelocity", input)
-  world.update(entity, "setSpeed", entity.engine.cruiseSpeed)
-  world.update(entity, "movementCommand", {
+  SetComponent(entity, "rotationalVelocity", input)
+  SetComponent(entity, "setSpeed", entity.engine.cruiseSpeed)
+  SetComponent(entity, "movementCommand", {
     pitch: input.pitch,
     yaw: input.yaw,
     roll: cinamaticRoll,

@@ -1,40 +1,42 @@
-import { SkyboxSystems } from '../../../world/systems/visualsSystems/skyboxSystems';
-import { SpaceDebrisSystem } from '../../../world/systems/visualsSystems/spaceDebrisSystem';
-import { GameScene } from '../../gameScene';
-import { AppContainer } from "../../../app.container";
-import { cameraSystem } from "../../../world/systems/renderSystems/cameraSystem";
-import { netSyncClientSystem } from "../../../world/systems/netSystems/netClientSystem";
-import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem";
-import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem";
-import { Entity, NerdStats, Score, queries, world } from '../../../world/world';
-import * as Ships from '../../../data/ships';
-import { random } from '../../../utils/random';
-import { CombatHud } from '../hud/spaceCombatHUD';
-import { StatsScene } from '../../statsScene/statsLoop';
-import { damageSprayParticlePool } from '../../../world/damage';
-import '../../../world/systems/soundSystems/missileEngineSoundSystem';
-import { createCustomShip } from '../../../world/factories';
-import { PlayerAgent } from '../../../agents/playerAgent';
-import { damagedSystemsSprayParticlePool } from '../../../visuals/damagedSystemsSprayParticles';
-import { IDisposable } from '@babylonjs/core';
-import { MusicPlayer } from '../../../utils/music/musicPlayer';
-import { ShipTemplate } from '../../../data/ships/shipTemplate';
-import { MissionType } from '../../../data/missions/missionData';
-import { CombatSystems } from '../../../world/systems/combatSystems';
+import { SkyboxSystems } from "../../../world/systems/visualsSystems/skyboxSystems"
+import { SpaceDebrisSystem } from "../../../world/systems/visualsSystems/spaceDebrisSystem"
+import { GameScene } from "../../gameScene"
+import { AppContainer } from "../../../app.container"
+import { cameraSystem } from "../../../world/systems/renderSystems/cameraSystem"
+import { netSyncClientSystem } from "../../../world/systems/netSystems/netClientSystem"
+import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem"
+import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
+import { CreateEntity, Entity, NerdStats, Score, queries, world } from "../../../world/world"
+import * as Ships from "../../../data/ships"
+import { rand, random } from "../../../utils/random"
+import { CombatHud, CombinedCombatHud } from "../hud/spaceCombatHUD"
+import { StatsScene } from "../../statsScene/statsLoop"
+import { damageSprayParticlePool } from "../../../world/damage"
+import "../../../world/systems/soundSystems/missileEngineSoundSystem"
+import { createCustomShip } from "../../../world/factories"
+import { PlayerAgent } from "../../../agents/playerAgent"
+import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
+import { IDisposable, TransformNode, Vector3 } from "@babylonjs/core"
+import { MusicPlayer } from "../../../utils/music/musicPlayer"
+import { ShipTemplate } from "../../../data/ships/shipTemplate"
+import { MissionType } from "../../../data/missions/missionData"
+import { CombatSystems } from "../../../world/systems/combatSystems"
+import { generateClusteredPoints, generateNoiseAsteroid } from "../../../utils/voronoiAsteroid"
+import { LoadAsteroidField } from "../../../world/systems/missionSystems/missionHazards"
+import { VRSystem } from "../../../world/systems/renderSystems/vrSystem"
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
-const divFps = document.getElementById("fps");
-const pointsPerSecond = 10;
+const divFps = document.getElementById("fps")
+const pointsPerSecond = 10
 const START_TIME = 90
 export class TrainSimScene implements GameScene, IDisposable {
-
   totalKillCount: number = 0
   waveCount: number = 0
   waveKillCount: number = 0
   lastSpawnCount: number = 0
   shipTypeIndex: number = 0
   extraShipCount: number = 0
-  hud: CombatHud
+  hud: CombinedCombatHud
   gameover: boolean
   readyTimer = 0
   gameoverTimer = 0
@@ -60,18 +62,19 @@ export class TrainSimScene implements GameScene, IDisposable {
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(20)
-    
-    this.hud = new CombatHud()
+
     this.readyTimer = 3000
     appContainer.player = new PlayerAgent(this.playerShip)
-    const playerEntity = appContainer.player.playerEntity;
+    const playerEntity = appContainer.player.playerEntity
     playerEntity.score = { livesLeft: 1, timeLeft: START_TIME, total: 1000 }
     this.score = playerEntity.score
     this.stats = playerEntity.nerdStats
     MusicPlayer.instance.playSong("action")
     MusicPlayer.instance.playStinger("encounter")
 
-    document.body.style.cursor = "none";
+    this.hud = new CombinedCombatHud()
+    document.body.style.cursor = "none"
+    LoadAsteroidField(Vector3.Zero())
   }
 
   /** call to clean up */
@@ -79,7 +82,10 @@ export class TrainSimScene implements GameScene, IDisposable {
     world.onEntityAdded.unsubscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onCombatEntityRemoved)
     // queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
-    this.hud.dispose()
+    if (this.hud) {
+      this.hud.dispose()
+      this.hud = undefined
+    }
     this.skyboxSystems.dispose()
     for (const entity of this.combatEntities) {
       world.remove(entity)
@@ -91,7 +97,7 @@ export class TrainSimScene implements GameScene, IDisposable {
     this.spaceDebrisSystem.dispose()
 
     // reset cursor
-    document.body.style.cursor = "auto";
+    document.body.style.cursor = "auto"
     // dispose disposibles
     this.disposibles.forEach((disposible) => {
       disposible.dispose()
@@ -149,7 +155,7 @@ export class TrainSimScene implements GameScene, IDisposable {
       const shipTemplate = Ships[playerEntity.planeTemplate] as typeof Ships.Dirk
       playerEntity.health = {
         current: shipTemplate.structure.core.health,
-        base: shipTemplate.structure.core.health
+        base: shipTemplate.structure.core.health,
       }
       playerEntity.systems.state = { ...playerEntity.systems.base }
       playerEntity.armor.back = shipTemplate.structure.back.armor
@@ -184,16 +190,23 @@ export class TrainSimScene implements GameScene, IDisposable {
     this.lastSpawnCount = 0
     for (let i = 0; i < newShipAmount; i += 1) {
       const r = Math.min(minRadius, radius * random())
-      const phi = random() * Math.PI * 2;
-      const costheta = 2 * random() - 1;
-      const theta = Math.acos(costheta);
-      const x = r * Math.sin(theta) * Math.cos(phi);
-      const y = r * Math.sin(theta) * Math.sin(phi);
-      const z = r * Math.cos(theta);
+      const phi = random() * Math.PI * 2
+      const costheta = 2 * random() - 1
+      const theta = Math.acos(costheta)
+      const x = r * Math.sin(theta) * Math.cos(phi)
+      const y = r * Math.sin(theta) * Math.sin(phi)
+      const z = r * Math.cos(theta)
       const playerEntityPosition = AppContainer.instance.player.playerEntity.position
       // add enemy ship
       const shipDetails = Ships[ShipProgression[this.shipTypeIndex]]
-      const ship = createCustomShip(shipDetails, x + playerEntityPosition.x, y + playerEntityPosition.y, z + playerEntityPosition.z, 2, 1)
+      const ship = createCustomShip(
+        shipDetails,
+        x + playerEntityPosition.x,
+        y + playerEntityPosition.y,
+        z + playerEntityPosition.z,
+        2,
+        1
+      )
       // patrol around the players position
       world.addComponent(ship, "missionDetails", {
         missionLocations: [
@@ -201,11 +214,11 @@ export class TrainSimScene implements GameScene, IDisposable {
             id: 1,
             name: "Arena Point",
             isNavPoint: false,
-            position: { x: playerEntityPosition.x, y: playerEntityPosition.y, z: playerEntityPosition.z }
-          }
+            position: { x: playerEntityPosition.x, y: playerEntityPosition.y, z: playerEntityPosition.z },
+          },
         ],
         destroy: AppContainer.instance.player.playerEntity.id,
-        mission: MissionType.Destroy
+        mission: MissionType.Destroy,
       })
       this.lastSpawnCount += 1
     }
@@ -215,9 +228,10 @@ export class TrainSimScene implements GameScene, IDisposable {
     const appContainer = AppContainer.instance
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
+    this.hud.checkXr()
     if (this.gameover) {
       this.gameoverTimer -= delta
-      this.hud.updateScreen(delta)
+      this.hud.update(delta)
       if (this.gameoverTimer < 0) {
         MusicPlayer.instance.playStinger("fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
@@ -230,7 +244,7 @@ export class TrainSimScene implements GameScene, IDisposable {
         this.dispose()
       }
       scene.render()
-      divFps.innerHTML = engine.getFps().toFixed() + " fps";
+      divFps.innerHTML = engine.getFps().toFixed() + " fps"
       return
     }
     if (this.readyTimer > 0) {
@@ -238,9 +252,9 @@ export class TrainSimScene implements GameScene, IDisposable {
 
       if (this.readyTimer > 0) {
         this.hud.getReady = true
-        this.hud.updateScreen(delta)
+        this.hud.update(delta)
         scene.render()
-        divFps.innerHTML = engine.getFps().toFixed() + " fps";
+        divFps.innerHTML = engine.getFps().toFixed() + " fps"
         return
       } else {
         this.spawnShips()
@@ -260,12 +274,11 @@ export class TrainSimScene implements GameScene, IDisposable {
     updateRenderSystem()
     cameraSystem(appContainer.player.playerEntity, appContainer.camera)
     this.updateScore(delta)
-    this.hud.updateScreen(delta)
+    this.hud.update(delta)
     scene.render()
-    divFps.innerHTML = engine.getFps().toFixed() + " fps";
-  };
+    divFps.innerHTML = engine.getFps().toFixed() + " fps"
+  }
 
-  
   multiplayerLoop = (dt: number) => {
     /**
      * If a player dies they should follow cam another player untill
@@ -278,7 +291,7 @@ export class TrainSimScene implements GameScene, IDisposable {
   updateScore(dt: number) {
     const score = AppContainer.instance.player.playerEntity.score
     score.timeLeft -= dt / 1000
-    score.total += (dt/1000) * pointsPerSecond
+    score.total += (dt / 1000) * pointsPerSecond
     if (score.timeLeft <= 0) {
       this.gameover = true
       this.hud.gameover = true

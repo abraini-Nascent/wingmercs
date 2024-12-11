@@ -1,11 +1,10 @@
-import { queries } from './../../world';
-import { IDisposable, Sound } from "@babylonjs/core";
-import { Entity } from "../../world";
-import { SoundEffects } from '../../../utils/sounds/soundEffects';
-import { Vector3FromObj } from '../../../utils/math';
+import { queries } from "./../../world"
+import { IDisposable, Sound } from "@babylonjs/core"
+import { Entity } from "../../world"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { Vector3FromObj } from "../../../utils/math"
 
 export class BrakeSoundSystem implements IDisposable {
-  
   brakeSounds = new Map<Entity, Sound>()
 
   constructor() {
@@ -23,7 +22,7 @@ export class BrakeSoundSystem implements IDisposable {
   brakeOnEntityAdded = (entity) => {
     // console.log("brake on")
     if (this.brakeSounds.has(entity) == false) {
-      let sound = SoundEffects.BrakeMode(Vector3FromObj(entity.position))
+      let sound = SoundEffects.BrakeMode(entity.node.position)
       sound.attachToMesh(entity.node)
       sound.loop = true
       sound.play()
@@ -37,6 +36,7 @@ export class BrakeSoundSystem implements IDisposable {
     // console.log("brake off")
     if (this.brakeSounds.has(entity)) {
       let sound = this.brakeSounds.get(entity)
+      sound.detachFromMesh()
       SoundEffects.Silience(sound)
       this.brakeSounds.delete(entity)
     }

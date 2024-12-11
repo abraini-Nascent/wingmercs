@@ -9,6 +9,7 @@ export const Broadsword: ShipTemplate = Object.seal({
   maxWeight: 35,
   modelDetails: {
     base: "spaceCraft4",
+    cockpit: "cockpit",
     physics: "spaceCraft4Hull",
     shield: "spaceCraft4Hull",
     trails: [
@@ -124,7 +125,7 @@ export const Broadsword: ShipTemplate = Object.seal({
             count: 4,
             type: "dumbfire",
           },
-        }
+        },
       ],
     },
     front: {

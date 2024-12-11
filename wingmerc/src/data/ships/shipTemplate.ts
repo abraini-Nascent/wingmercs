@@ -275,6 +275,7 @@ export interface ShipTemplate {
       }[];
   };
   pilot: PilotAIType;
+  hanger?: boolean;
   afterburnerSlot: {
     maxSize: ShipComponentSize;
     modifier?: AfterburnerModifierDetails;

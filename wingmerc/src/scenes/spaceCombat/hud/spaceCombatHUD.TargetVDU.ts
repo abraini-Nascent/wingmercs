@@ -1,13 +1,12 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { Vector3 } from "@babylonjs/core";
-import { Entity, EntityForId, world } from "../../../world/world";
-import * as Ships from "../../../data/ships";
-import { StaticVDU } from "./spaceCombatHUD.StaticVDU";
-import { rand, random } from "../../../utils/random";
+import { IDisposable, Vector3 } from "@babylonjs/core"
+import { Entity, EntityForId, world } from "../../../world/world"
+import * as Ships from "../../../data/ships"
+import { StaticVDU } from "./spaceCombatHUD.StaticVDU"
+import { rand, random } from "../../../utils/random"
 
-export class TargetVDU {
-
+export class TargetVDU implements IDisposable {
   screen: GUI.Container
   static: StaticVDU
   lockPanel: GUI.StackPanel
@@ -103,7 +102,6 @@ export class TargetVDU {
   }
 
   update(playerEntity: Entity, dt: number) {
-    
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == "") {
       this.updateTargetType(playerEntity)
       this.lockName.text = "[ no target ]"
@@ -111,7 +109,7 @@ export class TargetVDU {
       if (this.lockPanel.containsControl(this.enemyTarget.mainPanel) == true) {
         this.lockPanel.removeControl(this.enemyTarget.mainPanel)
       }
-      return 
+      return
     }
     this.updateTargetType(playerEntity)
     let targetEntity = EntityForId(playerEntity.targeting.target)
@@ -125,9 +123,30 @@ export class TargetVDU {
     }
     const planeClass = Ships[targetEntity.planeTemplate]
     this.lockName.text = `[ ${targetEntity.targetName} ]`
+    switch (targetEntity.isTargetable) {
+      case "enemy":
+        if (targetEntity.teamId == playerEntity.teamId) {
+          this.lockName.color = "#ADD8E6"
+        } else {
+          this.lockName.color = "red"
+        }
+        break
+      case "player":
+        this.lockName.color = "#ADD8E6"
+        break
+      case "missile":
+        this.lockName.color = "yellow"
+        break
+      case "nav":
+        this.lockName.color = "white"
+        break
+    }
     const enemyPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
-    const distance = Math.round(new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
-      .subtract(enemyPosition).length())
+    const distance = Math.round(
+      new Vector3(playerEntity.position.x, playerEntity.position.y, playerEntity.position.z)
+        .subtract(enemyPosition)
+        .length()
+    )
     this.lockDistance.text = `${distance.toString().padStart(5)} m`
 
     if (this.lockPanel.containsControl(this.enemyTarget.mainPanel) == false) {
@@ -146,10 +165,13 @@ export class TargetVDU {
     } else {
       if (playerEntity.systems.state.targeting < playerEntity.systems.base.targeting) {
         // % per second failrate based on damage % of the targeting system
-        const alpha = (1 - (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting)) * (dt / 1000)
+        const alpha = (1 - playerEntity.systems.state.targeting / playerEntity.systems.base.targeting) * (dt / 1000)
         if (random() < alpha) {
           this.static.isVisible = true
-          this.staticTimer = rand(50, 1000 * (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting))
+          this.staticTimer = rand(
+            50,
+            1000 * (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting)
+          )
           this.enemyTarget.mainPanel.isVisible = false
           console.log("on")
         }
@@ -242,17 +264,17 @@ class TargetBody {
 
   update(entity: Entity, planeClass: any) {
     if (entity.shields) {
-      this.updateShield(entity.shields.currentFore/entity.shields.maxFore, this.shieldsFore)
-      this.updateShield(entity.shields.currentAft/entity.shields.maxAft, this.shieldsAft)
+      this.updateShield(entity.shields.currentFore / entity.shields.maxFore, this.shieldsFore)
+      this.updateShield(entity.shields.currentAft / entity.shields.maxAft, this.shieldsAft)
     }
     if (entity.armor) {
-      this.updateArmor(entity.armor.front/entity.armor.base.front, this.armorFront, " ╦ ", " ┬ ", "   ")
-      this.updateArmor(entity.armor.back/entity.armor.base.back, this.armorAft, " ╩ ", " ┬ ", "   ")
-      this.updateArmor(entity.armor.left/entity.armor.base.left, this.armorLeft, "╠", "├", " ")
-      this.updateArmor(entity.armor.right/entity.armor.base.right, this.armorRight, "╣", "┤", " ")
+      this.updateArmor(entity.armor.front / entity.armor.base.front, this.armorFront, " ╦ ", " ┬ ", "   ")
+      this.updateArmor(entity.armor.back / entity.armor.base.back, this.armorAft, " ╩ ", " ┬ ", "   ")
+      this.updateArmor(entity.armor.left / entity.armor.base.left, this.armorLeft, "╠", "├", " ")
+      this.updateArmor(entity.armor.right / entity.armor.base.right, this.armorRight, "╣", "┤", " ")
     }
     if (entity.health != undefined) {
-      this.updateHealth(entity.health.current/entity.health.base, this.health, "↑", "⇡", "*")
+      this.updateHealth(entity.health.current / entity.health.base, this.health, "↑", "⇡", "*")
     } else {
       this.updateHealth(1, this.health, "0", "O", " ")
     }

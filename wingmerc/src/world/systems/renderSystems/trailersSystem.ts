@@ -1,25 +1,114 @@
-import { Color3, IDisposable, StandardMaterial, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core";
-import { AppContainer } from "../../../app.container";
-import { queries, world } from "../../world";
-import { Vector3FromObj } from "../../../utils/math";
+import { Color3, IDisposable, StandardMaterial, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
+import { AppContainer } from "../../../app.container"
+import { Entity, EntityUUID, queries, world } from "../../world"
+import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
+import { MercParticlePointEmitter } from "../../../utils/particles/mercParticleEmitters"
+import { MercParticles } from "../../../utils/particles/mercParticles"
+import { MercParticleSystem } from "../../../utils/particles/mercParticleSystem"
 
 let i = 0
 /**
  * creates the meshes and transform nodes for trails for an entity based on it's "trail" component
  */
+
 export class TrailersSystem implements IDisposable {
+  entitySps = new Map<EntityUUID, MercParticleSystem>()
   constructor() {
     queries.trailers.onEntityAdded.subscribe(this.trailersOnEntityAdded)
     queries.trailers.onEntityRemoved.subscribe(this.trailersOnEntityRemoved)
   }
-  
+
+  dispose(): void {
+    queries.trailers.onEntityAdded.unsubscribe(this.trailersOnEntityAdded)
+    queries.trailers.onEntityRemoved.unsubscribe(this.trailersOnEntityRemoved)
+    for (const [entityID, sps] of this.entitySps) {
+      sps.dispose()
+    }
+    this.entitySps.clear()
+  }
+  trailersOnEntityAdded = (entity: Entity) => {
+    console.log("[TrailersSystem] entity added", entity.id)
+    const scene = AppContainer.instance.scene
+    const node = entity.node
+    for (const trailer of entity.trailOptions) {
+      const pointEmitter = new MercParticlePointEmitter()
+      pointEmitter.initialPositionFunction = (particle) => {
+        Vector3FromObj(entity.position, particle.position)
+        return particle
+      }
+      if (trailer.start) {
+        pointEmitter.initialPositionFunction = (particle) => {
+          // position
+          const offset = TmpVectors.Vector3[0]
+          offset.set(trailer.start.x, trailer.start.y, trailer.start.z)
+          const entityRotationQuaternion = QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0])
+          offset.applyRotationQuaternionInPlace(entityRotationQuaternion)
+          particle.position.x = offset.x + entity.position.x
+          particle.position.y = offset.y + entity.position.y
+          particle.position.z = offset.z + entity.position.z
+          // rotation
+          if (particle.props.rotationQuaternion == undefined) {
+            particle.props.rotationQuaternion = entityRotationQuaternion.clone()
+          } else {
+            particle.props.rotationQuaternion.copyFrom(entityRotationQuaternion)
+          }
+          /*
+          let rotation = Vector3.Forward()
+          rotation.applyRotationQuaternionInPlace(
+            QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0])
+          )
+          // Compute the rotation vector (pitch, yaw, roll) based on the rotated up vector
+          const pitch = Math.atan2(rotation.y, rotation.z) // Rotation around X-axis
+          const yaw = Math.atan2(rotation.x, rotation.z) // Rotation around Y-axis
+          const roll = Math.atan2(rotation.x, rotation.y) // Rotation around Z-axis
+
+          // Create a Vector3 for rotation in Euler angles
+          particle.props.rotation.x = pitch
+          particle.props.rotation.y = yaw
+          particle.props.rotation.z = roll
+          */
+          return particle
+        }
+      }
+      // pointEmitter.initialDirectionFunction = (particle) => {
+      // let direction = Vector3.Forward()
+      // direction.applyRotationQuaternionInPlace(QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0]))
+      // ;(particle.props.direction as Vector3).copyFrom(direction)
+      // let direction = particle.props.direction as Vector3
+      // direction.x = entity.direction.x * -1
+      // direction.y = entity.direction.y * -1
+      // direction.z = entity.direction.z * -1
+      // return particle
+      // }
+      let sps = MercParticles.engineTrail(`missile-trail-${++i}`, scene, pointEmitter)
+      entity.disposables.add(sps)
+      sps.begin()
+    }
+  }
+  trailersOnEntityRemoved = (entity) => {
+    console.log("[TrailersSystem] entity removed", entity.id)
+    const sps = this.entitySps.get(entity.id)
+    if (sps) {
+      sps.dispose()
+      this.entitySps.delete(entity.id)
+    }
+  }
+}
+export class TrailersTrailMeshSystem implements IDisposable {
+  constructor() {
+    queries.trailers.onEntityAdded.subscribe(this.trailersOnEntityAdded)
+    queries.trailers.onEntityRemoved.subscribe(this.trailersOnEntityRemoved)
+  }
+
   dispose(): void {
     queries.trailers.onEntityAdded.unsubscribe(this.trailersOnEntityAdded)
     queries.trailers.onEntityRemoved.unsubscribe(this.trailersOnEntityRemoved)
   }
 
   trailersOnEntityAdded = (entity) => {
-    const origin = queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : Vector3.ZeroReadOnly
+    const origin = queries.origin.first?.position
+      ? Vector3FromObj(queries.origin.first?.position)
+      : Vector3.ZeroReadOnly
     let node = entity.node
     let nodeCreated = false
     let disposables: IDisposable[] = []
@@ -33,7 +122,7 @@ export class TrailersSystem implements IDisposable {
       disposables.push(node)
     }
     const scene = AppContainer.instance.scene
-    let trails: {trail: TrailMesh, node: TransformNode}[] = []
+    let trails: { trail: TrailMesh; node: TransformNode }[] = []
     for (const trailOption of entity.trailOptions) {
       let trailNode = node
       if (trailOption.start) {
@@ -48,10 +137,14 @@ export class TrailersSystem implements IDisposable {
       }
       const width = trailOption?.width ?? 0.2
       const length = trailOption?.length ?? 100
-      const color = trailOption?.color ? new Color3(trailOption?.color.r, trailOption?.color.g, trailOption?.color.b) : Color3.Blue()
+      const color = trailOption?.color
+        ? new Color3(trailOption?.color.r, trailOption?.color.g, trailOption?.color.b)
+        : Color3.Blue()
       const newTrail = new TrailMesh(`trail-${i}`, trailNode, scene, width, length, false)
       disposables.push(newTrail)
-      setTimeout(() => { newTrail.start() }, 16)
+      setTimeout(() => {
+        newTrail.start()
+      }, 16)
       const entityMaterial = new StandardMaterial(`trailMat-${i}`)
       entityMaterial.emissiveColor = color.clone()
       entityMaterial.diffuseColor = color.clone()
@@ -61,16 +154,23 @@ export class TrailersSystem implements IDisposable {
       trails.push({ trail: newTrail, node: trailNode })
     }
     world.update(entity, {
-      trailMeshs: {trails, disposables},
-      node
+      trailMeshs: { trails, disposables },
+      node,
     })
     i += 1
+    AppContainer.instance.scene.onBeforeRenderObservable.add(() => {
+      trails.forEach(({ trail }) => {
+        trail._positions?.forEach((position, index) => {
+          trail._positions[index].subtractInPlace(origin)
+        })
+      })
+    })
   }
 
   trailersOnEntityRemoved = (entity) => {
     if (entity.trailMeshs != undefined && entity.trailMeshs.disposables.length > 0) {
       for (const disposable of entity.trailMeshs.disposables) {
-          disposable.dispose()
+        disposable.dispose()
       }
       queueMicrotask(() => {
         world.removeComponent(entity, "trailMeshs")

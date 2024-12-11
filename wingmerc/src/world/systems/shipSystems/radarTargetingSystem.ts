@@ -1,6 +1,7 @@
-import { EntityForId, EntityUUID } from './../../world';
-import { queries, world } from "../../world"
-import { AngleBetweenVectors, ToDegree, Vector3FromObj, firstOrderIntercept } from "../../../utils/math"
+import { EntityForId, EntityUUID, SetComponent } from "./../../world"
+import { queries } from "../../world"
+import { AngleBetweenVectors, ToDegree, Vector3FromObj } from "../../../utils/math"
+import { random } from "../../../utils/random"
 
 // const TARGET_LOCK_SPEED = 120 // degrees per second
 export function radarTargetingSystem(dt: number) {
@@ -13,15 +14,23 @@ export function radarTargetingSystem(dt: number) {
       if (EntityForId(targeting.target) == undefined) {
         targeting.locked = false
         targeting.target = ""
-        world.update(entity, "targeting", targeting)
+        SetComponent(entity, "targeting", targeting)
         continue
       } else {
+        if (entity.inHazard && entity.inHazard.nebula) {
+          if (random() < 0.1 * (dt / 1000)) {
+            // 10% chance per second of loosing a lock in a nebula
+            targeting.locked = false
+            targeting.target = ""
+            SetComponent(entity, "targeting", targeting)
+          }
+        }
         continue
       }
     }
     // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
     const entityId = entity.id
-    
+
     const entityDirection = Vector3FromObj(direction)
     const entityPosition = Vector3FromObj(position)
     let smallestDistance = Number.MAX_SAFE_INTEGER
@@ -59,7 +68,7 @@ export function radarTargetingSystem(dt: number) {
     if (!holdTarget) {
       // console.log("[RadarTargeting] target", closestTarget)
       targeting.target = closestTarget
-      world.update(entity, "targeting", targeting)
+      SetComponent(entity, "targeting", targeting)
     }
   }
 }

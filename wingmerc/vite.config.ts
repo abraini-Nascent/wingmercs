@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl'
+
 export default defineConfig({
   base: './',
   optimizeDeps: {
@@ -8,7 +10,8 @@ export default defineConfig({
     }
   },
   server: {
-    host: "0.0.0.0"
+    host: "0.0.0.0",
+    https: true,
   },
   build: {
     outDir: 'dist/',
@@ -19,5 +22,8 @@ export default defineConfig({
       }
     },
     target: 'esnext'
-  }
+  },
+  plugins: [
+    basicSsl()
+  ]
 })

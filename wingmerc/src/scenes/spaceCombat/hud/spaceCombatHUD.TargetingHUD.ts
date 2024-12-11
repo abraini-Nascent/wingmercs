@@ -1,27 +1,27 @@
-import { Weapon } from '../../../data/weapons/weapon';
-import * as Weapons from '../../../data/weapons';
+import { Weapon } from "../../../data/weapons/weapon"
+import * as Weapons from "../../../data/weapons"
 import * as GUI from "@babylonjs/gui"
-import { Axis, Color3, Color4, Frustum, Matrix, Mesh, MeshBuilder, Sound, StandardMaterial, Texture, TmpVectors, Vector2, Vector3 } from "@babylonjs/core";
-import { AppContainer } from "../../../app.container";
-import { Entity, EntityForId, queries, world } from "../../../world/world";
-import { TintedImage } from '../../../utils/guiHelpers';
-import { SoundEffects } from "../../../utils/sounds/soundEffects";
-import { ToRadians, Vector3FromObj } from '../../../utils/math';
+import { Axis, Color3, Color4, Mesh, MeshBuilder, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { Entity, EntityForId, EntityUUID, queries } from "../../../world/world"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { ToRadians, Vector3FromObj } from "../../../utils/math"
 
-
-const RedTint = new Color4(1, 0, 0, 1)
-const referenceDistance = 10; // e.g., 10 units
-const referenceSize = 1; // e.g., 1 unit
-
+const referenceDistance = 10 // e.g., 10 units
+const referenceSize = 1 // e.g., 1 unit
+const InRangeBlinkSpeed = 100
 export class TargetingHUD {
-  
   hud: GUI.Container
   crosshair: GUI.Image
   crosshairPlane: Mesh
   crosshairPlaneFar: Mesh
+  targetId: EntityUUID = undefined
+  missileLockingTexture: Texture
+  missileLockedTexture: Texture
   missileLockTargetPlane: Mesh
   missileLockSound: Sound
   missileLockingSound: Sound
+  missileLockedTimerCount = 0
+  inRangeCount = 0
 
   get mainComponent(): GUI.Control {
     return this.hud
@@ -57,15 +57,23 @@ export class TargetingHUD {
   }
 
   update(playerEntity: Entity, dt: number) {
-    
     if (playerEntity.node && this.crosshairPlane == undefined) {
-      const crosshairTexture = new Texture("assets/crosshairs/crosshairs_29.png", undefined, undefined, false, Texture.NEAREST_LINEAR)
+      const crosshairTexture = new Texture(
+        "assets/crosshairs/crosshairs_29.png",
+        undefined,
+        undefined,
+        false,
+        Texture.NEAREST_LINEAR
+      )
       crosshairTexture.hasAlpha = true
       const crosshairMaterial = new StandardMaterial("crosshairMaterial")
       crosshairMaterial.diffuseTexture = crosshairTexture
       crosshairMaterial.emissiveColor = Color3.White()
       crosshairMaterial.specularColor = Color3.Black()
-      this.crosshairPlane = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", { size: 10, sideOrientation: Mesh.DOUBLESIDE });
+      this.crosshairPlane = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", {
+        size: 10,
+        sideOrientation: Mesh.DOUBLESIDE,
+      })
       this.crosshairPlane.material = crosshairMaterial
       this.crosshairPlane.metadata = { keepVisible: true }
 
@@ -73,13 +81,22 @@ export class TargetingHUD {
       this.crosshairPlane.position.copyFrom(pointInFront)
       this.crosshairPlane.parent = playerEntity.node
 
-      const crosshairTextureFar = new Texture("assets/crosshairs/crosshairs_29.png", undefined, undefined, false, Texture.NEAREST_LINEAR)
+      const crosshairTextureFar = new Texture(
+        "assets/crosshairs/crosshairs_29.png",
+        undefined,
+        undefined,
+        false,
+        Texture.NEAREST_LINEAR
+      )
       crosshairTextureFar.hasAlpha = true
       const crosshairMaterialFar = new StandardMaterial("crosshairMaterial")
       crosshairMaterialFar.diffuseTexture = crosshairTexture
       crosshairMaterialFar.emissiveColor = Color3.White()
       crosshairMaterialFar.specularColor = Color3.Black()
-      this.crosshairPlaneFar = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", { size: 10, sideOrientation: Mesh.DOUBLESIDE });
+      this.crosshairPlaneFar = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", {
+        size: 10,
+        sideOrientation: Mesh.DOUBLESIDE,
+      })
       this.crosshairPlaneFar.material = crosshairMaterial
       this.crosshairPlaneFar.metadata = { keepVisible: true }
 
@@ -89,14 +106,30 @@ export class TargetingHUD {
     }
     if (playerEntity.node && this.missileLockTargetPlane == undefined) {
       console.log("[locking] plane created")
-      const missileLockTexture = new Texture("assets/crosshairs/crosshairs_14.png", undefined, undefined, false, Texture.NEAREST_LINEAR)
-      missileLockTexture.hasAlpha = true
+      const missileLockingTexture = new Texture(
+        "assets/crosshairs/crosshairs_15.png",
+        undefined,
+        undefined,
+        false,
+        Texture.NEAREST_LINEAR
+      )
+      missileLockingTexture.hasAlpha = true
+      this.missileLockingTexture = missileLockingTexture
+      const missileLockedTexture = new Texture(
+        "assets/crosshairs/crosshairs_14.png",
+        undefined,
+        undefined,
+        false,
+        Texture.NEAREST_LINEAR
+      )
+      missileLockedTexture.hasAlpha = true
+      this.missileLockedTexture = missileLockedTexture
       const missileLockMaterial = new StandardMaterial("missileLockMaterial")
-      missileLockMaterial.diffuseTexture = missileLockTexture
+      missileLockMaterial.diffuseTexture = missileLockingTexture
       missileLockMaterial.diffuseColor = Color3.Red()
       missileLockMaterial.emissiveColor = Color3.Red()
       missileLockMaterial.specularColor = Color3.Black()
-      this.missileLockTargetPlane = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", { size: 1 });
+      this.missileLockTargetPlane = MeshBuilder.CreatePlane("constantSizePlaneCrosshair", { size: 1 })
       this.missileLockTargetPlane.ignoreCameraMaxZ = true
       this.missileLockTargetPlane.material = missileLockMaterial
       this.missileLockTargetPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
@@ -118,11 +151,14 @@ export class TargetingHUD {
     const weapon = Weapons[mount.type] as Weapon
     canLock = mount.count > 0 && (weapon.type == "heatseeking" || weapon.type == "imagerecognition")
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == "") {
-      this.missileLockTargetPlane.rotation.setAll(0)
+      this.targetId = undefined
       this.missileLockTargetPlane.isVisible = false
       this.missileLockTargetPlane.parent = undefined
       this.missileLockTargetPlane.position.setAll(0)
       this.missileLockTargetPlane.scaling.setAll(1)
+      this.missileLockTargetPlane.rotation.setAll(0)
+      this.inRangeCount = 0
+      this.crosshairPlaneFar.isVisible = true
       if (this.missileLockSound != undefined) {
         SoundEffects.Silience(this.missileLockSound)
         this.missileLockSound = undefined
@@ -131,16 +167,36 @@ export class TargetingHUD {
         SoundEffects.Silience(this.missileLockingSound)
         this.missileLockingSound = undefined
       }
-      return 
+      this.missileLockedTimerCount = 0
+      return
+    }
+    if (playerEntity.targeting.target !== this.targetId) {
+      // disconnect lock plane from old target so it can be connected to the new target
+      this.missileLockTargetPlane.isVisible = false
+      this.missileLockTargetPlane.parent = undefined
+      this.inRangeCount = 0
+      this.crosshairPlaneFar.isVisible = true
     }
     let targetEntity = EntityForId(playerEntity.targeting.target)
+    this.targetId = playerEntity.targeting.target
+    /// gun range logic
+    if (playerEntity.targeting.gunInterceptPosition.active && playerEntity.targeting.gunInterceptPosition.inRange) {
+      this.inRangeCount += dt
+      if (this.inRangeCount > InRangeBlinkSpeed) {
+        this.crosshairPlaneFar.isVisible = !this.crosshairPlaneFar.isVisible
+        this.inRangeCount -= InRangeBlinkSpeed
+      }
+    }
     canLock = canLock && targetEntity.teamId != playerEntity.teamId
     const enemyPosition = new Vector3(targetEntity.position.x, targetEntity.position.y, targetEntity.position.z)
-    const origin = (queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : undefined) ?? Vector3.ZeroReadOnly
+    const origin =
+      (queries.origin.first?.position ? Vector3FromObj(queries.origin.first?.position) : undefined) ??
+      Vector3.ZeroReadOnly
     const distance = Vector3.Distance(origin, enemyPosition)
     // console.log("[locking] canLock", canLock)
     if (canLock && playerEntity.targeting?.missileLocked) {
-      if (this.missileLockSound == undefined) {
+      this.missileLockedTimerCount += dt
+      if (this.missileLockSound == undefined && this.missileLockedTimerCount < 3000) {
         this.missileLockSound = SoundEffects.MissileTone()
         this.missileLockSound.loop = true
       }
@@ -148,7 +204,12 @@ export class TargetingHUD {
         SoundEffects.Silience(this.missileLockingSound)
         this.missileLockingSound = undefined
       }
+      if (this.missileLockSound && this.missileLockedTimerCount >= 3000) {
+        SoundEffects.Silience(this.missileLockSound)
+        this.missileLockSound = undefined
+      }
       this.missileLockTargetPlane.isVisible = true
+      ;(this.missileLockTargetPlane.material as StandardMaterial).diffuseTexture = this.missileLockedTexture
       if (this.missileLockTargetPlane.parent == undefined) {
         this.missileLockTargetPlane.position.setAll(0)
         this.missileLockTargetPlane.parent = targetEntity.node
@@ -168,13 +229,17 @@ export class TargetingHUD {
         this.missileLockingSound = SoundEffects.MissileLock()
         this.missileLockingSound.loop = true
       }
+      ;(this.missileLockTargetPlane.material as StandardMaterial).diffuseTexture = this.missileLockingTexture
       this.missileLockTargetPlane.isVisible = true
       if (this.missileLockTargetPlane.parent == undefined) {
         this.missileLockTargetPlane.position.setAll(0)
         this.missileLockTargetPlane.parent = targetEntity.node
       }
       // this.missileLockTargetPlane.position.copyFrom(enemyPosition)
-      const alpha = referenceSize * ((playerEntity.targeting?.timeToLock - playerEntity.targeting?.targetingTime) / playerEntity.targeting?.timeToLock)
+      const alpha =
+        referenceSize *
+        ((playerEntity.targeting?.timeToLock - playerEntity.targeting?.targetingTime) /
+          playerEntity.targeting?.timeToLock)
       const newSize = (referenceSize + alpha) * (distance / referenceDistance)
       // console.log("[locking] scale", newSize, referenceSize, alpha)
       this.missileLockTargetPlane.scaling.setAll(newSize)

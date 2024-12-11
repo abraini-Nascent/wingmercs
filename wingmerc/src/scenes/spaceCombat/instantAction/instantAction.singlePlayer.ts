@@ -1,32 +1,40 @@
-import { SkyboxSystems } from '../../../world/systems/visualsSystems/skyboxSystems';
-import { SpaceDebrisSystem } from '../../../world/systems/visualsSystems/spaceDebrisSystem';
-import { MissionTracker } from '../../../world/systems/missionSystems/missionTracker';
-import { GameScene } from '../../gameScene';
-import { AppContainer } from "../../../app.container";
-import { cameraSystem } from "../../../world/systems/renderSystems/cameraSystem";
-import { netSyncClientSystem } from "../../../world/systems/netSystems/netClientSystem";
-import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem";
-import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem";
-import { Entity, NerdStats, Score, queries, world } from '../../../world/world';
-import { CombatHud } from '../hud/spaceCombatHUD';
-import { StatsScene } from '../../statsScene/statsLoop';
-import { damageSprayParticlePool } from '../../../world/damage';
-import '../../../world/systems/soundSystems/missileEngineSoundSystem';
-import { PlayerAgent } from '../../../agents/playerAgent';
-import { damagedSystemsSprayParticlePool } from '../../../visuals/damagedSystemsSprayParticles';
-import { IDisposable } from '@babylonjs/core';
-import { MusicPlayer } from '../../../utils/music/musicPlayer';
-import { ShipTemplate } from '../../../data/ships/shipTemplate';
-import { exampleMultiStepMission } from '../../../data/missions/missionData';
-import { CombatSystems } from '../../../world/systems/combatSystems';
+import { MissionSalvageSystem } from "./../../../world/systems/missionSystems/missionSalvage"
+import { SkyboxSystems } from "../../../world/systems/visualsSystems/skyboxSystems"
+import { SpaceDebrisSystem } from "../../../world/systems/visualsSystems/spaceDebrisSystem"
+import { MissionTracker } from "../../../world/systems/missionSystems/missionTracker"
+import { GameScene } from "../../gameScene"
+import { AppContainer } from "../../../app.container"
+import { cameraSystem } from "../../../world/systems/renderSystems/cameraSystem"
+import { netSyncClientSystem } from "../../../world/systems/netSystems/netClientSystem"
+import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem"
+import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
+import { Campaign, Entity, NerdStats, Score, queries, world } from "../../../world/world"
+import { CombatHud } from "../hud/spaceCombatHUD"
+import { StatsScene } from "../../statsScene/statsLoop"
+import { damageSprayParticlePool } from "../../../world/damage"
+import "../../../world/systems/soundSystems/missileEngineSoundSystem"
+import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
+import { IDisposable } from "@babylonjs/core"
+import { MusicPlayer } from "../../../utils/music/musicPlayer"
+import { ShipTemplate } from "../../../data/ships/shipTemplate"
+import { exampleMultiStepMission, examplePatrolMission } from "../../../data/missions/missionData"
+import { CombatSystems } from "../../../world/systems/combatSystems"
+import { StatsScreen } from "../../statsScene/statsScreen"
+import { MissionOverScreen } from "../../missionOverScene/missionOverScreen"
+import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
+import { CombatHudInWorld } from "../hud/spaceCombatHUD.InWorld"
 
-const divFps = document.getElementById("fps");
+const divFps = document.getElementById("fps")
 export class InstantActionScene implements GameScene, IDisposable {
-
+  // screens
   hud: CombatHud
+  statsScreen: StatsScreen
+  missionOverScreen: MissionOverScreen
+  // screen props
   gameover: boolean
+  landed: boolean
   readyTimer = 0
-  gameoverTimer = 0
+  gameoverTimer = 1333
   score: Score
   stats: NerdStats
 
@@ -37,11 +45,12 @@ export class InstantActionScene implements GameScene, IDisposable {
   combatSystems: CombatSystems = new CombatSystems()
 
   missionTracker = new MissionTracker()
+  MissionSalvageSystem = new MissionSalvageSystem()
 
   combatEntities = new Set<Entity>()
   disposibles = new Set<IDisposable>()
 
-  constructor(private playerShip?: ShipTemplate) {
+  constructor(private playerShip?: ShipTemplate, campaignEntity?: Entity) {
     console.log("[InstantAction.singleplayer] created")
     const appContainer = AppContainer.instance
     this.skyboxSystems = new SkyboxSystems(appContainer.scene)
@@ -51,22 +60,20 @@ export class InstantActionScene implements GameScene, IDisposable {
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
     damageSprayParticlePool.prime(50)
     damagedSystemsSprayParticlePool.prime(20)
-    
+
     this.hud = new CombatHud()
     this.readyTimer = 3000
-    
+
     MusicPlayer.instance.playSong("action")
     MusicPlayer.instance.playStinger("encounter")
 
-    // appContainer.player = new PlayerAgent(this.playerShip)
-    // const playerEntity = appContainer.player.playerEntity;
-    // playerEntity.score = { livesLeft: 1, timeLeft: 900, total: 1000 }
-    
-    this.missionTracker.setMission(exampleMultiStepMission, this.playerShip)
-    const playerEntity = appContainer.player.playerEntity;
+    this.missionTracker.setMission(campaignEntity?.campaign?.currentMission ?? examplePatrolMission, this.playerShip)
+    const playerEntity = appContainer.player.playerEntity
     this.stats = playerEntity.nerdStats
 
-    document.body.style.cursor = "none";
+    document.body.style.cursor = "none"
+
+    this.runLoop = this.gameOnLoop
   }
 
   /** call to clean up */
@@ -85,9 +92,10 @@ export class InstantActionScene implements GameScene, IDisposable {
     // dispose systems last since they help with cleanup
     this.spaceDebrisSystem.dispose()
     this.missionTracker.dispose()
+    this.MissionSalvageSystem.dispose()
 
     // reset cursor
-    document.body.style.cursor = "auto";
+    document.body.style.cursor = "auto"
     // dispose disposibles
     this.disposibles.forEach((disposible) => {
       disposible.dispose()
@@ -122,22 +130,33 @@ export class InstantActionScene implements GameScene, IDisposable {
     this.stats.totalKills += 1
   }
 
-  runLoop = (delta: number) => {
+  runLoop = (delta: number) => {}
+
+  gameOnLoop = (delta: number) => {
     const appContainer = AppContainer.instance
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
+    const player = appContainer.player.playerEntity
+    if (!this.gameover && player.landing && Object.values(player.landing).some((landing) => landing.landed)) {
+      this.gameover = true
+      this.hud.landed = true
+      this.hud.gameover = true
+      this.landed = true
+    }
+
     if (this.gameover) {
       this.gameoverTimer -= delta
       this.hud.updateScreen(delta)
       if (this.gameoverTimer < 0) {
-        MusicPlayer.instance.playStinger("fail")
+        MusicPlayer.instance.playStinger(this.landed ? "win" : "fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
         this.onDeath = undefined
-        appContainer.gameScene = new StatsScene(this.score, this.stats)
-        this.dispose()
+        document.body.style.cursor = "auto"
+        this.statsScreen = new StatsScreen(player.score, player.nerdStats)
+        this.runLoop = this.gameOverLoop
       }
       scene.render()
-      divFps.innerHTML = engine.getFps().toFixed() + " fps";
+      divFps.innerHTML = engine.getFps().toFixed() + " fps"
       return
     }
     if (this.readyTimer > 0) {
@@ -147,7 +166,7 @@ export class InstantActionScene implements GameScene, IDisposable {
         this.hud.getReady = true
         this.hud.updateScreen(delta)
         scene.render()
-        divFps.innerHTML = engine.getFps().toFixed() + " fps";
+        divFps.innerHTML = engine.getFps().toFixed() + " fps"
         return
       } else {
         this.hud.getReady = false
@@ -168,6 +187,31 @@ export class InstantActionScene implements GameScene, IDisposable {
     cameraSystem(appContainer.player.playerEntity, appContainer.camera)
     this.hud.updateScreen(delta)
     scene.render()
-    divFps.innerHTML = engine.getFps().toFixed() + " fps";
-  };
+    divFps.innerHTML = engine.getFps().toFixed() + " fps"
+  }
+
+  gameOverLoop = (delta: number) => {
+    if (this.statsScreen && this.statsScreen.onDone == null) {
+      this.statsScreen.onDone = () => {
+        this.statsScreen.dispose()
+        this.statsScreen = undefined
+        this.missionOverScreen = new MissionOverScreen()
+      }
+    }
+    const appContainer = AppContainer.instance
+    const engine = AppContainer.instance.engine
+    const scene = AppContainer.instance.scene
+    this.skyboxSystems.update(delta)
+    this.spaceDebrisSystem.update(delta)
+    updateRenderSystem()
+    cameraSystem(appContainer.player.playerEntity, appContainer.camera)
+    if (this.statsScreen) {
+      this.statsScreen.updateScreen(delta)
+    } else if (this.missionOverScreen) {
+      // this.missionOverScreen.updateScreen(delta)
+      AppContainer.instance.gameScene.dispose()
+      AppContainer.instance.gameScene = new MainMenuScene()
+    }
+    scene.render()
+  }
 }

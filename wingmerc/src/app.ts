@@ -2,35 +2,30 @@ import "@babylonjs/core/Debug/debugLayer"
 import "@babylonjs/inspector"
 import "@babylonjs/loaders/glTF"
 import "@babylonjs/gui/2D"
-import {
-  AssetsManager,
-  Engine,
-  Scene,
-  Vector3,
-  HemisphericLight,
-  TargetCamera,
-  FreeCamera,
-} from "@babylonjs/core"
-import "./world/systems/controlSystems/weaponCommandSystem";
-import { AppContainer } from "./app.container";
-import "./world/systems/renderSystems/updatePhysicsSystem";
-import "./world/systems/deathRattleSystem";
-import { loadAssets } from "./assetLoader/assetLoader";
-import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop";
+import { AssetsManager, Engine, Scene, Vector3, HemisphericLight, TargetCamera, FreeCamera } from "@babylonjs/core"
+import "./world/systems/controlSystems/weaponCommandSystem"
+import { AppContainer } from "./app.container"
+import "./world/systems/renderSystems/updatePhysicsSystem"
+import "./world/systems/deathRattleSystem"
+import { loadAssets } from "./assetLoader/assetLoader"
+import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop"
 import { FlexTestScene } from "./scenes/flexTest/flexTest"
-import earcut from 'earcut';
+import earcut from "earcut"
 import { KeyboardMap } from "./utils/keyboard"
+import { VRSystem } from "./world/systems/renderSystems/vrSystem"
+import { MissionOverScene } from "./scenes/missionOverScene/missionOverLoop"
+import { generateMission } from "./world/missionFactory"
+import { MissionSelectScene } from "./scenes/missionSelectScene/missionSelectLoop"
 
 class App {
   assetsManager: AssetsManager
   camera: TargetCamera
   server: boolean = false
   constructor() {
+    ;(window as any).appContainer = AppContainer.instance
 
-    (window as any).appContainer = AppContainer.instance;
-    
     // Attach earcut to the window object
-    (window as any).earcut = earcut;
+    ;(window as any).earcut = earcut
 
     // create the canvas html element and attach it to the webpage
     const canvas = document.createElement("canvas")
@@ -41,10 +36,10 @@ class App {
     canvas.id = "gameCanvas"
     document.body.appendChild(canvas)
 
-    canvas.addEventListener('keydown', (event) => {
+    canvas.addEventListener("keydown", (event) => {
       event.preventDefault()
       event.stopPropagation()
-    });
+    })
 
     // initialize babylon scene and engine
     const container = AppContainer.instance
@@ -52,13 +47,9 @@ class App {
     const scene = new Scene(engine)
     // let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
     const camera = new FreeCamera("sceneCamera", new Vector3(0, 0, 0), scene)
-    camera.inputs.clear();
+    camera.inputs.clear()
     this.camera = camera
-    const light1: HemisphericLight = new HemisphericLight(
-      "light1",
-      new Vector3(-1, -1, 0),
-      scene
-    )
+    const light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-1, -1, 0), scene)
     container.camera = camera
     container.engine = engine
     container.scene = scene
@@ -93,19 +84,21 @@ class App {
     //   engine.resize()
     // });
 
-
     // load the assets and physics engine
     const onFinishedLoading = () => {
       engine.hideLoadingUI()
-      Engine.audioEngine.setGlobalVolume(0.5);
+      Engine.audioEngine.setGlobalVolume(0.5)
       if (AppContainer.instance.debug) {
+        // AppContainer.instance.gameScene = new MissionSelectScene()
+        // AppContainer.instance.gameScene = new MissionOverScene()
         AppContainer.instance.gameScene = new MainMenuScene()
         // AppContainer.instance.gameScene = new FlexTestScene()
       } else {
         AppContainer.instance.gameScene = new MainMenuScene()
       }
+      VRSystem.tryVR()
     }
-    
+
     this.assetsManager = loadAssets(onFinishedLoading)
 
     // run the main render loop
@@ -114,55 +107,57 @@ class App {
       AppContainer.instance.gameScene?.runLoop(dt)
     })
     // Request permission for audio on user interaction
-    document.addEventListener('click', function () {
+    document.addEventListener("click", function () {
       if (Engine.audioEngine && Engine.audioEngine.canUseWebAudio && Engine.audioEngine.unlocked == false) {
         Engine.audioEngine.audioContext.resume().then(function () {
-          console.log('[APP] Audio context is now unlocked');
+          console.log("[APP] Audio context is now unlocked")
           queueMicrotask(() => {
-            Engine.audioEngine.setGlobalVolume(0.5);
+            Engine.audioEngine.setGlobalVolume(0.5)
           })
-        });
+        })
       }
-    });
+    })
 
-  //   const testcanvas = document.createElement('canvas');
-  //   // Set canvas size
-  //   const size = 1000
-  //   testcanvas.width = size; // Adjust width as needed
-  //   testcanvas.height = size; // Adjust height as needed
-  //   testcanvas.style.width = `${size}px`
-  //   testcanvas.style.height = `${size}px`
+    for (const diff of [20, 40, 60, 80, 100]) console.log(generateMission(diff))
 
-  //   // Optionally set canvas styles (e.g., border, background color)
-  //   testcanvas.style.border = '1px solid black';
-  //   testcanvas.style.backgroundColor = '#FF0000';
+    //   const testcanvas = document.createElement('canvas');
+    //   // Set canvas size
+    //   const size = 1000
+    //   testcanvas.width = size; // Adjust width as needed
+    //   testcanvas.height = size; // Adjust height as needed
+    //   testcanvas.style.width = `${size}px`
+    //   testcanvas.style.height = `${size}px`
 
-  //   // Append the canvas to the document body
-  //   document.body.appendChild(testcanvas);
+    //   // Optionally set canvas styles (e.g., border, background color)
+    //   testcanvas.style.border = '1px solid black';
+    //   testcanvas.style.backgroundColor = '#FF0000';
 
-  //   // Now you can use the canvas context for drawing
-  //   const testctx = testcanvas.getContext('2d');
+    //   // Append the canvas to the document body
+    //   document.body.appendChild(testcanvas);
 
-  //   // Example drawing on the canvas
-  //   testctx.fillStyle = 'white';
-  //   testctx.fillRect(0, 0, testcanvas.width, testcanvas.height);
-  //   const width = testcanvas.width;
-  //   const height = testcanvas.height;
+    //   // Now you can use the canvas context for drawing
+    //   const testctx = testcanvas.getContext('2d');
 
-  //   const density = generateDensityMap(1, 1)
-  //   const fractalDensity = generateFractalDensityMap(1, 1)
-  //   const turbulenceDensityMap = generateCustomTurbulenceDensityMap(100, 100)
-  //   const worleyDensity = generateWorleyDensityMap(1, 1, 0.75)
-  //   const densityMap = fractalDensity
+    //   // Example drawing on the canvas
+    //   testctx.fillStyle = 'white';
+    //   testctx.fillRect(0, 0, testcanvas.width, testcanvas.height);
+    //   const width = testcanvas.width;
+    //   const height = testcanvas.height;
 
-  //   for (let x = 0; x < width; x++) {
-  //       for (let y = 0; y < height; y++) {
-  //           const density = densityMap(x / width, y / height);
-  //           const color = Math.floor(density * 255);
-  //           testctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
-  //           testctx.fillRect(x, y, 1, 1);
-  //       }
-  //   }
+    //   const density = generateDensityMap(1, 1)
+    //   const fractalDensity = generateFractalDensityMap(1, 1)
+    //   const turbulenceDensityMap = generateCustomTurbulenceDensityMap(100, 100)
+    //   const worleyDensity = generateWorleyDensityMap(1, 1, 0.75)
+    //   const densityMap = fractalDensity
+
+    //   for (let x = 0; x < width; x++) {
+    //       for (let y = 0; y < height; y++) {
+    //           const density = densityMap(x / width, y / height);
+    //           const color = Math.floor(density * 255);
+    //           testctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
+    //           testctx.fillRect(x, y, 1, 1);
+    //       }
+    //   }
   }
 }
 new App()

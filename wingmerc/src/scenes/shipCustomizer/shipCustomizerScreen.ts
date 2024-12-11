@@ -1,54 +1,69 @@
-import { Utilities } from './../../data/components/utility';
-import { Shields } from './../../data/components/shields';
-import { Engines } from './../../data/components/engines';
-import { AfterburnerModifierDetails, ComponentModifier, EngineModifierDetails, FuelTankModifierDetails, GunMounts, GunSelection, ModifierDetails, PowerPlantModifierDetails, ShieldGeneratorModifierDetails, ShipTemplate, StructureSlotType, ThrustersModifierDetails, UtilityModifierDetails, UtilityMounts, WeaponMounts } from '../../data/ships/shipTemplate';
-import { Axis, Color3, Observer, PointerEventTypes, Vector3 } from "@babylonjs/core";
-import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers";
-import { MercScreen } from "../screen";
+import { Utilities } from "./../../data/components/utility"
+import { Shields } from "./../../data/components/shields"
+import { Engines } from "./../../data/components/engines"
+import {
+  AfterburnerModifierDetails,
+  ComponentModifier,
+  EngineModifierDetails,
+  FuelTankModifierDetails,
+  GunMounts,
+  GunSelection,
+  ModifierDetails,
+  PowerPlantModifierDetails,
+  ShieldGeneratorModifierDetails,
+  ShipTemplate,
+  StructureSlotType,
+  ThrustersModifierDetails,
+  UtilityModifierDetails,
+  UtilityMounts,
+  WeaponMounts,
+} from "../../data/ships/shipTemplate"
+import { Axis, Color3, Observer, PointerEventTypes, Vector3 } from "@babylonjs/core"
+import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers"
+import { MercScreen } from "../screen"
 import * as GUI from "@babylonjs/gui"
-import { AppContainer } from "../../app.container";
-import { TrainSimScene } from '../spaceCombat/trainSim/trainSimLoop.singlePlayer';
-import { AfterburnerTypes, Afterburners } from '../../data/components/afterburners';
-import { Gun, GunType } from '../../data/guns/gun';
-import * as Guns from '../../data/guns';
-import * as Weapons from '../../data/weapons';
-import * as GunAffixes from '../../data/affixes/gunAffixes';
-import { Weapon } from '../../data/weapons/weapon';
-import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from '../../world/factories';
-import { GunAffix } from '../../data/affixes/gunAffix';
-import { CreateEntity, world } from '../../world/world';
-import { Button, ButtonItem, TextBlock } from '../components';
-import { ShipSelectionScene } from './shipSelection/shipSelectionLoop';
-import { ToRadians } from '../../utils/math';
-import { PowerPlants } from '../../data/components/powerPlants';
-import { Thrusters } from '../../data/components/thrusters';
-import { FuelTanks } from '../../data/components/fueltanks';
-import { weightForShip } from '../../world/helpers';
+import { AppContainer } from "../../app.container"
+import { TrainSimScene } from "../spaceCombat/trainSim/trainSimLoop.singlePlayer"
+import { AfterburnerTypes, Afterburners } from "../../data/components/afterburners"
+import { Gun, GunType } from "../../data/guns/gun"
+import * as Guns from "../../data/guns"
+import * as Weapons from "../../data/weapons"
+import * as GunAffixes from "../../data/affixes/gunAffixes"
+import { Weapon } from "../../data/weapons/weapon"
+import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from "../../world/factories"
+import { GunAffix } from "../../data/affixes/gunAffix"
+import { CreateEntity, world } from "../../world/world"
+import { Button, ButtonItem, TextBlock } from "../components"
+import { ShipSelectionScene } from "./shipSelection/shipSelectionLoop"
+import { ToRadians } from "../../utils/math"
+import { PowerPlants } from "../../data/components/powerPlants"
+import { Thrusters } from "../../data/components/thrusters"
+import { FuelTanks } from "../../data/components/fueltanks"
+import { weightForShip } from "../../world/helpers"
 
-
-type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility";
+type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility"
 const ComponentColours = {
-  Thruster: { r: 1.0, g: 0.0, b: 0.0 },    // Bright red
+  Thruster: { r: 1.0, g: 0.0, b: 0.0 }, // Bright red
   Afterburner: { r: 1.0, g: 0.5, b: 0.0 }, // Orange
-  Shields: { r: 0.0, g: 0.5, b: 1.0 },     // Sky blue
-  Engine: { r: 0.0, g: 0.8, b: 0.4 },      // Grey
-  FuelTank: { r: 0.0, g: 0.8, b: 0.4 },    // Grey
-  PowerPlant: { r: 1.0, g: 1.0, b: 0.0 },  // Yellow
-  Radar: { r: 0.0, g: 1.0, b: 0.0 },       // Green
-  Gun: { r: 0.5, g: 0.0, b: 0.5 },         // Purple
-  Weapon: { r: 0.0, g: 0.0, b: 1.0 },      // Blue
-  Utility: { r: 0.75, g: 0.75, b: 0.75 }   // Light grey
-};
+  Shields: { r: 0.0, g: 0.5, b: 1.0 }, // Sky blue
+  Engine: { r: 0.0, g: 0.8, b: 0.4 }, // Grey
+  FuelTank: { r: 0.0, g: 0.8, b: 0.4 }, // Grey
+  PowerPlant: { r: 1.0, g: 1.0, b: 0.0 }, // Yellow
+  Radar: { r: 0.0, g: 1.0, b: 0.0 }, // Green
+  Gun: { r: 0.5, g: 0.0, b: 0.5 }, // Purple
+  Weapon: { r: 0.0, g: 0.0, b: 1.0 }, // Blue
+  Utility: { r: 0.75, g: 0.75, b: 0.75 }, // Light grey
+}
 const BackgroundColour = { r: 0.75, g: 0.75, b: 0.75 }
-const rgbToHex = (colour: {r: number, g: number, b: number}, alpha: number = 1): string => {
+const rgbToHex = (colour: { r: number; g: number; b: number }, alpha: number = 1): string => {
   const { r, g, b } = colour
   const toHex = (value: number) => {
-      const hex = Math.round(value * 255).toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-  };
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(alpha)}`;
-};
-const rgbToRGBAColor = (colour: {r: number, g: number, b: number}, alpha: number = 1) => {
+    const hex = Math.round(value * 255).toString(16)
+    return hex.length === 1 ? "0" + hex : hex
+  }
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(alpha)}`
+}
+const rgbToRGBAColor = (colour: { r: number; g: number; b: number }, alpha: number = 1) => {
   const { r, g, b } = colour
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
@@ -66,6 +81,8 @@ export class ShipCustomizerScreen extends MercScreen {
   gunMounts: FlexItem[]
   shipSlotContainer: FlexContainer
   gunSelections: GunSelection[]
+
+  onSelected: (ship: ShipTemplate) => void
 
   constructor(ship: ShipTemplate) {
     super("ShipCustomizer")
@@ -89,7 +106,7 @@ export class ShipCustomizerScreen extends MercScreen {
   setupModel() {
     let ship = CreateEntity({
       meshName: this.ship.modelDetails.base,
-      position: { x: 0, y: 0, z: -50 }
+      position: { x: 0, y: 0, z: -50 },
     })
     queueMicrotask(() => {
       console.log("-=ship=-", ship)
@@ -117,12 +134,14 @@ export class ShipCustomizerScreen extends MercScreen {
     root.style.setPadding(Edge.All, 10)
     root.width = AppContainer.instance.engine.getRenderWidth()
     root.height = AppContainer.instance.engine.getRenderHeight()
-    this.observers.add(AppContainer.instance.engine.onResizeObservable.add(() => {
-      root.width = AppContainer.instance.engine.getRenderWidth()
-      root.height = AppContainer.instance.engine.getRenderHeight()
-      root.markDirty()
-      console.log("Resize: ", root.width, root.height )
-    }))
+    this.observers.add(
+      AppContainer.instance.engine.onResizeObservable.add(() => {
+        root.width = AppContainer.instance.engine.getRenderWidth()
+        root.height = AppContainer.instance.engine.getRenderHeight()
+        root.markDirty()
+        console.log("Resize: ", root.width, root.height)
+      })
+    )
     this.root = root
 
     const leftScroll = new FlexContainer("scroll-left")
@@ -149,22 +168,32 @@ export class ShipCustomizerScreen extends MercScreen {
     bottomButtonSection.style.setJustifyContent(Justify.SpaceEvenly)
     spacer.addControl(bottomButtonSection)
 
-    const back = ButtonItem(Button(TextBlock("back", "Back"), () => {
-      // navigate to previous screen
-      let oldScene = AppContainer.instance.gameScene
-      let nextScene = new ShipSelectionScene()
-      AppContainer.instance.gameScene = nextScene
-      oldScene.dispose()
-    }), 120)
+    const back = ButtonItem(
+      Button(TextBlock("back", "Back"), () => {
+        // navigate to previous screen
+        let oldScene = AppContainer.instance.gameScene
+        let nextScene = new ShipSelectionScene()
+        AppContainer.instance.gameScene = nextScene
+        oldScene.dispose()
+      }),
+      120
+    )
     bottomButtonSection.addControl(back)
 
-    const select = ButtonItem(Button(TextBlock("select", "Select", true), () => {
-      // navigate to next screen
-      let oldScene = AppContainer.instance.gameScene
-      oldScene.dispose()
-      let nextScene = new TrainSimScene(this.ship)
-      AppContainer.instance.gameScene = nextScene
-    }), 120)
+    const select = ButtonItem(
+      Button(TextBlock("select", "Select", true), () => {
+        if (this.onSelected) {
+          this.onSelected(this.ship)
+        } else {
+          // navigate to next screen
+          let oldScene = AppContainer.instance.gameScene
+          oldScene.dispose()
+          let nextScene = new TrainSimScene(this.ship)
+          AppContainer.instance.gameScene = nextScene
+        }
+      }),
+      120
+    )
     bottomButtonSection.addControl(select)
 
     const statsScroll = FlexContainer.CreateScrollView("right-scroll-view", root)
@@ -191,27 +220,30 @@ export class ShipCustomizerScreen extends MercScreen {
     detailsSection.style.setGap(Gutter.Row, 15)
     detailsSection.style.setPadding(Edge.Right, 15)
     detailsSection.style.setPadding(Edge.Left, 15)
-    const [segmentedControl, updateSegmentControl] = this.createSegmentedControl(["Stat", "Comp", "Guns", "Weap"], (section) => {
-      detailsSection.children.forEach((child) => {
-        console.log("removing", child)
-        detailsSection.removeControl(child)
+    const [segmentedControl, updateSegmentControl] = this.createSegmentedControl(
+      ["Stat", "Comp", "Guns", "Weap"],
+      (section) => {
+        detailsSection.children.forEach((child) => {
+          console.log("removing", child)
+          detailsSection.removeControl(child)
           child.dispose().dispose()
-      })
-      switch (section) {
-        case this.MenuSections.Stats:
-          this.statsSection(detailsSection)
-          break
-        case this.MenuSections.Components:
-          this.componentsSection(detailsSection)
-          break
-        case this.MenuSections.Guns:
-          this.gunSection(detailsSection)
-          break
-        case this.MenuSections.Weapons:
-          this.weaponSection(detailsSection)
-          break
+        })
+        switch (section) {
+          case this.MenuSections.Stats:
+            this.statsSection(detailsSection)
+            break
+          case this.MenuSections.Components:
+            this.componentsSection(detailsSection)
+            break
+          case this.MenuSections.Guns:
+            this.gunSection(detailsSection)
+            break
+          case this.MenuSections.Weapons:
+            this.weaponSection(detailsSection)
+            break
+        }
       }
-    })
+    )
     this.selectMenuSection = updateSegmentControl
     container.addControl(segmentedControl)
     container.addControl(detailsSection)
@@ -222,7 +254,9 @@ export class ShipCustomizerScreen extends MercScreen {
     container.addControl(contentContainer)
     contentContainer.addControl(this.textItem("name", `Ship Name: ${this.ship.name}`))
     contentContainer.addControl(this.textItem("class", `Ship Class: ${this.ship.weightClass}`))
-    contentContainer.addControl(this.textItem("weight", `Ship Weight: ${weightForShip(this.ship)} / ${this.ship.maxWeight}`))
+    contentContainer.addControl(
+      this.textItem("weight", `Ship Weight: ${weightForShip(this.ship)} / ${this.ship.maxWeight}`)
+    )
     let row = new FlexContainer()
     row.style.setFlexDirection(FlexDirection.Row)
     row.addControl(this.textItem("cruise-label", `Cruise Speed:`, true))
@@ -235,19 +269,23 @@ export class ShipCustomizerScreen extends MercScreen {
     contentContainer.addControl(this.textItem("yaw", `Yaw: ${this.ship.thrustersSlot.base.yaw}.dps`))
     contentContainer.addControl(this.textItem("roll", `Roll: ${this.ship.thrustersSlot.base.roll}.dps`))
     contentContainer.addControl(this.textItem("durability", `-= Durability =-`))
-    contentContainer.addControl(this.textItem("shields fore", `Shields Fore: ${this.ship.shieldsSlot.base.fore/10}(cm)`))
-    contentContainer.addControl(this.textItem("shields aft",  `Shields Aft:  ${this.ship.shieldsSlot.base.aft/10}(cm)`))
+    contentContainer.addControl(
+      this.textItem("shields fore", `Shields Fore: ${this.ship.shieldsSlot.base.fore / 10}(cm)`)
+    )
+    contentContainer.addControl(
+      this.textItem("shields aft", `Shields Aft:  ${this.ship.shieldsSlot.base.aft / 10}(cm)`)
+    )
   }
   printComponentModifier(name: string, modifier: ComponentModifier): FlexContainer {
     const container = new FlexContainer(`modifier-${name}`)
     container.style.setFlexDirection(FlexDirection.Row)
     const label = this.textblock("label", ``)
     if (name) {
-      label.text = `${name}:` 
+      label.text = `${name}:`
     }
     label.resizeToFit = true
     label.forceResizeWidth = true
-    
+
     const item = new FlexItem("label", label)
     container.addControl(item)
     const mod = modifier.value < 0 ? " " : " +"
@@ -265,54 +303,54 @@ export class ShipCustomizerScreen extends MercScreen {
   // this is list of controls
   ComponentsGroups = [
     {
-      id: 'Afterburner' as ComponentType,
+      id: "Afterburner" as ComponentType,
       title: `-= Afterburners =-`,
       parts: Object.entries(Afterburners),
       slot: "afterburnerSlot",
     },
     {
-      id: 'Engine' as ComponentType,
+      id: "Engine" as ComponentType,
       title: `-= Engines =-`,
       parts: Object.entries(Engines),
       slot: "engineSlot",
     },
     {
-      id: 'Shields' as ComponentType,
+      id: "Shields" as ComponentType,
       title: `-= Shields =-`,
       parts: Object.entries(Shields),
       slot: "shieldsSlot",
     },
     {
-      id: 'PowerPlant' as ComponentType,
+      id: "PowerPlant" as ComponentType,
       title: `-= Power Plant =-`,
       parts: Object.entries(PowerPlants),
       slot: "powerPlantSlot",
     },
     {
-      id: 'Thruster' as ComponentType,
+      id: "Thruster" as ComponentType,
       title: `-= Thrusters =-`,
       parts: Object.entries(Thrusters),
       slot: "thrustersSlot",
     },
     {
-      id: 'FuelTank' as ComponentType,
+      id: "FuelTank" as ComponentType,
       title: `-= Fuel Tanks =-`,
       parts: Object.entries(FuelTanks),
       slot: "fuelTankSlot",
     },
     {
-      id: 'Utility' as ComponentType,
+      id: "Utility" as ComponentType,
       title: `-= Utilities =-`,
       parts: Object.entries(Utilities),
       slot: "",
     },
     {
-      id: 'Utility' as ComponentType,
+      id: "Utility" as ComponentType,
       title: `-= Ammo =-`,
       parts: Object.entries(allAmmos()),
       slot: "",
-    }
-  ];
+    },
+  ]
   selectComponent: (component: ModifierDetails) => void
   filterComponentsSection: (type: StructureSlotType | undefined) => void
   componentsSection(container: FlexContainer) {
@@ -430,7 +468,7 @@ export class ShipCustomizerScreen extends MercScreen {
         const utilityLabel = this.textblock("name", `${utility.name}`)
         utilityLabel.heightInPixels = utilityLabel.fontSizeInPixels * 3
         const utilityLabelItem = new FlexItem("name", utilityLabel)
-        utilityLabel.horizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER;
+        utilityLabel.horizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
         detailsSection.addControl(utilityLabelItem)
         if (utility.energy != undefined) {
           detailsSection.addControl(this.printComponentModifier("Energy", utility.energy))
@@ -445,7 +483,7 @@ export class ShipCustomizerScreen extends MercScreen {
           detailsSection.addControl(this.textItem("ammo", `Ammo count: ${utility.ammoCount}`))
         }
         if (this.selectedShipSection != undefined) {
-          const itemData = this.selectedShipSection.item.metadata as { section: string, slotIndex: number }
+          const itemData = this.selectedShipSection.item.metadata as { section: string; slotIndex: number }
           if (itemData.slotIndex != undefined) {
             const slots = this.ship.structure[itemData.section].utilityMounts as UtilityMounts[]
             const slot = slots[itemData.slotIndex]
@@ -458,7 +496,8 @@ export class ShipCustomizerScreen extends MercScreen {
       scrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
           const button = child.item as GUI.Button
-          button.background = button.metadata.id == component.id ? "blue" : rgbToHex(ComponentColours[button.metadata.type], 0.25)
+          button.background =
+            button.metadata.id == component.id ? "blue" : rgbToHex(ComponentColours[button.metadata.type], 0.25)
         }
       })
     }
@@ -469,39 +508,49 @@ export class ShipCustomizerScreen extends MercScreen {
         scrollview.addControl(new FlexItem(componentGroup.id, componentGroupName))
         for (const part of componentGroup.parts) {
           const [name, component] = part
-          const buttonItem = this.buttonItem(`${componentGroup.id}-${component.name}`, `${component.name}`, () => {
-            this.selectComponent(component)
-            if (this.selectedShipSection != undefined && this.ship[componentGroup.slot] != undefined) {
-              this.ship[componentGroup.slot].modifier = structuredClone(component)
-              this.clearSection(this.rightScroll)
-              this.addShipSections(this.rightScroll)
-            }
-          }, 50)
+          const buttonItem = this.buttonItem(
+            `${componentGroup.id}-${component.name}`,
+            `${component.name}`,
+            () => {
+              this.selectComponent(component)
+              if (this.selectedShipSection != undefined && this.ship[componentGroup.slot] != undefined) {
+                this.ship[componentGroup.slot].modifier = structuredClone(component)
+                this.clearSection(this.rightScroll)
+                this.addShipSections(this.rightScroll)
+              }
+            },
+            50
+          )
           buttonItem.item.metadata = {
             id: name,
-            type: componentGroup.id
+            type: componentGroup.id,
           }
           let componentButton = buttonItem.item as GUI.Button
           componentButton.background = rgbToHex(ComponentColours[componentGroup.id], 0.25)
-          this.draggableFlexItem(buttonItem, [this.centerScroll, this.shipSlotContainer], this.shipSlots, () => {
-            this.selectComponent(component)
-            let proxy = new GUI.Rectangle(`${name}-proxy`);
-            proxy.widthInPixels = buttonItem.item.widthInPixels
-            proxy.heightInPixels = buttonItem.item.heightInPixels
-            proxy.background = "blue"
-            let textblock = this.textblock(`${name}-proxy-text`, `${component.name}`)
-            textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
-            proxy.addControl(textblock)
-            return proxy
-          },
-          (flexItem) => {
-            console.log("Dropped on item!")
-            if (this.ship[componentGroup.slot] != undefined) {
-              this.ship[componentGroup.slot].modifier = structuredClone(component)
+          this.draggableFlexItem(
+            buttonItem,
+            [this.centerScroll, this.shipSlotContainer],
+            this.shipSlots,
+            () => {
+              this.selectComponent(component)
+              let proxy = new GUI.Rectangle(`${name}-proxy`)
+              proxy.widthInPixels = buttonItem.item.widthInPixels
+              proxy.heightInPixels = buttonItem.item.heightInPixels
+              proxy.background = "blue"
+              let textblock = this.textblock(`${name}-proxy-text`, `${component.name}`)
+              textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+              proxy.addControl(textblock)
+              return proxy
+            },
+            (flexItem) => {
+              console.log("Dropped on item!")
+              if (this.ship[componentGroup.slot] != undefined) {
+                this.ship[componentGroup.slot].modifier = structuredClone(component)
+              }
+              this.clearSection(this.rightScroll)
+              this.addShipSections(this.rightScroll)
             }
-            this.clearSection(this.rightScroll)
-            this.addShipSections(this.rightScroll)
-          })
+          )
           scrollview.addControl(buttonItem)
         }
       }
@@ -514,7 +563,9 @@ export class ShipCustomizerScreen extends MercScreen {
         this.clearSection(scrollview)
         renderComponentGroups(this.ComponentsGroups)
       }
-      let group = this.ComponentsGroups.filter((group) => { return group.id == type })
+      let group = this.ComponentsGroups.filter((group) => {
+        return group.id == type
+      })
       if (group.length > 0) {
         this.clearSection(detailsSection)
         this.clearSection(scrollview)
@@ -555,7 +606,7 @@ export class ShipCustomizerScreen extends MercScreen {
       if (gunAffix?.speed != undefined) {
         detailsScrollview.addControl(this.printComponentModifier("|| speed", gunAffix.speed))
       }
-      detailsScrollview.addControl(this.textItem("damage", `Damage: ${(gunStats.damage/10).toFixed(1)} cm`))
+      detailsScrollview.addControl(this.textItem("damage", `Damage: ${(gunStats.damage / 10).toFixed(1)} cm`))
       if (gunAffix?.damage != undefined) {
         detailsScrollview.addControl(this.printComponentModifier("|| damage", gunAffix.damage))
       }
@@ -572,8 +623,8 @@ export class ShipCustomizerScreen extends MercScreen {
         const damage = applyModifier(gunStats.damage, gunAffix.damage) / 10
         const delay = applyModifier(gunStats.delay, gunAffix.delay)
         const energy = applyModifier(gunStats.energy, gunAffix.energy)
-        const dps = (damage/delay) * 1000
-        const dpkj = damage/energy
+        const dps = (damage / delay) * 1000
+        const dpkj = damage / energy
         detailsScrollview.addControl(this.textItem("dps", `|| DPS: ${dps.toFixed(2)} cm/s`))
         detailsScrollview.addControl(this.textItem("dpkj", `|| DPkJ: ${dpkj.toFixed(2)} cm/kJ`))
         if (gunData.ammo != undefined) {
@@ -581,14 +632,18 @@ export class ShipCustomizerScreen extends MercScreen {
           detailsScrollview.addControl(this.textItem("s of ammo", `TTF: ${secondsOfAmmo.toFixed(2)} s`))
         }
       } else {
-        detailsScrollview.addControl(this.textItem("dps", `DPS: ${(((gunStats.damage/10)/gunStats.delay) * 1000).toFixed(2)} cm/s`))
-        detailsScrollview.addControl(this.textItem("dpkj", `DPkJ: ${((gunStats.damage/10)/gunStats.energy).toFixed(2)} cm/kJ`))
+        detailsScrollview.addControl(
+          this.textItem("dps", `DPS: ${((gunStats.damage / 10 / gunStats.delay) * 1000).toFixed(2)} cm/s`)
+        )
+        detailsScrollview.addControl(
+          this.textItem("dpkj", `DPkJ: ${(gunStats.damage / 10 / gunStats.energy).toFixed(2)} cm/kJ`)
+        )
         if (gunData.ammo != undefined) {
           let secondsOfAmmo = gunData.ammoPerBin * (gunStats.delay / 1000)
           detailsScrollview.addControl(this.textItem("s of ammo", `TTF: ${secondsOfAmmo.toFixed(2)} s`))
         }
       }
-      
+
       componentScrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
           const button = child.item as GUI.Button
@@ -601,12 +656,12 @@ export class ShipCustomizerScreen extends MercScreen {
     // this is list of controls
     const componentsGroups = [
       {
-        id: 'gun' as ComponentType,
+        id: "gun" as ComponentType,
         title: `-= Guns =-`,
         parts: this.gunSelections,
         slot: "gun",
       },
-    ];
+    ]
     for (const componentGroup of componentsGroups) {
       componentScrollview.addControl(this.textItem(componentGroup.id, componentGroup.title))
       for (const part of componentGroup.parts) {
@@ -617,12 +672,47 @@ export class ShipCustomizerScreen extends MercScreen {
         if (part.affix != undefined) {
           gunModifier = GunAffixes[part.affix]
         }
-        
+
         // const [component] = part
-        const buttonItem = this.buttonItem(`${componentGroup.id}-${id}`, `${name}`, () => {
-          selectComponent(part)
-          if (this.selectedShipSection != undefined) {
-            const itemData = this.selectedShipSection.item.metadata as { section: string, slotIndex: number }
+        const buttonItem = this.buttonItem(
+          `${componentGroup.id}-${id}`,
+          `${name}`,
+          () => {
+            selectComponent(part)
+            if (this.selectedShipSection != undefined) {
+              const itemData = this.selectedShipSection.item.metadata as { section: string; slotIndex: number }
+              if (itemData.slotIndex != undefined) {
+                const slots = this.ship.structure[itemData.section].gunMounts as GunMounts[]
+                const slot = slots[itemData.slotIndex]
+                slot.base.type = part.type
+                slot.base.tier = part.tier
+                slot.base.affix = part.affix
+              }
+              this.clearSection(this.rightScroll)
+              this.addShipSections(this.rightScroll)
+            }
+          },
+          50
+        )
+        buttonItem.item.metadata = id
+        this.draggableFlexItem(
+          buttonItem,
+          [this.centerScroll, this.shipSlotContainer],
+          this.shipSlots,
+          () => {
+            selectComponent(part)
+            let proxy = new GUI.Rectangle(`${name}-proxy`)
+            proxy.widthInPixels = buttonItem.item.widthInPixels
+            proxy.heightInPixels = buttonItem.item.heightInPixels
+            proxy.background = "blue"
+            let textblock = this.textblock(`${name}-proxy-text`, `${name}`)
+            textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+            proxy.addControl(textblock)
+            return proxy
+          },
+          (flexItem) => {
+            console.log("Dropped on item!")
+            const itemData = flexItem.item.metadata as { section: string; slotIndex: number }
             if (itemData.slotIndex != undefined) {
               const slots = this.ship.structure[itemData.section].gunMounts as GunMounts[]
               const slot = slots[itemData.slotIndex]
@@ -633,36 +723,11 @@ export class ShipCustomizerScreen extends MercScreen {
             this.clearSection(this.rightScroll)
             this.addShipSections(this.rightScroll)
           }
-        }, 50)
-        buttonItem.item.metadata = id
-        this.draggableFlexItem(buttonItem, [this.centerScroll, this.shipSlotContainer], this.shipSlots, () => {
-          selectComponent(part)
-          let proxy = new GUI.Rectangle(`${name}-proxy`);
-          proxy.widthInPixels = buttonItem.item.widthInPixels
-          proxy.heightInPixels = buttonItem.item.heightInPixels
-          proxy.background = "blue"
-          let textblock = this.textblock(`${name}-proxy-text`, `${name}`)
-          textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
-          proxy.addControl(textblock)
-          return proxy
-        },
-        (flexItem) => {
-          console.log("Dropped on item!")
-          const itemData = flexItem.item.metadata as { section: string, slotIndex: number }
-          if (itemData.slotIndex != undefined) {
-            const slots = this.ship.structure[itemData.section].gunMounts as GunMounts[]
-            const slot = slots[itemData.slotIndex]
-            slot.base.type = part.type
-            slot.base.tier = part.tier
-            slot.base.affix = part.affix
-          }
-          this.clearSection(this.rightScroll)
-          this.addShipSections(this.rightScroll)
-        })
+        )
         componentScrollview.addControl(buttonItem)
       }
     }
-    selectComponent( { type: "laser", tier: 1 })
+    selectComponent({ type: "laser", tier: 1 })
   }
 
   selectWeapon: (component: Weapon) => void
@@ -682,7 +747,7 @@ export class ShipCustomizerScreen extends MercScreen {
       detailsSection.addControl(this.textItem("name", `${weaponComp.name}`))
       detailsSection.addControl(this.textItem("range", `Range: ${weaponComp.range} m`))
       detailsSection.addControl(this.textItem("speed", `Speed: ${weaponComp.speed} mps`))
-      detailsSection.addControl(this.textItem("damage", `Damage: ${(weaponComp.damage/10).toFixed(1)} cm`))
+      detailsSection.addControl(this.textItem("damage", `Damage: ${(weaponComp.damage / 10).toFixed(1)} cm`))
       detailsSection.addControl(this.textItem("delay", `Delay: ${weaponComp.delay} ms`))
       scrollview.children.forEach((child, index) => {
         if (child instanceof FlexItem && child.item instanceof GUI.Button) {
@@ -696,22 +761,56 @@ export class ShipCustomizerScreen extends MercScreen {
     // this is list of controls
     const componentsGroups = [
       {
-        id: 'weapon' as ComponentType,
+        id: "weapon" as ComponentType,
         title: `-= Weapons =-`,
         parts: Object.entries(Weapons),
         slot: "weapon",
       },
-    ];
+    ]
     for (const componentGroup of componentsGroups) {
       scrollview.addControl(this.textItem(componentGroup.id, componentGroup.title))
       for (const part of componentGroup.parts) {
         const [name, component] = part
-        const buttonItem = this.buttonItem(`${componentGroup.id}-${component.name}`, `${component.name}`, () => {
-          selectComponent(component)
-          if (this.selectedShipSection != undefined) {
-            const itemData = this.selectedShipSection.item.metadata as { section: string, slotIndex: number }
+        const buttonItem = this.buttonItem(
+          `${componentGroup.id}-${component.name}`,
+          `${component.name}`,
+          () => {
+            selectComponent(component)
+            if (this.selectedShipSection != undefined) {
+              const itemData = this.selectedShipSection.item.metadata as { section: string; slotIndex: number }
+              if (itemData.slotIndex != undefined) {
+                const slots = this.ship.structure[itemData.section].weaponMounts as WeaponMounts[]
+                const slot = slots[itemData.slotIndex]
+                slot.base.type = component.class
+                slot.base.count = slot.maxCount
+              }
+              this.clearSection(this.rightScroll)
+              this.addShipSections(this.rightScroll)
+            }
+          },
+          50
+        )
+        buttonItem.item.metadata = component.class
+        this.draggableFlexItem(
+          buttonItem,
+          [this.centerScroll, this.shipSlotContainer],
+          this.shipSlots,
+          () => {
+            selectComponent(component)
+            let proxy = new GUI.Rectangle(`${name}-proxy`)
+            proxy.widthInPixels = buttonItem.item.widthInPixels
+            proxy.heightInPixels = buttonItem.item.heightInPixels
+            proxy.background = "blue"
+            let textblock = this.textblock(`${name}-proxy-text`, `${component.name}`)
+            textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
+            proxy.addControl(textblock)
+            return proxy
+          },
+          (flexItem) => {
+            console.log("Dropped on item!")
+            const itemData = flexItem.item.metadata as { section: string; slotIndex: number }
             if (itemData.slotIndex != undefined) {
-              const slots = this.ship.structure[itemData.section].weaponMounts as WeaponMounts[]
+              const slots = this.ship.structure[itemData.section].weaponMonuts as WeaponMounts[]
               const slot = slots[itemData.slotIndex]
               slot.base.type = component.class
               slot.base.count = slot.maxCount
@@ -719,94 +818,78 @@ export class ShipCustomizerScreen extends MercScreen {
             this.clearSection(this.rightScroll)
             this.addShipSections(this.rightScroll)
           }
-        }, 50)
-        buttonItem.item.metadata = component.class
-        this.draggableFlexItem(buttonItem, [this.centerScroll, this.shipSlotContainer], this.shipSlots, () => {
-          selectComponent(component)
-          let proxy = new GUI.Rectangle(`${name}-proxy`);
-          proxy.widthInPixels = buttonItem.item.widthInPixels
-          proxy.heightInPixels = buttonItem.item.heightInPixels
-          proxy.background = "blue"
-          let textblock = this.textblock(`${name}-proxy-text`, `${component.name}`)
-          textblock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
-          proxy.addControl(textblock)
-          return proxy
-        },
-        (flexItem) => {
-          console.log("Dropped on item!")
-          const itemData = flexItem.item.metadata as { section: string, slotIndex: number }
-          if (itemData.slotIndex != undefined) {
-            const slots = this.ship.structure[itemData.section].weaponMonuts as WeaponMounts[]
-            const slot = slots[itemData.slotIndex]
-            slot.base.type = component.class
-            slot.base.count = slot.maxCount
-          }
-          this.clearSection(this.rightScroll)
-          this.addShipSections(this.rightScroll)
-        })
+        )
         scrollview.addControl(buttonItem)
       }
     }
     selectComponent(Weapons.dumbfire)
   }
 
-  draggableFlexItem(draggable: FlexItem, targetContainers: FlexContainer[], targetItems: FlexItem[], proxyCreator: () => GUI.Container, droppedOnTarget: (flexItem: FlexItem) => void) {
+  draggableFlexItem(
+    draggable: FlexItem,
+    targetContainers: FlexContainer[],
+    targetItems: FlexItem[],
+    proxyCreator: () => GUI.Container,
+    droppedOnTarget: (flexItem: FlexItem) => void
+  ) {
     let draggedItem: GUI.Control
 
-    this.observers.add(draggable.item.onPointerDownObservable.add((downEvent) => {
-      console.log("proxy down", downEvent.x, downEvent.y)
-      const xoffset = draggable.item.getDimension("width").getValueInPixel(this.gui, 1) / 2
-      const yoffset = draggable.item.getDimension("height").getValueInPixel(this.gui, 1) / 2
-      let proxy = undefined
-      let overTarget: FlexItem | undefined
-      let dragging = AppContainer.instance.scene.onPointerObservable.add((event) => {
-        if (event.type != PointerEventTypes.POINTERMOVE) {
-          return
-        }
-        if (proxy == undefined) {
-          console.log("creating proxy")
-          proxy = proxyCreator()
-          proxy.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-          proxy.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
-          this.gui.addControl(proxy)
-        }
-        const mousex = event.event.clientX
-        const mousey = event.event.clientY
-        console.log("proxy dragging", mousex, mousey)
-        proxy.leftInPixels = mousex - xoffset
-        proxy.topInPixels = mousey - yoffset
-        let newTarget: any = undefined
-        targetContainers.forEach((targetContainer) => {
-          if (targetContainer._container.contains(mousex, mousey)) {
-            // inside target container, check if inside target item
-            let target = undefined
-            for (const item of targetItems) {
-              if (item.item.contains(mousex, mousey)) {
-                target = item
+    this.observers.add(
+      draggable.item.onPointerDownObservable.add((downEvent) => {
+        console.log("proxy down", downEvent.x, downEvent.y)
+        const xoffset = draggable.item.getDimension("width").getValueInPixel(this.gui, 1) / 2
+        const yoffset = draggable.item.getDimension("height").getValueInPixel(this.gui, 1) / 2
+        let proxy = undefined
+        let overTarget: FlexItem | undefined
+        let dragging = AppContainer.instance.scene.onPointerObservable.add((event) => {
+          if (event.type != PointerEventTypes.POINTERMOVE) {
+            return
+          }
+          if (proxy == undefined) {
+            console.log("creating proxy")
+            proxy = proxyCreator()
+            proxy.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
+            proxy.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+            this.gui.addControl(proxy)
+          }
+          const mousex = event.event.clientX
+          const mousey = event.event.clientY
+          console.log("proxy dragging", mousex, mousey)
+          proxy.leftInPixels = mousex - xoffset
+          proxy.topInPixels = mousey - yoffset
+          let newTarget: any = undefined
+          targetContainers.forEach((targetContainer) => {
+            if (targetContainer._container.contains(mousex, mousey)) {
+              // inside target container, check if inside target item
+              let target = undefined
+              for (const item of targetItems) {
+                if (item.item.contains(mousex, mousey)) {
+                  target = item
+                }
               }
+              newTarget = target
             }
-            newTarget = target
+          })
+          if (newTarget != undefined) {
+            overTarget = newTarget
+          } else {
+            overTarget = undefined
+          }
+          console.log("proxy l/t", proxy.leftInPixels, proxy.topInPixels)
+        })
+        draggable.item.onPointerUpObservable.addOnce(() => {
+          console.log("proxy up")
+          dragging.remove()
+          if (proxy != undefined) {
+            this.gui.removeControl(proxy)
+            proxy.dispose
+          }
+          if (overTarget != undefined) {
+            droppedOnTarget(overTarget)
           }
         })
-        if (newTarget != undefined) {
-          overTarget = newTarget
-        } else {
-          overTarget = undefined
-        }
-        console.log("proxy l/t", proxy.leftInPixels, proxy.topInPixels)
       })
-      draggable.item.onPointerUpObservable.addOnce(() => {
-        console.log("proxy up")
-        dragging.remove()
-        if (proxy != undefined) {
-          this.gui.removeControl(proxy)
-          proxy.dispose
-        }
-        if (overTarget != undefined) {
-          droppedOnTarget(overTarget)
-        }
-      })
-    }))
+    )
   }
 
   selectedShipSection: FlexItem
@@ -815,7 +898,7 @@ export class ShipCustomizerScreen extends MercScreen {
       if (this.selectedShipSection == selectItem) {
         const oldButton = this.selectedShipSection.item as GUI.Button
         const oldTextBlock = oldButton.textBlock
-        oldTextBlock.color = "gold";
+        oldTextBlock.color = "gold"
         this.selectedShipSection = undefined
         this.filterComponentsSection(undefined)
         return
@@ -823,7 +906,7 @@ export class ShipCustomizerScreen extends MercScreen {
       if (this.selectedShipSection != undefined) {
         const oldButton = this.selectedShipSection.item as GUI.Button
         const oldTextBlock = oldButton.textBlock
-        oldTextBlock.color = "gold";
+        oldTextBlock.color = "gold"
       }
       if (selectItem != undefined) {
         this.selectedShipSection = selectItem
@@ -832,7 +915,7 @@ export class ShipCustomizerScreen extends MercScreen {
         newTextBlock.color = "blue"
       }
     }
-  })();
+  })()
   addShipSections(container: FlexContainer) {
     const sections = ["Front", "Core", "Left", "Right", "Back"]
     this.shipSlots = []
@@ -844,7 +927,7 @@ export class ShipCustomizerScreen extends MercScreen {
       sectionContainer.background = rgbToHex(BackgroundColour, 0.25)
       sectionContainer.style.setJustifyContent(Justify.Center)
       rectangle.thickness = 1
-      
+
       const armor = this.ship.structure[sectionName.toLowerCase()].armor
       const sectionTextblock = this.textblock(sectionName, sectionName)
       sectionTextblock.heightInPixels = sectionTextblock.fontSizeInPixels * 3
@@ -853,14 +936,19 @@ export class ShipCustomizerScreen extends MercScreen {
       // sectionTextblock.resizeToFit = true
       // sectionTextblock.forceResizeWidth = true
       // sectionTextblock.onAfterDrawObservable.addOnce(() => {
-        // sectionTextblock.markAsDirty()
+      // sectionTextblock.markAsDirty()
       // })
       sectionContainer.addControl(sectionNameTextItem)
       if (armor != undefined) {
-        const armorContainer = new FlexContainer(`${sectionName}-armor-container`, undefined, undefined, FlexDirection.Row)
+        const armorContainer = new FlexContainer(
+          `${sectionName}-armor-container`,
+          undefined,
+          undefined,
+          FlexDirection.Row
+        )
         armorContainer.style.setAlignItems(Align.Center)
         armorContainer.style.setJustifyContent(Justify.Center)
-        
+
         const armorTextBlock: GUI.TextBlock = this.textblock(`${sectionName}-armor`, `${armor}(cm)`)
         const armorTextItem = new FlexItem(`${sectionName}-armor`, armorTextBlock)
         armorTextBlock.resizeToFit = true
@@ -869,22 +957,42 @@ export class ShipCustomizerScreen extends MercScreen {
           armorTextItem.node.markDirty()
         })
         // armorTextBlock.widthInPixels = 100
-        armorContainer.addControl(this.buttonItem(`${sectionName}-armor-down`, "<", () => {
-          this.ship.structure[sectionName.toLowerCase()].armor -= 5
-          if (this.ship.structure[sectionName.toLowerCase()].armor < 0) {
-            this.ship.structure[sectionName.toLowerCase()].armor = 0
-          }
-          armorTextBlock.text = `${this.ship.structure[sectionName.toLowerCase()].armor}(cm)`
-        }, 50, 50))
+        armorContainer.addControl(
+          this.buttonItem(
+            `${sectionName}-armor-down`,
+            "<",
+            () => {
+              this.ship.structure[sectionName.toLowerCase()].armor -= 5
+              if (this.ship.structure[sectionName.toLowerCase()].armor < 0) {
+                this.ship.structure[sectionName.toLowerCase()].armor = 0
+              }
+              armorTextBlock.text = `${this.ship.structure[sectionName.toLowerCase()].armor}(cm)`
+            },
+            50,
+            50
+          )
+        )
         armorContainer.addControl(armorTextItem)
-        armorContainer.addControl(this.buttonItem(`${sectionName}-armor-up`, ">", () => {
-          this.ship.structure[sectionName.toLowerCase()].armor += 5
-          if (this.ship.structure[sectionName.toLowerCase()].armor > this.ship.structure[sectionName.toLowerCase()].maxArmor) {
-            this.ship.structure[sectionName.toLowerCase()].armor = this.ship.structure[sectionName.toLowerCase()].maxArmor
-          }
-          armorTextBlock.text = `${this.ship.structure[sectionName.toLowerCase()].armor}(cm)`
-          this.root.markDirty()
-        }, 50, 50))
+        armorContainer.addControl(
+          this.buttonItem(
+            `${sectionName}-armor-up`,
+            ">",
+            () => {
+              this.ship.structure[sectionName.toLowerCase()].armor += 5
+              if (
+                this.ship.structure[sectionName.toLowerCase()].armor >
+                this.ship.structure[sectionName.toLowerCase()].maxArmor
+              ) {
+                this.ship.structure[sectionName.toLowerCase()].armor =
+                  this.ship.structure[sectionName.toLowerCase()].maxArmor
+              }
+              armorTextBlock.text = `${this.ship.structure[sectionName.toLowerCase()].armor}(cm)`
+              this.root.markDirty()
+            },
+            50,
+            50
+          )
+        )
         sectionContainer.addControl(armorContainer)
       }
 
@@ -901,7 +1009,7 @@ export class ShipCustomizerScreen extends MercScreen {
             const name = this.ship.afterburnerSlot.modifier?.name ?? "Afterburner Standard"
             modifier = this.ship.afterburnerSlot.modifier
             slotTextBlock = this.textblock(`${name}-slot-${i}`, `- ${slotIcon}[ ${name}`)
-            break;
+            break
           }
           case "Radar": {
             const name = "Radar"
@@ -955,7 +1063,7 @@ export class ShipCustomizerScreen extends MercScreen {
             // slotTextItem = this.buttonItem(`${name}-slot-${i}`, `${slotIcon}[`, () => {
 
             // }, 50)
-            break;
+            break
           }
         }
         slotTextBlock.resizeToFit = false
@@ -964,14 +1072,14 @@ export class ShipCustomizerScreen extends MercScreen {
         const slotButton = new GUI.Button(`${sectionName}-slot-${i}`)
         slotButton.heightInPixels = 50
         const slotShadowBlock = this.shadowblock(slotTextBlock)
-        slotButton.addControl(slotShadowBlock);
-        slotButton.addControl(slotTextBlock);
-        (slotButton as any)._textBlock = slotTextBlock
+        slotButton.addControl(slotShadowBlock)
+        slotButton.addControl(slotTextBlock)
+        ;(slotButton as any)._textBlock = slotTextBlock
         slotTextItem = new FlexItem(`${sectionName}-slot-${i}`, slotButton)
         slotTextItem.item.metadata = {
           section: sectionName.toLowerCase(),
           type: slotType,
-          slotIndex: i
+          slotIndex: i,
         }
         const slotColor = ComponentColours[slotType]
         slotButton.background = rgbToHex(slotColor, 0.25)
@@ -989,9 +1097,11 @@ export class ShipCustomizerScreen extends MercScreen {
         this.observers.add(listener)
         this.shipSlots.push(slotTextItem)
         sectionContainer.addControl(slotTextItem)
-        if (this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
+        if (
+          this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
           this.selectedShipSection?.item.metadata.type == slotType &&
-          this.selectedShipSection?.item.metadata.slotIndex == i) {
+          this.selectedShipSection?.item.metadata.slotIndex == i
+        ) {
           this.selectShipSection(slotTextItem)
         }
       }
@@ -1020,32 +1130,36 @@ export class ShipCustomizerScreen extends MercScreen {
           const slotColor = ComponentColours[slotType]
           slotButton.background = rgbToHex(slotColor, 0.25)
           const slotShadowBlock = this.shadowblock(slotTextBlock)
-          slotButton.addControl(slotShadowBlock);
-          slotButton.addControl(slotTextBlock);
-          (slotButton as any)._textBlock = slotTextBlock
+          slotButton.addControl(slotShadowBlock)
+          slotButton.addControl(slotTextBlock)
+          ;(slotButton as any)._textBlock = slotTextBlock
           slotButton.heightInPixels = 50
           slotTextItem = new FlexItem(`${name}-${sectionName}-slot-${i}`, slotButton)
           slotTextItem.item.metadata = {
             section: sectionName.toLowerCase(),
             type: slotType,
-            slotIndex: i
+            slotIndex: i,
           }
-          this.observers.add(slotButton.onPointerClickObservable.add(() => {
-            this.selectShipSection(slotTextItem)
-            this.selectMenuSection(this.MenuSections.Components)
-            if (this.selectedShipSection != undefined) {
-              this.filterComponentsSection(slotType)
-              if (utility != undefined) {
-                // select modifier
-                this.selectComponent(utility)
+          this.observers.add(
+            slotButton.onPointerClickObservable.add(() => {
+              this.selectShipSection(slotTextItem)
+              this.selectMenuSection(this.MenuSections.Components)
+              if (this.selectedShipSection != undefined) {
+                this.filterComponentsSection(slotType)
+                if (utility != undefined) {
+                  // select modifier
+                  this.selectComponent(utility)
+                }
               }
-            }
-          }))
+            })
+          )
           this.shipSlots.push(slotTextItem)
           sectionContainer.addControl(slotTextItem)
-          if (this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
+          if (
+            this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
             this.selectedShipSection?.item.metadata.type == slotType &&
-            this.selectedShipSection?.item.metadata.slotIndex == i) {
+            this.selectedShipSection?.item.metadata.slotIndex == i
+          ) {
             this.selectShipSection(slotTextItem)
           }
         }
@@ -1077,31 +1191,35 @@ export class ShipCustomizerScreen extends MercScreen {
           const slotButton = new GUI.Button(`${name}-${sectionName}-slot-${i}`)
           const slotColor = ComponentColours[slotType]
           slotButton.background = rgbToHex(slotColor, 0.25)
-          slotButton.addControl(slotShadowBlock);
-          slotButton.addControl(slotTextBlock);
-          (slotButton as any)._textBlock = slotTextBlock
+          slotButton.addControl(slotShadowBlock)
+          slotButton.addControl(slotTextBlock)
+          ;(slotButton as any)._textBlock = slotTextBlock
           slotButton.heightInPixels = 50
           slotTextItem = new FlexItem(`${name}-${sectionName}-slot-${i}`, slotButton)
           slotTextItem.item.metadata = {
             section: sectionName.toLowerCase(),
             type: slotType,
-            slotIndex: i
+            slotIndex: i,
           }
-          this.observers.add(slotButton.onPointerClickObservable.add(() => {
-            this.selectShipSection(slotTextItem)
-            this.selectMenuSection(this.MenuSections.Guns)
-            if (this.selectedShipSection != undefined) {
-              if (gun != undefined) {
-                // select modifier
-                this.selectGun(selection)
+          this.observers.add(
+            slotButton.onPointerClickObservable.add(() => {
+              this.selectShipSection(slotTextItem)
+              this.selectMenuSection(this.MenuSections.Guns)
+              if (this.selectedShipSection != undefined) {
+                if (gun != undefined) {
+                  // select modifier
+                  this.selectGun(selection)
+                }
               }
-            }
-          }))
+            })
+          )
           this.shipSlots.push(slotTextItem)
           sectionContainer.addControl(slotTextItem)
-          if (this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
+          if (
+            this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
             this.selectedShipSection?.item.metadata.type == slotType &&
-            this.selectedShipSection?.item.metadata.slotIndex == i) {
+            this.selectedShipSection?.item.metadata.slotIndex == i
+          ) {
             this.selectShipSection(slotTextItem)
           }
         }
@@ -1132,30 +1250,34 @@ export class ShipCustomizerScreen extends MercScreen {
           const slotColor = ComponentColours[slotType]
           slotButton.background = rgbToHex(slotColor, 0.25)
           slotButton.heightInPixels = 50
-          slotButton.addControl(slotShadowBlock);
-          slotButton.addControl(slotTextBlock);
-          (slotButton as any)._textBlock = slotTextBlock
+          slotButton.addControl(slotShadowBlock)
+          slotButton.addControl(slotTextBlock)
+          ;(slotButton as any)._textBlock = slotTextBlock
           slotTextItem = new FlexItem(`${name}-${sectionName}-slot-${i}`, slotButton)
           slotTextItem.item.metadata = {
             section: sectionName.toLowerCase(),
             type: slotType,
-            slotIndex: i
+            slotIndex: i,
           }
-          this.observers.add(slotButton.onPointerClickObservable.add(() => {
-            this.selectShipSection(slotTextItem)
-            this.selectMenuSection(this.MenuSections.Weapons)
-            if (this.selectedShipSection != undefined) {
-              if (weapon != undefined) {
-                // select modifier
-                this.selectWeapon(weapon)
+          this.observers.add(
+            slotButton.onPointerClickObservable.add(() => {
+              this.selectShipSection(slotTextItem)
+              this.selectMenuSection(this.MenuSections.Weapons)
+              if (this.selectedShipSection != undefined) {
+                if (weapon != undefined) {
+                  // select modifier
+                  this.selectWeapon(weapon)
+                }
               }
-            }
-          }))
+            })
+          )
           this.shipSlots.push(slotTextItem)
           sectionContainer.addControl(slotTextItem)
-          if (this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
+          if (
+            this.selectedShipSection?.item.metadata.section == sectionName.toLowerCase() &&
             this.selectedShipSection?.item.metadata.type == slotType &&
-            this.selectedShipSection?.item.metadata.slotIndex == i) {
+            this.selectedShipSection?.item.metadata.slotIndex == i
+          ) {
             this.selectShipSection(slotTextItem)
           }
         }
@@ -1172,14 +1294,14 @@ export class ShipCustomizerScreen extends MercScreen {
     section.children.forEach((child) => {
       console.log("removing", child)
       section.removeControl(child)
-        child.dispose().dispose()
+      child.dispose().dispose()
     })
   }
   buttonItem(name: string, text: string, onClick: () => void, height: number = 40, width?: number): FlexItem {
     const button1 = this.button(name, text, onClick, height)
     const button1FlexItem = new FlexItem(`${name}-flex`, button1)
     const buttonWidth = width
-    button1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+    button1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): { width: number; height: number } => {
       if (buttonWidth != undefined) {
         button1.widthInPixels = buttonWidth
       } else {
@@ -1192,18 +1314,23 @@ export class ShipCustomizerScreen extends MercScreen {
 
   button(name: string, text: string, onClick: () => void, height: number = 40): GUI.Button {
     let button1 = new GUI.Button(`${name}-button`)
-    let text1 = this.textblock(name, text);
-    (button1 as any)._textBlock = text1
+    let text1 = this.textblock(name, text)
+    ;(button1 as any)._textBlock = text1
     button1.addControl(text1)
     text1.leftInPixels = 15
     button1.heightInPixels = height
-    this.observers.add(button1.onPointerClickObservable.add(() => {
-      onClick()
-    }))
+    this.observers.add(
+      button1.onPointerClickObservable.add(() => {
+        onClick()
+      })
+    )
     return button1
   }
 
-  createSegmentedControl(options: string[], callback: (selectedIndex: number) => void): [FlexContainer, (segment: number) => void] {
+  createSegmentedControl(
+    options: string[],
+    callback: (selectedIndex: number) => void
+  ): [FlexContainer, (segment: number) => void] {
     const stackPanel = new FlexContainer()
     stackPanel.style.setFlexDirection(FlexDirection.Row)
 
@@ -1226,35 +1353,35 @@ export class ShipCustomizerScreen extends MercScreen {
     }
 
     options.forEach((option, index) => {
-        const button = this.button(`button_${index}`, option, () => {
-          updateSegmentControl(index)
-        })
-        button.widthInPixels = this.getTextMetricsWidth(this.gui.getContext().measureText(option))
-        button.width = "120px"
-        button.height = "40px"
-        button.color = "white"
-        button.background = "gray"
-        const buttonFlexItem = new FlexItem(`${name}-flex`, button)
-        stackPanel.addControl(buttonFlexItem);
-    });
-    
+      const button = this.button(`button_${index}`, option, () => {
+        updateSegmentControl(index)
+      })
+      button.widthInPixels = this.getTextMetricsWidth(this.gui.getContext().measureText(option))
+      button.width = "120px"
+      button.height = "40px"
+      button.color = "white"
+      button.background = "gray"
+      const buttonFlexItem = new FlexItem(`${name}-flex`, button)
+      stackPanel.addControl(buttonFlexItem)
+    })
+
     // Initialize the first button as selected
     updateSegmentControl(0)
 
-    return [stackPanel, updateSegmentControl];
+    return [stackPanel, updateSegmentControl]
   }
 
   getTextMetricsWidth(textMetrics) {
     if (textMetrics.actualBoundingBoxLeft !== undefined) {
-        return Math.abs(textMetrics.actualBoundingBoxLeft) + Math.abs(textMetrics.actualBoundingBoxRight);
+      return Math.abs(textMetrics.actualBoundingBoxLeft) + Math.abs(textMetrics.actualBoundingBoxRight)
     }
-    return textMetrics.width;
+    return textMetrics.width
   }
 
   textItem(name: string, text: string, fit: boolean = false): FlexItem {
     const text1 = this.textblock(name, text)
     const text1FlexItem = new FlexItem(`${name}-flex`, text1)
-    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+    text1FlexItem.getMeasure = (width, _widthMode, _height, _heightMode): { width: number; height: number } => {
       text1.widthInPixels = width
       text1.heightInPixels = text1.computeExpectedHeight()
       return { width: text1.widthInPixels, height: text1.computeExpectedHeight() }

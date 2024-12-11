@@ -11,9 +11,6 @@ import * as Weapons from "../data/weapons"
 /** the total velocity of an entity includes standard velocity, drift, and afterburner */
 export function totalVelocityFrom(entity: Entity): Vector3 {
   const velocity = Vector3FromObj(entity.velocity)
-  if (entity.driftVelocity) {
-    velocity.addInPlace((Vector3FromObj(entity.driftVelocity, TmpVectors.Vector3[0])))
-  }
   if (entity.afterburnerVelocity) {
     velocity.addInPlace(Vector3FromObj(entity.afterburnerVelocity, TmpVectors.Vector3[1]))
   }
@@ -29,19 +26,19 @@ export function rotateTowardsPoint(entity: Entity, point: Vector3) {
 
   // point the vectors and update the quaternion so that they look towards the point
   // Calculate the direction vector from the entity to the point
-  const directionToTarget: Vector3 = point.subtract(entityPosition).normalize();
+  const directionToTarget: Vector3 = point.subtract(entityPosition).normalize()
 
   // Compute the quaternion that aligns the entity's forward vector with the directionToTarget
-  const newForward: Vector3 = directionToTarget;
-  const newRight: Vector3 = Vector3.Cross(entityUp, newForward).normalize();
-  const newUp: Vector3 = Vector3.Cross(newForward, newRight).normalize();
+  const newForward: Vector3 = directionToTarget
+  const newRight: Vector3 = Vector3.Cross(entityUp, newForward).normalize()
+  const newUp: Vector3 = Vector3.Cross(newForward, newRight).normalize()
 
-  const rotationMatrix: Matrix = Matrix.Identity();
-  Matrix.FromXYZAxesToRef(newRight, newUp, newForward, rotationMatrix);
+  const rotationMatrix: Matrix = Matrix.Identity()
+  Matrix.FromXYZAxesToRef(newRight, newUp, newForward, rotationMatrix)
   const rotationQuaternion: Quaternion = Quaternion.FromRotationMatrix(rotationMatrix)
   // camera somehow looks backwards, so turn it
-  const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0);
-  const newRotationQuaternion = rotationQuaternion.multiply(TURN);
+  const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0)
+  const newRotationQuaternion = rotationQuaternion.multiply(TURN)
 
   // Create a rotation quaternion that aligns the entity's forward vector with the direction vector
   // const rotationMatrix: Matrix = Matrix.LookAtLH(Vector3.Zero(), point, entityUp);
@@ -86,21 +83,24 @@ export function weightForShip(ship: ShipTemplate): number {
   weight += ship.shieldsSlot?.modifier?.weight ?? 0
   weight += ship.thrustersSlot?.modifier?.weight ?? 0
   weight += Object.values(ship.structure).reduce((structureWeight, section) => {
-    structureWeight += section.gunMounts?.reduce((gunWeight, gunMount) => {
-      gunWeight += Guns[gunMount.base?.type]?.weight ?? 0
-      return gunWeight
-    }, 0) ?? 0
-    structureWeight += section.weaponMounts?.reduce((weaponWeight, weaponMount) => {
-      weaponWeight += (Guns[weaponMount.base?.type]?.weight ?? 0) * weaponMount?.maxCount
-      return weaponWeight
-    }, 0) ?? 0
-    structureWeight += section.utilityMounts?.reduce((utilityWeight, utilityMount) => {
-      utilityWeight += utilityMount.utility?.weight ?? 0
-      return utilityWeight
-    }, 0) ?? 0
+    structureWeight +=
+      section.gunMounts?.reduce((gunWeight, gunMount) => {
+        gunWeight += Guns[gunMount.base?.type]?.weight ?? 0
+        return gunWeight
+      }, 0) ?? 0
+    structureWeight +=
+      section.weaponMounts?.reduce((weaponWeight, weaponMount) => {
+        weaponWeight += (Guns[weaponMount.base?.type]?.weight ?? 0) * weaponMount?.maxCount
+        return weaponWeight
+      }, 0) ?? 0
+    structureWeight +=
+      section.utilityMounts?.reduce((utilityWeight, utilityMount) => {
+        utilityWeight += utilityMount.utility?.weight ?? 0
+        return utilityWeight
+      }, 0) ?? 0
     structureWeight += ((section.armor ?? 0) / 10) * 0.25
     return structureWeight
   }, 0)
-  
+
   return weight
 }

@@ -1,13 +1,12 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { AppContainer } from "../../../app.container";
-import { barPercent } from './spaceCombatHUD.helpers';
-import { Sound } from "@babylonjs/core";
-import { SoundEffects } from "../../../utils/sounds/soundEffects";
-import { VoiceSound } from "../../../utils/speaking";
+import { AppContainer } from "../../../app.container"
+import { barPercent } from "./spaceCombatHUD.helpers"
+import { Sound } from "@babylonjs/core"
+import { SoundEffects } from "../../../utils/sounds/soundEffects"
+import { VoiceSound } from "../../../utils/speaking"
 
 export class StatsVDU {
-
   statsPanel: GUI.StackPanel
   shieldsFore: TextBlock
   shieldsAft: TextBlock
@@ -41,7 +40,6 @@ export class StatsVDU {
     }
   }
   setupComponents() {
-
     const statsPanel = new GUI.StackPanel("StatsVDU")
     statsPanel.isVertical = true
     statsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
@@ -211,13 +209,15 @@ export class StatsVDU {
 
   ejectWarn() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    if (playerEntity.health.current < (playerEntity.health.base / 2)) {
+    if (playerEntity.health.current < playerEntity.health.base / 2) {
       if (this.ejectWarning == undefined) {
-        this.ejectWarning = VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt ", undefined)
-        if (this.ejectWarning) {
-          this.ejectWarning.loop = true
-          this.ejectWarning.play()
-        }
+        VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt ", undefined).then((sound) => {
+          this.ejectWarning = sound
+          if (this.ejectWarning) {
+            this.ejectWarning.loop = true
+            this.ejectWarning.play()
+          }
+        })
       }
     } else {
       if (this.ejectWarning != undefined) {

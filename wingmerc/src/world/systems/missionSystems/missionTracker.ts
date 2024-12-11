@@ -1,15 +1,43 @@
-import { AppContainer } from './../../../app.container';
-import { IDisposable, TmpVectors, TransformNode, Vector2, Vector3 } from "@babylonjs/core";
-import { Encounter, Environment, LocationPoint, Mission } from "../../../data/missions/missionData";
-import { Vector3FromObj, lineSegmentSphereIntersection } from "../../../utils/math";
-import { AutoPilotCommand, CreateEntity, Entity, EntityForId, EntityUUID, queries, world } from "../../world";
-import { createCustomShip } from "../../factories";
-import { rotateTowardsPoint } from "../../helpers";
-import { ShipTemplate } from "../../../data/ships/shipTemplate";
-import { PlayerAgent } from '../../../agents/playerAgent';
-import * as Ships from "../../../data/ships";
+import { SetComponent } from "./../../world"
+import { AppContainer } from "./../../../app.container"
+import { IDisposable, TmpVectors, TransformNode, Vector3 } from "@babylonjs/core"
+import { Encounter, Environment, LocationPoint, Mission, Objective } from "../../../data/missions/missionData"
+import { Vector3FromObj, lineSegmentSphereIntersection } from "../../../utils/math"
+import {
+  ActiveObjective,
+  AutoPilotCommand,
+  CreateEntity,
+  Entity,
+  EntityForId,
+  EntityUUID,
+  queries,
+  world,
+} from "../../world"
+import { createCustomShip } from "../../factories"
+import { rotateTowardsPoint } from "../../helpers"
+import { ShipTemplate } from "../../../data/ships/shipTemplate"
+import { PlayerAgent } from "../../../agents/playerAgent"
+import * as Ships from "../../../data/ships"
+import { LoadAsteroidField } from "./missionHazards"
+import { powerPlantRecharge } from "../shipSystems/engineRechargeSystem"
+import { shieldRecharge } from "../shipSystems/shieldRechargeSystem"
 
-export class MissionTracker implements IDisposable  {
+/** TODOS:
+ * [] when an entity is defeated, find it's active encounter and move it from active to defeated set
+ * [] when all entities from all waves are defeated move the active encounter to the completed encounter list
+ * [] keep track of defeated enemy ship composition, and if destroyed or defeated to add to possible salvage list
+ * [] mission over/failed/completed state
+ */
+
+/** */
+interface ActiveEncounter extends Encounter {
+  nextWave: number
+  activeEntities: Set<EntityUUID>
+  deadEntities: Set<EntityUUID>
+}
+/** check if autopilot is possible once a second */
+const AUTOPILOT_CHECK_LIMIT = 1000
+export class MissionTracker implements IDisposable {
   mission: Mission
   navigationLocations: LocationPoint[] = []
   navigationEntities: Map<number, Entity> = new Map()
@@ -17,66 +45,42 @@ export class MissionTracker implements IDisposable  {
   exitPoint: LocationPoint = undefined
   /** the entity id and the encounter they belong to */
   enemiesEncounters: Map<EntityUUID, number> = new Map()
-  encounters: Encounter[] = []
-  remainingEncounters: Encounter[] = []
+  encounters: ActiveEncounter[] = []
+  completedEncounters: ActiveEncounter[] = []
+  objectives: ActiveObjective[] = []
+  visitedLocations = new Set<number>()
+  visitedEnvironments = new Set<number>()
+  /// autopilot check timer
+  autopilotCheckDelay = 0
+
   unsubscribeOnDeath: () => void
   constructor() {
-
     this.unsubscribeOnDeath = queries.outOfCombat.onEntityAdded.subscribe(this.onDeath)
   }
 
   dispose(): void {
-      this.unsubscribeOnDeath()
+    this.unsubscribeOnDeath()
   }
 
   onDeath = (entity: Entity) => {
     const encounterId = this.enemiesEncounters.get(entity.id)
     if (encounterId) {
       this.enemiesEncounters.delete(entity.id)
-      // are there no more encounter ships left?
-      let remainingShips = false
-      for (const enemyEncounter of this.enemiesEncounters.entries()) {
-        const [remainingEnemyId, remainingEncounterId] = enemyEncounter
-        if (encounterId == remainingEncounterId) {
-          remainingShips = true
-          break
-        }
-      }
-      if (remainingShips) {
-        return
-      }
-      // encounter complete
-      // find any objectives for this encounter
-      const player = AppContainer.instance.player.playerEntity
-      let objectiveDetails = player.objectiveDetails
-      objectiveDetails.objectivesComplete
-      for (const objective of this.mission.objectives) {
-        if (objective.encounters?.some((objectiveEncounterId) => objectiveEncounterId == encounterId)) {
-          // this completed encounter belongs to this objective
-          objectiveDetails.objectivesComplete = [
-            ...objectiveDetails.objectivesComplete,
-            objective
-          ]
-        }
-        for (const subObjective of objective.steps) {
-          const match = subObjective.encounters?.some((subObjectiveEncounterId) => subObjectiveEncounterId == encounterId)
-          if (match) {
-            // this completed encounter belongs to this subObjective
-            if (!objectiveDetails.objectivesComplete) {
-              objectiveDetails.objectivesComplete = [];
-            }
-            objectiveDetails.objectivesComplete.push(objective);
-          }
-        }
+
+      let encounter = this.encounters.find((encounter) => encounter.id == encounterId)
+      if (encounter.activeEntities.has(entity.id)) {
+        encounter.activeEntities.delete(entity.id)
+        encounter.deadEntities.add(entity.id)
       }
     }
   }
 
   setMission(mission: Mission, playerShip?: ShipTemplate) {
     this.mission = mission
-    
+
     this.entryPoint = this.mission.locations[0]
     this.entryPoint = this.mission.locations.at(-1)
+    this.visitedLocations = new Set<number>()
     for (const location of this.mission.locations) {
       if (location.isNavPoint) {
         this.navigationLocations.push(location)
@@ -89,9 +93,25 @@ export class MissionTracker implements IDisposable  {
       }
     }
     this.encounters = mission.encounters.map((encounter) => {
-      let missionEncounter = structuredClone(encounter) as Encounter
+      let missionEncounter = {
+        ...(structuredClone(encounter) as Encounter),
+        nextWave: 0,
+        activeEntities: new Set(),
+        deadEntities: new Set(),
+      } as ActiveEncounter
       return missionEncounter
     })
+    this.objectives = mission.objectives.map((objective) => {
+      let missionObjective = {
+        ...(structuredClone(objective) as Objective),
+        complete: false,
+        currentStep: 0,
+        completedSteps: [],
+      } as ActiveObjective
+      return missionObjective
+    })
+    console.log("[MissionTracker] set encounters", this.encounters)
+    console.log("[MissionTracker] set objectives", this.objectives)
 
     // create the player to the entry point
     const appContainer = AppContainer.instance
@@ -104,8 +124,12 @@ export class MissionTracker implements IDisposable  {
     if (player.objectiveDetails) {
       world.removeComponent(player, "objectiveDetails")
     }
-    world.addComponent(player, "objectiveDetails", {
-      visitedLocations: []
+    world.addComponent(player, "objectiveDetails", this.objectives)
+    world.addComponent(player, "salvageClaims", {
+      weapons: [],
+      guns: [],
+      shipParts: [],
+      hulls: [],
     })
 
     // create the initial nav points
@@ -116,28 +140,27 @@ export class MissionTracker implements IDisposable  {
    * @param dt time in ms since last update
    */
   update(dt: number) {
-    if (this.mission == undefined) { return }
-    if (AppContainer.instance.player.playerEntity == undefined) { return }
+    if (this.mission == undefined) {
+      return
+    }
+    if (AppContainer.instance.player.playerEntity == undefined) {
+      return
+    }
     const player = AppContainer.instance.player.playerEntity
+
     const playerPosition = Vector3FromObj(player.position)
 
     // are there new navigation points to create?
     this.createNavPoints()
-
-    // is the player near a navigation object
-    for (const [index, location] of this.mission.navigationOrder.entries()) {
-      const navNode = Vector3FromObj(location.position);
-      if (playerPosition.subtract(navNode).length() < 500) {
-        if (!player.objectiveDetails.visitedLocations.some(visited => visited.id == location.id)) {
-          player.objectiveDetails.visitedLocations.push(location);
-    
-          // Determine the next destination
-          const nextIndex = (index + 1) % this.mission.navigationOrder.length;
-          player.targeting.destination = this.navigationEntities.get(this.mission.navigationOrder[nextIndex].id).id;
-        }
+    this.autopilotCheckDelay += dt
+    if (this.autopilotCheckDelay >= AUTOPILOT_CHECK_LIMIT) {
+      this.autopilotCheckDelay = 0
+      if (this.canAutopilot(player, this.mission.environment)) {
+        SetComponent(player, "canAutopilot", true)
+      } else {
+        SetComponent(player, "canAutopilot", false)
       }
     }
-
     // is the player trying to autopilot to somewhere?
     const { autoPilotCommand } = player
     if (autoPilotCommand != undefined && autoPilotCommand.autopilot) {
@@ -146,7 +169,7 @@ export class MissionTracker implements IDisposable  {
       this.executeAutopilot(dt, player, autoPilotCommand, this.mission.encounters, this.mission.environment)
       return
     }
-    
+
     // has the encounter been triggered yet?
     let group = 0
     for (const encounter of this.encounters) {
@@ -155,48 +178,123 @@ export class MissionTracker implements IDisposable  {
       const encounterPosition = Vector3FromObj(encounter.location.position, TmpVectors.Vector3[0])
       const distance = encounterPosition.subtract(playerPosition).length()
       if (distance < 10000) {
-        // spawn the encounter
-        let team = encounter.teamId == "Friendly" ? 1 : 3
-        let leader: Entity = undefined
-        let curPos = new Vector3(encounterPosition.x, encounterPosition.y, encounterPosition.z)
-        let shipTemplate = Ships[encounter.shipClass]
-        if (shipTemplate == undefined) {
-          console.error(`Could not find ship of class ${encounter.shipClass} for encounter:`,encounter)
-          continue
-        }
-        for (let i = 0; i < encounter.quantity; i += 1) {
-          // TODO: they should be spawned in formation, right now they spawn ontop of each other
-          const formationPlace = i
-          let offset: Vector3
-          if (formationPlace % 2 == 0) {
-            offset = new Vector3(-50, 0, 0)
+        const encounterWave = encounter.waves[encounter.nextWave]
+        if (encounter.activeEntities.size == 0) {
+          encounter.nextWave += 1
+          if (encounter.nextWave > encounter.waves.length) {
+            // encounter over, all waves complete
+            this.completedEncounters.push(encounter)
+            this.encounters.splice(group - 1, 1)
+            console.log("[MissionTracker] encounter completed", encounter)
           } else {
-            offset = new Vector3(50, 0, 0)
+            console.log("[MissionTracker] spawning encounter", encounter, "wave", encounterWave)
+            // spawn the encounter
+            let team = encounterWave.teamId == "Friendly" ? 1 : 3
+            let leader: Entity = undefined
+            let curPos = new Vector3(encounterPosition.x, encounterPosition.y, encounterPosition.z)
+            let shipTemplate = Ships[encounterWave.shipClass]
+            if (shipTemplate == undefined) {
+              console.error(`Could not find ship of class ${encounterWave.shipClass} for encounter:`, encounterWave)
+              continue
+            }
+            for (let i = 0; i < encounterWave.quantity; i += 1) {
+              // TODO: they should be spawned in formation, right now they spawn ontop of each other
+              const formationPlace = i
+              let offset: Vector3
+              if (formationPlace % 2 == 0) {
+                offset = new Vector3(-50, 0, 0)
+              } else {
+                offset = new Vector3(50, 0, 0)
+              }
+              let ship = createCustomShip(
+                shipTemplate,
+                encounterPosition.x,
+                encounterPosition.y,
+                encounterPosition.z,
+                team,
+                group
+              )
+              if (leader != undefined) {
+                curPos.addInPlace(offset)
+              } else {
+                leader = ship
+              }
+              ship.position.x = curPos.x
+              ship.position.y = curPos.y
+              ship.position.z = curPos.z
+              world.addComponent(ship, "missionDetails", structuredClone(encounterWave.missionDetails))
+              console.log("[MissionTracker] spawned ship", ship)
+              this.enemiesEncounters.set(ship.id, encounter.id)
+              encounter.activeEntities.add(ship.id)
+              break
+            }
           }
-          let ship = createCustomShip(shipTemplate, encounterPosition.x, encounterPosition.y, encounterPosition.z, team, group)
-          if (leader != undefined) {
-            curPos.addInPlace(offset)
-          } else {
-            leader = ship
-          }
-          ship.position.x = curPos.x
-          ship.position.y = curPos.y
-          ship.position.z = curPos.z
-          world.addComponent(ship, "missionDetails", structuredClone(encounter.missionDetails))
-          console.log("[mission tracker] mission details", encounter.missionDetails, ship.missionDetails)
-          this.enemiesEncounters.set(ship.id, encounter.id)
-          break
         }
-      } else {
-        this.remainingEncounters.push(encounter)
       }
     }
-    this.encounters = this.remainingEncounters
-    this.remainingEncounters = []
-      
-    // is the player near an environment?
-      // has the environment been triggered yet?
-        // create environment
+
+    for (const location of this.mission.locations) {
+      if (this.visitedLocations.has(location.id)) {
+        continue
+      }
+      const distance = Vector3FromObj(location.position, TmpVectors.Vector3[0]).subtract(playerPosition).length()
+      if (distance < 1000) {
+        this.visitedLocations.add(location.id)
+      }
+    }
+
+    for (const objective of this.objectives) {
+      if (objective.complete) {
+        continue
+      }
+      const step = objective.steps[objective.currentStep]
+      switch (step.type) {
+        case "Patrol": {
+          let nav = step.location
+          if (this.visitedLocations.has(nav.id)) {
+            objective.currentStep += 1
+            objective.completedSteps.push(step.id)
+          }
+          if (objective.currentStep >= objective.steps.length) {
+            objective.complete = true
+          }
+          break
+        }
+        case "Destroy": {
+          let complete = true
+          for (const encounter of step.encounters) {
+            complete = complete && this.completedEncounters.some((e) => e.id == encounter)
+            if (!complete) {
+              break
+            }
+          }
+          if (complete) {
+            objective.complete = true
+          }
+          break
+        }
+      }
+    }
+
+    for (const environment of this.mission.environment) {
+      const position = Vector3FromObj(environment.location.position, TmpVectors.Vector3[0])
+      const id = position.getHashCode()
+      if (this.visitedEnvironments.has(id)) {
+        continue
+      }
+      const distance = playerPosition.subtractToRef(position, TmpVectors.Vector3[1]).length()
+      if (distance > 10000) {
+        // visible radius + hazard radius
+        continue
+      }
+      // create hazard
+      this.visitedEnvironments.add(id)
+      for (const hazard of environment.hazards) {
+        if (hazard == "Asteroids") {
+          LoadAsteroidField(position)
+        }
+      }
+    }
   }
 
   createNavPoints = () => {
@@ -210,7 +308,7 @@ export class MissionTracker implements IDisposable  {
           position: { x: navPoint.position.x, y: navPoint.position.y, z: navPoint.position.z },
           targetName: navPoint.name,
           isTargetable: "nav",
-          node: navNode
+          node: navNode,
         })
         this.navigationEntities.set(navPoint.id, navEntity)
       }
@@ -223,14 +321,18 @@ export class MissionTracker implements IDisposable  {
     world.removeComponent(player, "autoPilotCommand")
     world.removeComponent(player, "camera")
   }
-  exitAutopilot(player: Entity, exitPoint: Vector3, wingmen: {
-    id: EntityUUID;
-    offset: {
-        x: number;
-        y: number;
-        z: number;
-    };
-  }[]) {
+  exitAutopilot(
+    player: Entity,
+    exitPoint: Vector3,
+    wingmen: {
+      id: EntityUUID
+      offset: {
+        x: number
+        y: number
+        z: number
+      }
+    }[]
+  ) {
     player.position.x = exitPoint.x
     player.position.y = exitPoint.y
     player.position.z = exitPoint.z
@@ -247,12 +349,22 @@ export class MissionTracker implements IDisposable  {
   }
   // Function to execute the autopilot command
   // TODO: calculate time to travel and update shield/energy/and other ship movements
-  executeAutopilot(dt: number, player: Entity, destination: AutoPilotCommand, encounters: Encounter[], environment: Environment[]): void {
+  executeAutopilot(
+    dt: number,
+    player: Entity,
+    destination: AutoPilotCommand,
+    encounters: Encounter[],
+    environment: Environment[]
+  ): void {
     // const autopilotEndPosition = Vector3FromObj(destination.location)
     const { targeting } = player
-    if (targeting == undefined) { return }
+    if (targeting == undefined) {
+      return
+    }
     const targetEntity = EntityForId(targeting.destination)
-    if (targetEntity == undefined || targetEntity.isTargetable != "nav") { return }
+    if (targetEntity == undefined || targetEntity.isTargetable != "nav") {
+      return
+    }
     const autopilotCommand = player.autoPilotCommand
     const autopilotEndPosition = Vector3FromObj(targetEntity.position)
     const autopilotStartPosition = Vector3FromObj(player.position)
@@ -260,8 +372,8 @@ export class MissionTracker implements IDisposable  {
 
     if (autopilotCommand.running == undefined) {
       world.addComponent(player, "pauseMovement", true)
-        // move camera to swing view
-        // run swing animation
+      // move camera to swing view
+      // run swing animation
       if (distanceToEnd < 5000) {
         // Too Close
         this.clearAutopilot(player)
@@ -286,6 +398,7 @@ export class MissionTracker implements IDisposable  {
 
       console.log(`[Autopilot] begining autopilot checks to {${targetEntity.targetName}}`, autopilotEndPosition)
       // Look for wingmen nearby or nearby enemies
+      // Wingmen must have escort mission or wingman mission
       const NEAR_BY_FRIENDLY = 5000
       const NEAR_BY_ENEMY = 15000
       const wingmen: Entity[] = []
@@ -301,7 +414,7 @@ export class MissionTracker implements IDisposable  {
         const targetDelta = Vector3FromObj(target.position, TmpVectors.Vector3[5])
         targetDelta.subtractInPlace(autopilotStartPosition)
         const targetDistance = targetDelta.length()
-        
+
         if (target.teamId != player.teamId) {
           // TODO: eventually we need a mapping of what teams are alinged with other teams
           // right now only the plays team is friendly with the player and all other teams are hostile to each other
@@ -313,8 +426,14 @@ export class MissionTracker implements IDisposable  {
           if (targetDistance > NEAR_BY_FRIENDLY) {
             continue
           }
-          wingmenDelta.push(targetDelta)
-          wingmen.push(target)
+          // filter out friendlies who aren't wingmen
+          if (
+            (target.missionDetails && target.missionDetails.mission == "Wingman") ||
+            target.missionDetails.mission == "Escorted"
+          ) {
+            wingmenDelta.push(targetDelta)
+            wingmen.push(target)
+          }
         }
       }
       if (enemies.length > 0) {
@@ -323,14 +442,23 @@ export class MissionTracker implements IDisposable  {
         this.clearAutopilot(player)
         return
       }
-      rotateTowardsPoint(player, autopilotEndPosition)
-      if (player.camera) {
-        player.camera = "dramatic"
-      } else {
-        world.addComponent(player, "camera", "dramatic")
+      // compute time to destination
+      const { engine, systems } = player
+      // TODO this calculation should be in one place
+      const maxDamagedCruiseSpeed =
+        engine.cruiseSpeed * Math.max(0.2, (systems?.state?.engines ?? 1) / (systems?.base?.engines ?? 1))
+      const msToDestination = distanceToEnd / maxDamagedCruiseSpeed / 1000
+      powerPlantRecharge(msToDestination, player)
+      shieldRecharge(msToDestination, player)
+      // animation
+      for (const wingman of wingmen) {
+        powerPlantRecharge(msToDestination, wingman)
+        shieldRecharge(msToDestination, wingman)
       }
+      rotateTowardsPoint(player, autopilotEndPosition)
+      SetComponent(player, "camera", "dramatic")
       player.visible = true
-      // turn off the particlesf
+      // TODO: turn off the particles
       autopilotCommand.running = true
       autopilotCommand.runTime = 0
       autopilotCommand.wingmen = []
@@ -340,12 +468,12 @@ export class MissionTracker implements IDisposable  {
           offset: {
             x: wingmenDelta[i].x,
             y: wingmenDelta[i].y,
-            z: wingmenDelta[i].z
-          }
+            z: wingmenDelta[i].z,
+          },
         })
       }
     }
-    
+
     autopilotCommand.runTime += dt
 
     // after the flyby we want a callback to check for encounters
@@ -365,32 +493,51 @@ export class MissionTracker implements IDisposable  {
     // Check for collisions with encounters
     for (const encounter of encounters) {
       const encounterPosition = new Vector3(encounter.location.position.x, 0, encounter.location.position.y)
-      const collisionPoint = lineSegmentSphereIntersection(autopilotStartPosition, autopilotEndPosition, encounterPosition, 10000);
+      const collisionPoint = lineSegmentSphereIntersection(
+        autopilotStartPosition,
+        autopilotEndPosition,
+        encounterPosition,
+        10000
+      )
       if (collisionPoint && encounter != currentEncounter) {
         this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-        console.log(`[Autopilot] interrupted by encounter at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`);
+        console.log(
+          `[Autopilot] interrupted by encounter at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`
+        )
         this.clearAutopilot(player)
-        return;
+        return
       }
     }
 
     // Check for collisions with hazards
     for (const hazard of environment || []) {
       const hazardPosition = new Vector3(hazard.location.position.x, 0, hazard.location.position.y)
-      const collisionPoint = lineSegmentSphereIntersection(autopilotStartPosition, autopilotEndPosition, hazardPosition, 2000);
+      const collisionPoint = lineSegmentSphereIntersection(
+        autopilotStartPosition,
+        autopilotEndPosition,
+        hazardPosition,
+        2000
+      )
       if (collisionPoint) {
         this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-        console.log(`[Autopilot] interrupted by hazard at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`);
+        console.log(
+          `[Autopilot] interrupted by hazard at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`
+        )
         this.clearAutopilot(player)
-        return;
+        return
       }
     }
 
     // If no collisions, move to the autopilot end position
     // we shouldn't jump right on top of the destination, we should be 5k out
-    const collisionPoint = lineSegmentSphereIntersection(autopilotStartPosition, autopilotEndPosition, autopilotEndPosition.clone(), 5000);
+    const collisionPoint = lineSegmentSphereIntersection(
+      autopilotStartPosition,
+      autopilotEndPosition,
+      autopilotEndPosition.clone(),
+      5000
+    )
     this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-    console.log(`[Autopilot] completed to (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`);
+    console.log(`[Autopilot] completed to (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`)
     this.clearAutopilot(player)
   }
 
@@ -398,7 +545,7 @@ export class MissionTracker implements IDisposable  {
     // Check for collisions with encounters
     for (const encounter of encounters) {
       const encounterPosition = new Vector3(encounter.location.position.x, 0, encounter.location.position.y)
-      const collisionPoint = lineSegmentSphereIntersection(startPosition, endPosition, encounterPosition, 10000);
+      const collisionPoint = lineSegmentSphereIntersection(startPosition, endPosition, encounterPosition, 10000)
       if (collisionPoint) {
         return encounter
       }
@@ -406,15 +553,50 @@ export class MissionTracker implements IDisposable  {
     return undefined
   }
   checkForHazzardCollisions = (startPosition: Vector3, endPosition: Vector3, environment: Environment[]) => {
-
     // Check for collisions with hazards
     for (const hazard of environment || []) {
       const hazardPosition = new Vector3(hazard.location.position.x, 0, hazard.location.position.y)
-      const collisionPoint = lineSegmentSphereIntersection(startPosition, endPosition, hazardPosition, 2000);
+      const collisionPoint = lineSegmentSphereIntersection(startPosition, endPosition, hazardPosition, 2000)
       if (collisionPoint) {
         return hazard
       }
     }
     return undefined
+  }
+  canAutopilot(player: Entity, environment: Environment[]): boolean {
+    const { targeting } = player
+    if (targeting == undefined) {
+      return false
+    }
+    const targetEntity = EntityForId(targeting.destination)
+    if (targetEntity == undefined || targetEntity.isTargetable != "nav") {
+      return false
+    }
+    const autopilotEndPosition = Vector3FromObj(targetEntity.position)
+    const autopilotStartPosition = Vector3FromObj(player.position)
+    const distanceToEnd = autopilotEndPosition.subtract(autopilotStartPosition).length()
+
+    // move camera to swing view
+    // run swing animation
+    if (distanceToEnd < 5000) {
+      // Too Close
+      return false
+    }
+
+    // Check if we are inside a hazzard
+    let currentHazzard: Environment
+    for (const hazard of environment || []) {
+      const hazardPosition = new Vector3(hazard.location.position.x, 0, hazard.location.position.y)
+      const distance = autopilotStartPosition.subtract(hazardPosition).length()
+      if (distance < 5000) {
+        console.log("[Autopilot] inside hazzard", hazard)
+        currentHazzard = hazard
+      }
+    }
+    if (currentHazzard) {
+      console.log("[Autopilot] can't start autopilot in a hazzard")
+      return false
+    }
+    return true
   }
 }

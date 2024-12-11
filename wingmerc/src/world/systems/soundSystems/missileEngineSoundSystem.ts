@@ -4,7 +4,6 @@ import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { Vector3FromObj } from "../../../utils/math"
 
 export class MissileEngineSoundSystem implements IDisposable {
-
   engineSounds = new Map<Entity, Sound>()
 
   constructor() {
@@ -14,8 +13,15 @@ export class MissileEngineSoundSystem implements IDisposable {
 
   private onEntityAdded = (entity) => {
     if (!this.engineSounds.has(entity)) {
-      let sound = SoundEffects.MissileEngine(Vector3FromObj(entity.position))
+      let sound = SoundEffects.MissileEngine(entity.node.position)
+      // sound.loop = true
       sound.attachToMesh(entity.node)
+      sound.play()
+      sound.metadata = {
+        observer: sound.onEndedObservable.add(() => {
+          sound.play(0, 0.75)
+        }),
+      }
       this.engineSounds.set(entity, sound)
     }
   }
@@ -23,6 +29,9 @@ export class MissileEngineSoundSystem implements IDisposable {
   private onEntityRemoved = (entity) => {
     if (this.engineSounds.has(entity)) {
       let sound = this.engineSounds.get(entity)
+      sound.metadata.observer.remove()
+      sound.metadata = undefined
+      sound.detachFromMesh
       SoundEffects.Silience(sound)
       this.engineSounds.delete(entity)
     }

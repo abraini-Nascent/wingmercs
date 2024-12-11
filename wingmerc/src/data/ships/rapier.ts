@@ -9,6 +9,7 @@ export const Rapier: ShipTemplate = Object.seal({
   baseWeight: 6,
   modelDetails: {
     base: "spaceCraft2",
+    cockpit: "cockpit",
     physics: "spaceCraft2Hull",
     shield: "spaceCraft2Hull",
     trails: [
@@ -118,9 +119,11 @@ export const Rapier: ShipTemplate = Object.seal({
     core: {
       health: 50,
       slots: ["PowerPlant", "Shields", "Thruster"],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       weaponMounts: [
         {
           maxCount: 2,
@@ -142,13 +145,15 @@ export const Rapier: ShipTemplate = Object.seal({
       maxArmor: 60,
       health: 60,
       slots: ["Radar"],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {
@@ -159,7 +164,7 @@ export const Rapier: ShipTemplate = Object.seal({
         },
         {
           base: {
-            type: "laser"
+            type: "laser",
           },
           maxSize: "Medium",
           position: {
@@ -181,13 +186,15 @@ export const Rapier: ShipTemplate = Object.seal({
       maxArmor: 50,
       health: 50,
       slots: [],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "particleCannon"
+            type: "particleCannon",
           },
           maxSize: "Medium",
           position: {
@@ -210,7 +217,7 @@ export const Rapier: ShipTemplate = Object.seal({
             count: 2,
             type: "heatseeking",
           },
-        }
+        },
       ],
     },
     right: {
@@ -218,13 +225,15 @@ export const Rapier: ShipTemplate = Object.seal({
       maxArmor: 50,
       health: 50,
       slots: [],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
           base: {
-            type: "particleCannon"
+            type: "particleCannon",
           },
           maxSize: "Medium",
           position: {
