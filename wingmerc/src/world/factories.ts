@@ -31,7 +31,7 @@ import {
   ShipWeapons,
 } from "./world"
 import { net } from "./systems/netSystems/net"
-import * as WeaponData from "../data/weapons"
+import { Weapons as WeaponData } from "../data/weapons"
 import { Weapon } from "../data/weapons/weapon"
 import * as GunAffixes from "../data/affixes/gunAffixes"
 import { GunAffix } from "../data/affixes/gunAffix"
@@ -197,9 +197,12 @@ export function createCustomShip(
   }
   if (ship.powerPlantSlot.modifier) {
     modifiers.push(ship.powerPlantSlot.modifier)
-    shipPowerPlant.maxCapacity = applyModifier(shipPowerPlant.maxCapacity, ship.powerPlantSlot.modifier.maxCapacity)
+    shipPowerPlant.maxCapacity = applyModifier(
+      shipPowerPlant.maxCapacity,
+      ship.powerPlantSlot.modifier.powerMaxCapacity
+    )
     shipPowerPlant.currentCapacity = shipPowerPlant.maxCapacity
-    shipPowerPlant.rate = applyModifier(shipPowerPlant.rate, ship.powerPlantSlot.modifier.rate)
+    shipPowerPlant.rate = applyModifier(shipPowerPlant.rate, ship.powerPlantSlot.modifier.powerRechargeRate)
   }
   const shipShields: ShipShields = {
     maxFore: ship.shieldsSlot.base.fore,
@@ -217,7 +220,7 @@ export function createCustomShip(
     shipShields.maxAft = applyModifier(shipShields.maxAft, ship.shieldsSlot.modifier.aft)
     shipShields.currentAft = shipShields.maxAft
     shipShields.energyDrain = applyModifier(shipShields.energyDrain, ship.shieldsSlot.modifier.energyDrain)
-    shipShields.rechargeRate = applyModifier(shipShields.rechargeRate, ship.shieldsSlot.modifier.rechargeRate)
+    shipShields.rechargeRate = applyModifier(shipShields.rechargeRate, ship.shieldsSlot.modifier.shieldRechargeRate)
   }
   const fuelTank = {
     maxCapacity: ship.fuelTankSlot.base.capacity,
@@ -230,14 +233,14 @@ export function createCustomShip(
       if (utilityMounts != undefined) {
         utilityMounts.forEach((mount) => {
           if (mount.utility != undefined) {
-            if (mount.utility.energy) {
-              extras["energy"] += mount.utility.energy.value
+            if (mount.utility.extraEnergy) {
+              extras["energy"] += mount.utility.extraEnergy.value
             }
-            if (mount.utility.fuel) {
-              extras["fuel"] += mount.utility.fuel.value
+            if (mount.utility.extraFuel) {
+              extras["fuel"] += mount.utility.extraFuel.value
             }
-            if (mount.utility.shields) {
-              extras["shields"] += mount.utility.shields.value
+            if (mount.utility.extraShields) {
+              extras["shields"] += mount.utility.extraShields.value
             }
           }
         })
@@ -280,14 +283,14 @@ export function createCustomShip(
   if (ship.engineSlot.modifier) {
     modifiers.push(ship.engineSlot.modifier)
     shipEngine.cruiseSpeed = applyModifier(shipEngine.cruiseSpeed, ship.engineSlot.modifier.cruiseSpeed)
-    shipEngine.accelleration = applyModifier(shipEngine.accelleration, ship.engineSlot.modifier.accelleration)
+    shipEngine.accelleration = applyModifier(shipEngine.accelleration, ship.engineSlot.modifier.engineAccelleration)
   }
   if (ship.afterburnerSlot.modifier) {
     modifiers.push(ship.afterburnerSlot.modifier)
     shipEngine.maxSpeed = applyModifier(shipEngine.maxSpeed, ship.afterburnerSlot.modifier.maxSpeed)
     shipEngine.afterburnerAccelleration = applyModifier(
       shipEngine.afterburnerAccelleration,
-      ship.afterburnerSlot.modifier.accelleration
+      ship.afterburnerSlot.modifier.afterburnerAccelleration
     )
     shipEngine.fuelConsumeRate = applyModifier(
       shipEngine.fuelConsumeRate,
@@ -399,6 +402,13 @@ export function createCustomShip(
     isTargetable: "enemy",
     visible: true,
   } as Partial<Entity>
+  if (ship.modelDetails.cockpitOffset) {
+    shipEntityProps.cockpitOffset = {
+      x: ship.modelDetails.cockpitOffset.x,
+      y: ship.modelDetails.cockpitOffset.y,
+      z: ship.modelDetails.cockpitOffset.z,
+    }
+  }
   if (player) {
     shipEntityProps.currentPlayer = player
   }
@@ -426,7 +436,7 @@ export function createLiveWeapon(
   SoundEffects.MissileLaunch(Vector3FromObj(startPosition))
 
   let target = targeting.target
-  if (target == undefined && weaponClass.type == "friendorfoe") {
+  if (target == undefined && weaponClass.weaponType == "friendorfoe") {
     // find nearest enemy
     const nearestTarget = nearestEnemy(firingEntity, weaponClass.range)
     console.log("[weaponCommandSystem] targeting nearest enemy", target)
@@ -527,6 +537,35 @@ export function gunSelectionName(part: GunSelection): [id: string, name: string]
     name += ` tier ${part.tier ?? 1}`
   }
   return [id, name]
+}
+
+export function itemSelectionNameParts(part: GunSelection | Weapon): [id: string, name: string, mod: string] {
+  const gun = GunData[part.type] as Gun
+  const weapon = WeaponData[(part as any).weaponType] as Weapon
+  if (gun) {
+    const gunSelection = part as GunSelection
+    let name = gun.name
+    let tier = ""
+    let id = gun.class
+    let gunModifier: GunAffix
+    if (gunSelection.affix != undefined) {
+      gunModifier = GunAffixes[gunSelection.affix]
+      tier += `${gunModifier.name}`
+      id += `_${gunModifier.type}`
+    }
+    id += `_${gunSelection.tier ?? 1}`
+    if (gunSelection.affix == undefined) {
+      tier += `tier ${gunSelection.tier ?? 1}`
+    }
+    return [id, name, tier]
+  }
+  if (weapon) {
+    const weaponPart = part as Weapon
+    let name = weapon.name
+    let id = weaponPart.class
+    return [id, name, undefined]
+  }
+  return [undefined, undefined, undefined]
 }
 
 export function allAmmos(): UtilityModifierDetails[] {

@@ -98,6 +98,7 @@ export const Razor: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -105,6 +106,7 @@ export const Razor: ShipTemplate = Object.seal({
         {
           maxCount: 4,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 0,
             y: -2.5,
@@ -124,6 +126,7 @@ export const Razor: ShipTemplate = Object.seal({
       slots: ["Radar"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -141,11 +144,13 @@ export const Razor: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -157,6 +162,7 @@ export const Razor: ShipTemplate = Object.seal({
           },
         },
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -172,6 +178,7 @@ export const Razor: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: -4.5,
             y: -2.5,
@@ -191,11 +198,13 @@ export const Razor: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -207,6 +216,7 @@ export const Razor: ShipTemplate = Object.seal({
           },
         },
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -222,6 +232,7 @@ export const Razor: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 2.5,
             y: -2.5,

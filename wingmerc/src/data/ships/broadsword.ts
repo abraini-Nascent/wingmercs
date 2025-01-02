@@ -8,10 +8,9 @@ export const Broadsword: ShipTemplate = Object.seal({
   baseWeight: 18,
   maxWeight: 35,
   modelDetails: {
-    base: "spaceCraft4",
-    cockpit: "cockpit",
-    physics: "spaceCraft4Hull",
-    shield: "spaceCraft4Hull",
+    base: "craftSpeederD",
+    physics: "craftSpeederDHull",
+    shield: "craftSpeederDHull",
     trails: [
       {
         start: {
@@ -109,11 +108,13 @@ export const Broadsword: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       weaponMounts: [
         {
+          mountType: "WeaponMount",
           maxCount: 4,
           maxSize: "Medium",
           position: {
@@ -135,11 +136,13 @@ export const Broadsword: ShipTemplate = Object.seal({
       slots: ["Radar"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -153,6 +156,7 @@ export const Broadsword: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
+          mountType: "WeaponMount",
           maxCount: 1,
           maxSize: "Medium",
           position: {
@@ -180,11 +184,13 @@ export const Broadsword: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -198,6 +204,7 @@ export const Broadsword: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
+          mountType: "WeaponMount",
           maxCount: 1,
           maxSize: "Medium",
           position: {
@@ -219,11 +226,13 @@ export const Broadsword: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -237,6 +246,7 @@ export const Broadsword: ShipTemplate = Object.seal({
       ],
       weaponMounts: [
         {
+          mountType: "WeaponMount",
           maxCount: 1,
           maxSize: "Medium",
           position: {

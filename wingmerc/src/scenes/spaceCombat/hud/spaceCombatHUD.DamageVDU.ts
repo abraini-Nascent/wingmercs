@@ -1,10 +1,10 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { AppContainer } from "../../../app.container";
-import { IDisposable } from "@babylonjs/core";
+import { AppContainer } from "../../../app.container"
+import { IDisposable } from "@babylonjs/core"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class DamageVDU implements IDisposable {
-
+export class DamageVDU implements VDU {
   systemsPanel: GUI.StackPanel
   title: TextBlock
   afterburners: TextBlock
@@ -19,9 +19,13 @@ export class DamageVDU implements IDisposable {
   get mainComponent(): GUI.Control {
     return this.systemsPanel
   }
+
   constructor() {
     this.setupComponents()
   }
+
+  vduButtonPressed(_button: number) {}
+
   dispose() {
     this.title.dispose()
     this.afterburners.dispose()
@@ -34,7 +38,6 @@ export class DamageVDU implements IDisposable {
     this.thrusters.dispose()
   }
   setupComponents() {
-
     function systemText(name: string, value: string) {
       const systemTextBlock = new GUI.TextBlock(name)
       systemTextBlock.fontFamily = "monospace"
@@ -45,7 +48,6 @@ export class DamageVDU implements IDisposable {
       systemTextBlock.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
       systemTextBlock.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
       return systemTextBlock
-
     }
     const systemsPanel = new GUI.StackPanel()
     systemsPanel.isVertical = true
@@ -104,8 +106,8 @@ export class DamageVDU implements IDisposable {
       content.color = "white"
     }
   }
-  
-  padName(name:string) {
+
+  padName(name: string) {
     return name.padEnd(10, ".")
   }
 }

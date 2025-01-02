@@ -11,10 +11,13 @@ export const Epee: ShipTemplate = Object.seal({
   pilot: "Light01",
   // 3d model
   modelDetails: {
-    base: "spaceCraft5",
-    cockpit: "cockpit",
-    physics: "spaceCraft5Hull",
-    shield: "spaceCraft5Hull",
+    base: "craftSpeederA",
+    physics: "craftSpeederAHull",
+    shield: "craftSpeederAHull",
+    // base: "spaceCraft5",
+    // cockpit: "cockpit",
+    // physics: "spaceCraft5Hull",
+    // shield: "spaceCraft5Hull",
     trails: [
       {
         start: {
@@ -98,6 +101,7 @@ export const Epee: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -109,6 +113,7 @@ export const Epee: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -126,11 +131,13 @@ export const Epee: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -146,6 +153,7 @@ export const Epee: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: -2.5,
             y: -2.5,
@@ -165,11 +173,13 @@ export const Epee: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -185,6 +195,7 @@ export const Epee: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 2.5,
             y: -2.5,

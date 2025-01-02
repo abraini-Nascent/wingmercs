@@ -246,7 +246,7 @@ export class MercParticles {
     mps.SPS.mesh.material = this.flatMat
     mps.targetStopDuration = 0.1
     mps.emitRate = 33
-    mps.emitCount = 100
+    mps.emitCount = 10
     mps.lifeTimeGradients = [new FactorGradient(1, 0.11, 0.33)]
     mps.colorGradients = [
       new ColorGradient(0.0, new Color4(0, 0, 70, 1), new Color4(0, 0, 80, 1)),
@@ -537,7 +537,7 @@ export class MercParticles {
   ): MercParticleSystem {
     let mps = new MercParticleSystem(name, scene)
     mps.SPS.isAlwaysVisible = true
-    let flatMat = new StandardMaterial("testSPS")
+    let flatMat = new StandardMaterial("death explosion SPS")
     flatMat.specularColor = new Color3(0, 0, 0)
     mps.SPS.mesh.material = flatMat
     mps.emitRate = 3000

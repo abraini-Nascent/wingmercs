@@ -1,4 +1,4 @@
-import { ShieldGeneratorModifierDetails } from "../ships/shipTemplate";
+import { ShieldGeneratorModifierDetails } from "../ships/shipTemplate"
 
 export const BasicShields = {
   id: "BasicShields",
@@ -8,11 +8,11 @@ export const BasicShields = {
   cost: 10000,
   weight: 1,
   fore: {
-    value: 5
+    value: 5,
   },
   aft: {
-    value: 5
-  }
+    value: 5,
+  },
 } as ShieldGeneratorModifierDetails
 
 export const LightningShields = {
@@ -22,13 +22,13 @@ export const LightningShields = {
   size: "Medium",
   cost: 10000,
   weight: 1,
-  rechargeRate: {
+  shieldRechargeRate: {
     value: 0.15,
-    percent: true
+    percent: true,
   },
   energyDrain: {
     value: 0.1,
-    percent: true
+    percent: true,
   },
 } as ShieldGeneratorModifierDetails
 
@@ -39,13 +39,13 @@ export const JellyShields = {
   size: "Medium",
   cost: 10000,
   weight: 1,
-  rechargeRate: {
+  shieldRechargeRate: {
     value: -0.1,
-    percent: true
+    percent: true,
   },
   energyDrain: {
     value: -0.15,
-    percent: true
+    percent: true,
   },
 } as ShieldGeneratorModifierDetails
 
@@ -58,19 +58,19 @@ export const SnapShields = {
   weight: 1,
   fore: {
     value: -0.25,
-    percent: true
+    percent: true,
   },
   aft: {
     value: -0.25,
-    percent: true
+    percent: true,
   },
-  rechargeRate: {
+  shieldRechargeRate: {
     value: 0.5,
-    percent: true
+    percent: true,
   },
   energyDrain: {
-    value: -0.10,
-    percent: true
+    value: -0.1,
+    percent: true,
   },
 } as ShieldGeneratorModifierDetails
 
@@ -83,19 +83,19 @@ export const HeavyShields = {
   weight: 1,
   fore: {
     value: 0.25,
-    percent: true
+    percent: true,
   },
   aft: {
     value: 0.25,
-    percent: true
+    percent: true,
   },
-  rechargeRate: {
-    value: -0.10,
-    percent: true
+  shieldRechargeRate: {
+    value: -0.1,
+    percent: true,
   },
   energyDrain: {
-    value: 0.10,
-    percent: true
+    value: 0.1,
+    percent: true,
   },
 } as ShieldGeneratorModifierDetails
 
@@ -104,15 +104,15 @@ export const ShieldTypes = {
   LightningShields: "LightningShields",
   JellyShields: "JellyShields",
   SnapShields: "SnapShields",
-  HeavyShields: "HeavyShields"
+  HeavyShields: "HeavyShields",
 } as const
 
-export type ShieldTypes = typeof ShieldTypes[keyof typeof ShieldTypes];
+export type ShieldTypes = (typeof ShieldTypes)[keyof typeof ShieldTypes]
 export type Shields = { [shieldType in ShieldTypes]: ShieldGeneratorModifierDetails }
 export const Shields = {
   BasicShields: BasicShields,
   LightningShields: LightningShields,
   JellyShields: JellyShields,
   SnapShields: SnapShields,
-  HeavyShields: HeavyShields
+  HeavyShields: HeavyShields,
 }

@@ -5,8 +5,9 @@ import { Entity, EntityForId, world } from "../../../world/world"
 import * as Ships from "../../../data/ships"
 import { StaticVDU } from "./spaceCombatHUD.StaticVDU"
 import { rand, random } from "../../../utils/random"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class TargetVDU implements IDisposable {
+export class TargetVDU implements VDU {
   screen: GUI.Container
   static: StaticVDU
   lockPanel: GUI.StackPanel
@@ -32,6 +33,7 @@ export class TargetVDU implements IDisposable {
     this.lockPanel.dispose()
     this.screen.dispose()
   }
+  vduButtonPressed(_button: number) {}
   setupMain() {
     const container = new GUI.Container("TargetVDU")
     container.heightInPixels = 240

@@ -8,15 +8,16 @@ import { generateMission } from "../../../world/missionFactory"
 import { AppContainer } from "../../../app.container"
 import { MeshedSystem } from "../../../world/systems/renderSystems/meshedSystem"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
-import { ShipCustomizerScene } from "../../shipCustomizer/shipCustomizerLoop"
-import { ShipCustomizerScreen } from "../../shipCustomizer/shipCustomizerScreen"
 import { InstantActionScene } from "./instantAction.singlePlayer"
 import { SkyboxSystems } from "../../../world/systems/visualsSystems/skyboxSystems"
+import { MissionSelectRetroScreen } from "../../missionSelectScene/missionSelectRetroScreen"
+import { Mission } from "../../../data/missions/missionData"
+import { ShipCustomizerRetroScreen } from "../../shipCustomizer/shipCustomizerRetroScreen"
 
 export class InstantActionSetupScene implements GameScene, IDisposable {
-  missionSelectScreen: MissionSelectScreen
+  missionSelectScreen: MissionSelectRetroScreen
   shipSelectScreen: ShipSelectionScreen
-  shipCustomizationScreen: ShipCustomizerScreen
+  shipCustomizationScreen: ShipCustomizerRetroScreen
 
   shipModels: { [name: string]: Entity } = {}
 
@@ -101,16 +102,20 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
       console.log("removing", entity)
       debugger
     })
-    this.missionSelectScreen = new MissionSelectScreen([generateMission(20), generateMission(40), generateMission(60)])
-    this.missionSelectScreen.onDone = () => this.missionSelected()
+    this.missionSelectScreen = new MissionSelectRetroScreen([
+      generateMission(20),
+      generateMission(40),
+      generateMission(60),
+    ])
+    this.missionSelectScreen.onDone = (mission) => this.missionSelected(mission)
     this.runLoop = this.missionSelectLoop
   }
 
-  missionSelected() {
+  missionSelected(mission: Mission) {
     console.log("mission selected")
-    if (this.missionSelectScreen.activeMission.getValue()) {
+    if (mission) {
       this.missionSelectScreen.dispose()
-      this.campaignEntity.campaign.currentMission = this.missionSelectScreen.activeMission.getValue()
+      this.campaignEntity.campaign.currentMission = mission
       console.log("[Instance Action Setup] selected mission: ", this.campaignEntity.campaign.currentMission)
 
       this.setupShipSelect()
@@ -150,7 +155,7 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
   }
 
   setupShipCustomization(ship: ShipTemplate) {
-    this.shipCustomizationScreen = new ShipCustomizerScreen(ship)
+    this.shipCustomizationScreen = new ShipCustomizerRetroScreen(ship)
     this.shipCustomizationScreen.onSelected = (ship) => this.shipCustomized(ship)
   }
 

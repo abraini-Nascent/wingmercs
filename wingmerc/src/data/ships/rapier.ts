@@ -8,10 +8,9 @@ export const Rapier: ShipTemplate = Object.seal({
   maxWeight: 14,
   baseWeight: 6,
   modelDetails: {
-    base: "spaceCraft2",
-    cockpit: "cockpit",
-    physics: "spaceCraft2Hull",
-    shield: "spaceCraft2Hull",
+    base: "craftSpeederB",
+    physics: "craftSpeederBHull",
+    shield: "craftSpeederBHull",
     trails: [
       {
         start: {
@@ -121,6 +120,7 @@ export const Rapier: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -128,6 +128,7 @@ export const Rapier: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 0,
             y: -2.5,
@@ -147,11 +148,13 @@ export const Rapier: ShipTemplate = Object.seal({
       slots: ["Radar"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "laser",
           },
@@ -163,6 +166,7 @@ export const Rapier: ShipTemplate = Object.seal({
           },
         },
         {
+          mountType: "GunMount",
           base: {
             type: "laser",
           },
@@ -188,11 +192,13 @@ export const Rapier: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -208,6 +214,7 @@ export const Rapier: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: -2.5,
             y: -2.5,
@@ -227,11 +234,13 @@ export const Rapier: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -247,6 +256,7 @@ export const Rapier: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 2.5,
             y: -2.5,

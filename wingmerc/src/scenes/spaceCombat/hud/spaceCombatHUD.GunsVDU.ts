@@ -1,44 +1,53 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { AppContainer } from "../../../app.container";
-import { Gun } from "../../../data/guns/gun";
+import { AppContainer } from "../../../app.container"
+import { Gun } from "../../../data/guns/gun"
 import * as Guns from "../../../data/guns"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class GunsVDU {
-
-  gunsPanel: GUI.StackPanel
-  title: GUI.TextBlock
-  guns: {[mount: number]: TextBlock} = {}
-  selected = new Set<number>()
+export class GunsVDU implements VDU {
+  private gunsPanel: GUI.StackPanel
+  private title: GUI.TextBlock
+  private guns: { [mount: number]: TextBlock } = {}
+  private selected = new Set<number>()
 
   get mainComponent(): GUI.Control {
     return this.gunsPanel
   }
+
   constructor() {
     this.setupComponents()
   }
+
   dispose() {
     Object.values(this.guns).forEach((tb) => tb.dispose())
     this.gunsPanel.dispose()
   }
-  setupComponents() {
-    const gunsPanel = new GUI.StackPanel("Guns Panel")
-    gunsPanel.isVertical = true
-    gunsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
-    gunsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
-    gunsPanel.width = "240px"
-    gunsPanel.height = "240px"
-    this.gunsPanel = gunsPanel
-    const title = this.GunText("title", "-=GUNS=-", true)
-    this.title = title
-    this.title.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
-    this.gunsPanel.addControl(title)
+
+  vduButtonPressed(button: number) {
+    if (button == 0) {
+      const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "guns"
+      player.guns.selected += 1
+      let gunGroupCount = player.guns.groups.length
+      if (player.guns.selected >= gunGroupCount) {
+        player.guns.selected = 0
+      }
+    }
+    if (button == 4) {
+      const player = AppContainer.instance.player.playerEntity
+      player.vduState.left = "guns"
+      player.guns.selected -= 1
+      if (player.guns.selected < 0) {
+        player.guns.selected = player.guns.groups.length - 1
+      }
+    }
   }
 
   update() {
     const playerEntity = AppContainer.instance.player.playerEntity
     this.selected.clear()
-    playerEntity.guns.groups[playerEntity.guns.selected].forEach(gunIndex => this.selected.add(gunIndex))
+    playerEntity.guns.groups[playerEntity.guns.selected].forEach((gunIndex) => this.selected.add(gunIndex))
 
     for (const [index, mount] of Object.entries(playerEntity.guns.mounts)) {
       const gun = Guns[mount.class] as Gun
@@ -59,7 +68,21 @@ export class GunsVDU {
     }
   }
 
-  GunText(name: string, value: string, title:boolean = false): GUI.TextBlock {
+  private setupComponents() {
+    const gunsPanel = new GUI.StackPanel("Guns Panel")
+    gunsPanel.isVertical = true
+    gunsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
+    gunsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+    gunsPanel.width = "240px"
+    gunsPanel.height = "240px"
+    this.gunsPanel = gunsPanel
+    const title = this.GunText("title", "-=GUNS=-", true)
+    this.title = title
+    this.title.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+    this.gunsPanel.addControl(title)
+  }
+
+  private GunText(name: string, value: string, title: boolean = false): GUI.TextBlock {
     const gunTextBlock = new GUI.TextBlock(name)
     gunTextBlock.fontFamily = "monospace"
     gunTextBlock.text = value
@@ -77,7 +100,14 @@ export class GunsVDU {
     return gunTextBlock
   }
 
-  setState(content: GUI.TextBlock, name: string, selected: boolean, value: number, base: number, ammo: number | undefined) {
+  private setState(
+    content: GUI.TextBlock,
+    name: string,
+    selected: boolean,
+    value: number,
+    base: number,
+    ammo: number | undefined
+  ) {
     const percent = Math.round((value / base) * 100)
     content.text = `${name}`
     if (ammo != undefined) {
@@ -97,8 +127,8 @@ export class GunsVDU {
       }
     }
   }
-  
-  padName(name:string) {
+
+  private padName(name: string) {
     return name.padEnd(10, ".")
   }
 }

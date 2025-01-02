@@ -9,17 +9,25 @@ export const Dirk: ShipTemplate = Object.seal({
   baseWeight: 7,
   modelDetails: {
     scale: 100,
-    base: "dirk_3rd",
-    cockpit: "cockpit",
-    firstPerson: "dirk_1st",
-    physics: "craftMinerHull",
-    shield: "craftMinerHull",
+    base: "spaceCraft1",
+    physics: "spaceCraft1Hull",
+    shield: "spaceCraft1Hull",
+    cockpitOffset: {
+      x: 0,
+      y: -1,
+      z: 5,
+    },
+    // base: "dirk_3rd",
+    // cockpit: "cockpit",
+    // firstPerson: "dirk_1st",
+    // physics: "craftMinerHull",
+    // shield: "craftMinerHull",
     trails: [
       {
         start: {
           x: 0,
           y: -1,
-          z: 10,
+          z: 15,
         },
         width: 5,
         color: {
@@ -98,18 +106,24 @@ export const Dirk: ShipTemplate = Object.seal({
     core: {
       health: 50,
       slots: ["PowerPlant", "Shields", "Thruster"],
-      utilityMounts: [{
-        maxSize: "Small"
-      }]
+      utilityMounts: [
+        {
+          mountType: "UtilityMount",
+          maxSize: "Small",
+        },
+      ],
     },
     front: {
       armor: 65,
       maxArmor: 65,
       health: 65,
       slots: ["Radar"],
-      utilityMounts: [{
-        maxSize: "Small"
-      }]
+      utilityMounts: [
+        {
+          mountType: "UtilityMount",
+          maxSize: "Small",
+        },
+      ],
     },
     back: {
       armor: 65,
@@ -122,13 +136,17 @@ export const Dirk: ShipTemplate = Object.seal({
       maxArmor: 45,
       health: 45,
       slots: [],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          mountType: "UtilityMount",
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
-            type: "massdriver"
+            type: "massdriver",
           },
           maxSize: "Medium",
           position: {
@@ -142,6 +160,7 @@ export const Dirk: ShipTemplate = Object.seal({
         {
           maxCount: 1,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: -2.5,
             y: -2.5,
@@ -151,7 +170,7 @@ export const Dirk: ShipTemplate = Object.seal({
             count: 1,
             type: "heatseeking",
           },
-        }
+        },
       ],
     },
     right: {
@@ -159,13 +178,17 @@ export const Dirk: ShipTemplate = Object.seal({
       maxArmor: 45,
       health: 45,
       slots: [],
-      utilityMounts: [{
-        maxSize: "Small"
-      }],
+      utilityMounts: [
+        {
+          mountType: "UtilityMount",
+          maxSize: "Small",
+        },
+      ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
-            type: "massdriver"
+            type: "massdriver",
           },
           maxSize: "Medium",
           position: {
@@ -179,6 +202,7 @@ export const Dirk: ShipTemplate = Object.seal({
         {
           maxCount: 1,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 2.5,
             y: -2.5,

@@ -1,4 +1,4 @@
-import { AfterburnerModifierDetails } from "../ships/shipTemplate";
+import { AfterburnerModifierDetails } from "../ships/shipTemplate"
 
 /**
  * - consumes more fuel but has a higher top end
@@ -9,18 +9,18 @@ import { AfterburnerModifierDetails } from "../ships/shipTemplate";
 /** consumes more fuel but has a higher top end */
 export const HotAfterburners: AfterburnerModifierDetails = {
   id: "HotAfterburners",
-  name: "Hot",
+  name: "Hot Afterburners",
   type: "Afterburner",
   size: "Medium",
   cost: 10000,
   weight: 1,
   maxSpeed: {
     value: 0.15,
-    percent: true
+    percent: true,
   },
   fuelConsumeRate: {
     value: 0.1,
-    percent: true
+    percent: true,
   },
 } as AfterburnerModifierDetails
 
@@ -28,17 +28,17 @@ export const HotAfterburners: AfterburnerModifierDetails = {
 export const DragsterAfterburners = {
   id: "DragsterAfterburners",
   type: "Afterburner",
-  name: "Dragster",
+  name: "Dragster Afterburners",
   size: "Medium",
   cost: 10000,
   weight: 1,
   maxSpeed: {
     value: 0.15,
-    percent: true
+    percent: true,
   },
-  accelleration: {
+  afterburnerAccelleration: {
     value: -0.1,
-    percent: true
+    percent: true,
   },
 } as AfterburnerModifierDetails
 
@@ -46,17 +46,17 @@ export const DragsterAfterburners = {
 export const JackrabbitAfterburners = {
   id: "JackrabbitAfterburners",
   type: "Afterburner",
-  name: "Jackrabbit",
+  name: "Jackrabbit Afterburners",
   size: "Medium",
   cost: 10000,
   weight: 1,
   maxSpeed: {
     value: -0.1,
-    percent: true
+    percent: true,
   },
-  accelleration: {
+  afterburnerAccelleration: {
     value: 0.15,
-    percent: true
+    percent: true,
   },
 } as AfterburnerModifierDetails
 
@@ -64,17 +64,17 @@ export const JackrabbitAfterburners = {
 export const TurtleAfterburners = {
   id: "TurtleAfterburners",
   type: "Afterburner",
-  name: "Turtle",
+  name: "Turtle Afterburners",
   size: "Large",
   cost: 10000,
   weight: 1,
   maxSpeed: {
     value: -0.1,
-    percent: true
+    percent: true,
   },
   fuelConsumeRate: {
     value: -0.15,
-    percent: true
+    percent: true,
   },
 } as AfterburnerModifierDetails
 
@@ -85,12 +85,12 @@ export const AfterburnerTypes = {
   TurtleAfterburners: "TurtleAfterburners",
 } as const
 
-export type AfterburnerTypes = typeof AfterburnerTypes[keyof typeof AfterburnerTypes];
-export type Afterburners = { [engineType in AfterburnerTypes]: AfterburnerModifierDetails };
+export type AfterburnerTypes = (typeof AfterburnerTypes)[keyof typeof AfterburnerTypes]
+export type Afterburners = { [engineType in AfterburnerTypes]: AfterburnerModifierDetails }
 
 export const Afterburners: Afterburners = {
   HotAfterburners: HotAfterburners,
   DragsterAfterburners: DragsterAfterburners,
   JackrabbitAfterburners: JackrabbitAfterburners,
-  TurtleAfterburners: TurtleAfterburners
+  TurtleAfterburners: TurtleAfterburners,
 }

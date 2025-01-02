@@ -340,7 +340,7 @@ export function generateMissionTitle(mission: Mission, titles: string[]): string
 
 export function generateMission(difficulty: DifficultyLevel): Mission {
   const numLocations = Math.floor(difficulty / 10)
-  const briefing: string[] = [`Mission at difficulty level ${difficulty}.`]
+  const briefing: string[] = [`Threat level ${difficulty}.`]
   const locations = Array.from({ length: numLocations }, (_, id) => generateRandomLocation(id + 1))
   const spawnLocation = generateRandomLocation(numLocations)
   spawnLocation.isEntryPoint = true
@@ -403,7 +403,7 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
   ctx.fillRect(0, 0, width, height)
 
   // Set line width for all drawings
-  ctx.lineWidth = 2
+  ctx.lineWidth = 4
 
   // Colors and styles for elements
   const colors: { [key in MapPointType | MapEncounterType]: string } = {
@@ -418,9 +418,9 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
   // Sizes for different types of objects
   const sizes: { [key in MapPointType | "triangle"]: number } = {
     navPoint: 12,
-    asteroids: 24,
-    radiation: 26,
-    nebula: 28,
+    asteroids: 34,
+    radiation: 36,
+    nebula: 38,
     triangle: 8,
   }
 
@@ -437,10 +437,10 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
 
   // Utility function to draw centered label
   function drawLabel(x: number, y: number, text: string): void {
-    ctx.font = "10px Arial"
+    ctx.font = "10px KongfaceRegular"
     ctx.fillStyle = "white"
     ctx.textAlign = "center"
-    ctx.fillText(text, x, y)
+    ctx.fillText(text.toUpperCase(), x, y)
   }
 
   // Helper function to draw a circle
@@ -458,7 +458,7 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
   // Utility function to draw square for nav points
   function drawSquare(x: number, y: number, color: string, size: number, label?: string) {
     ctx.strokeStyle = color
-    ctx.lineWidth = 2
+    ctx.lineWidth = 4
     ctx.strokeRect(x - size / 2, y - size / 2, size, size)
 
     if (label) {
@@ -491,7 +491,7 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
     ctx.stroke()
 
     if (label) {
-      drawLabel(x + size + 14, y + 3, label)
+      drawLabel(x, y - size / 2 - 12, label)
     }
   }
 
@@ -509,13 +509,13 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
       points.push({
         ...plotPosition(n.position),
         type: "navPoint",
-        label: n.name.replace("Point", ""),
+        label: n.name.replace("Point ", ""),
       })
     } else if (debug) {
       points.push({
         ...plotPosition(n.position),
         type: "navPoint",
-        label: n.name.replace("Point", ""),
+        label: n.name.replace("Point ", ""),
       })
     }
   })

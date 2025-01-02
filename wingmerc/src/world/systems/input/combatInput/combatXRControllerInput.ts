@@ -42,6 +42,7 @@ export class CombatXRControllerInput implements IDisposable {
 
   constructor() {
     CombatXRControllerInput.current = this
+    VRSystem.setPointerEnabled(false)
     // SceneLoader.ImportMeshAsync("", "./assets/models/joystick.glb").then((result) => {
     // glb root node
     // this.rightJoystick = result.transformNodes[0]
@@ -59,7 +60,9 @@ export class CombatXRControllerInput implements IDisposable {
     // })
   }
 
-  dispose() {}
+  dispose() {
+    VRSystem.setPointerEnabled(true)
+  }
   update() {
     this.checkXR()
   }
@@ -143,25 +146,27 @@ export class CombatXRControllerInput implements IDisposable {
       this.initialRightGripOrientation = undefined
       // this.rightJoystick.setEnabled(false)
       // this.rightJoystickGhost.setEnabled(false)
-      if (thumbstick) {
+      if (this.leftSqueeze == false && thumbstick) {
         moveCommand.roll = thumbstick.axes.x
         moveCommand.deltaSpeed = thumbstick.axes.y
-        moveCommand.drift = thumbstick.pressed ? 1 : 0
       }
     }
+    if (thumbstick) {
+      moveCommand.drift = moveCommand.drift || thumbstick.pressed ? 1 : 0
+    }
     if (trigger) {
-      fireCommand.gun = trigger.pressed ? 1 : 0
+      fireCommand.gun = fireCommand.gun || trigger.pressed ? 1 : 0
     }
     if (aButton && aButton.pressed) {
       if (this.inputDebounce.tryNow(DebounceIds.Target)) {
-        fireCommand.target = aButton.pressed
+        fireCommand.target = fireCommand.target || aButton.pressed
       }
     } else {
       this.inputDebounce.clear(DebounceIds.Target)
     }
     if (bButton && bButton.pressed) {
       if (this.inputDebounce.tryNow(DebounceIds.Lock)) {
-        fireCommand.lock = bButton.pressed
+        fireCommand.lock = fireCommand.lock || bButton.pressed
       }
     } else {
       this.inputDebounce.clear(DebounceIds.Lock)
@@ -203,9 +208,9 @@ export class CombatXRControllerInput implements IDisposable {
             moveCommand.deltaSpeed = 25 * (throttle.y > 0 ? -1 : 1) // clamp from 15 / 45 degrees
           } else {
             if (throttle.y > 0) {
-              moveCommand.brake = 1
+              moveCommand.brake = moveCommand.brake || 1
             } else {
-              moveCommand.afterburner = 1
+              moveCommand.afterburner = moveCommand.afterburner || 1
             }
           }
         }
@@ -217,28 +222,30 @@ export class CombatXRControllerInput implements IDisposable {
       this.leftSqueeze = false
       this.initialLeftGripOrientation = undefined
       // this.leftJoystick.setEnabled(false)
-      if (thumbstick) {
-        moveCommand.afterburner = thumbstick.pressed ? 1 : 0
+      if (this.rightSqueeze == false && thumbstick) {
         moveCommand.pitch = thumbstick.axes.y
         moveCommand.yaw = thumbstick.axes.x
       }
     }
+    if (thumbstick) {
+      moveCommand.afterburner = moveCommand.afterburner || thumbstick.pressed ? 1 : 0
+    }
     if (trigger && trigger.pressed) {
       if (this.inputDebounce.tryNow(DebounceIds.WeaponFire)) {
-        fireCommand.weapon = trigger.pressed ? 1 : 0
+        fireCommand.weapon = fireCommand.weapon || trigger.pressed ? 1 : 0
       }
     } else {
       this.inputDebounce.clear(DebounceIds.WeaponFire)
     }
     if (yButton && yButton.pressed) {
       if (this.inputDebounce.tryNow(DebounceIds.GunSelect)) {
-        fireCommand.nav = yButton.pressed
+        fireCommand.nav = fireCommand.nav || yButton.pressed
       }
     } else {
       this.inputDebounce.clear(DebounceIds.GunSelect)
     }
     if (xButton && xButton.pressed) {
-      moveCommand.drift = 1
+      moveCommand.drift = moveCommand.drift || 1
     }
   }
 

@@ -1,6 +1,4 @@
 import { SpaceDebrisSystem } from "./../../world/systems/visualsSystems/spaceDebrisSystem"
-import { SkyboxPlanetSystem } from "./../../world/systems/visualsSystems/skyboxPlanetSystem"
-import { StarfieldSystem } from "./../../world/systems/visualsSystems/starfieldSystem"
 import { DriftTrailSystem } from "./../../world/systems/renderSystems/driftTrailSystem"
 import { FreeCamera, IDisposable, TargetCamera, TmpVectors, Vector3 } from "@babylonjs/core"
 import { AppContainer } from "../../app.container"
@@ -95,12 +93,16 @@ export class MainMenuScene implements IDisposable {
 
     queries.deathComes.onEntityRemoved.subscribe(this.onDeath)
 
-    const teams = [this.teamA, this.teamB, this.teamB]
-    teams.forEach((team, teamId) => {
-      for (let i = 0; i < 3; i += 1) {
-        team.add(this.addShip(teamId + 1))
-      }
-    })
+    if (true) {
+      const teams = [this.teamA, this.teamB, this.teamB]
+      teams.forEach((team, teamId) => {
+        for (let i = 0; i < 3; i += 1) {
+          team.add(this.addShip(teamId + 1))
+        }
+      })
+    } else {
+      this.teamA.add(this.addShip(1))
+    }
     MusicPlayer.instance.playSong("theme")
     this.skyboxSystems = new SkyboxSystems(appContainer.scene)
     this.spaceDebrisSystem = new SpaceDebrisSystem(appContainer.scene)
@@ -214,7 +216,7 @@ export class MainMenuScene implements IDisposable {
     this.handsSystem.update(delta)
 
     updateRenderSystem()
-    this.cameraSystem()
+    this.cameraSystem(delta)
 
     this.screen.update()
     scene.render()
@@ -222,36 +224,26 @@ export class MainMenuScene implements IDisposable {
     return
   }
 
-  cameraSystem() {
+  cameraAgg = Number.MAX_SAFE_INTEGER
+  cameraShip: Entity
+  cameraSystem(delta: number) {
     // Calculate the center point between the two nodes
     if (VRSystem.inXR) {
       VRSystem.xrCameraParent.position.setAll(0)
       // console.log(VRSystem.xr.baseExperience.camera.position)
       return
     }
+    this.cameraAgg += delta
+    if (this.cameraAgg / 1000 / 60 > 1) {
+      // one minute
+      this.cameraAgg = 0
+      this.cameraShip = randomItem(Array.from(this.teamA.keys())) // this is heavy handed...
+    }
     // follow cam
-    const first = Array.from(this.teamA.keys())[0] // this is heavy handed...
-    const second = Array.from(this.teamB.keys())[0]
+    const first = this.cameraShip
     const firstPosition = Vector3FromObj(first.position, TmpVectors.Vector3[0])
     const firstRotation = QuaternionFromObj(first.rotationQuaternion, TmpVectors.Quaternion[1])
     const firstDirection = Vector3FromObj(first.direction)
-    const secondPosition = Vector3FromObj(second.position, TmpVectors.Vector3[1])
-    // console.log(firstPosition, secondPosition)
-    const center = Vector3.Center(firstPosition, secondPosition)
-
-    // Calculate the distance between the two nodes
-    const distance = Vector3.Distance(firstPosition, secondPosition)
-
-    // Calculate the angle of the camera's field of view
-    const fov = this.camera.fov
-
-    // Calculate the required distance for the camera
-    const requiredDistance = distance / (2 * Math.tan(fov / 2))
-
-    // Set camera position to look at the center of the two nodes with the required distance
-    let newPosition = this.camera.position.subtract(center).normalize().scale(requiredDistance)
-    newPosition.set(Math.abs(newPosition.x), Math.abs(newPosition.y), Math.abs(newPosition.z))
-    newPosition = center.subtract(newPosition)
 
     const backDistanceOffset = 50
     const upDistanceOffset = 50
@@ -267,17 +259,7 @@ export class MainMenuScene implements IDisposable {
       debugger
     }
     Vector3.LerpToRef(this.camera.position, behind, 0.1, this.camera.position)
-    // this.camera.position.copyFrom(behind)
     this.camera.setTarget(firstPosition)
     return
-    // let newPosition = TmpVectors.Vector3[2]
-    // newPosition.copyFrom(this.camera.position)
-    // newPosition.y = center.y + requiredDistance
-    Vector3.LerpToRef(this.camera.position, newPosition, 0.1, this.camera.position)
-    // console.log("[MainMenu] camera position", newPosition);
-    // this.camera.position = newPosition;
-
-    // Rotate the camera to look at the center
-    this.camera.setTarget(center)
   }
 }

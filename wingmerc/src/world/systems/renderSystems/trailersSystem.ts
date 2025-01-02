@@ -1,6 +1,6 @@
 import { Color3, IDisposable, StandardMaterial, TmpVectors, TrailMesh, TransformNode, Vector3 } from "@babylonjs/core"
 import { AppContainer } from "../../../app.container"
-import { Entity, EntityUUID, queries, world } from "../../world"
+import { Entity, EntityUUID, queries, SetComponent, world } from "../../world"
 import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
 import { MercParticlePointEmitter } from "../../../utils/particles/mercParticleEmitters"
 import { MercParticles } from "../../../utils/particles/mercParticles"
@@ -29,7 +29,9 @@ export class TrailersSystem implements IDisposable {
   trailersOnEntityAdded = (entity: Entity) => {
     console.log("[TrailersSystem] entity added", entity.id)
     const scene = AppContainer.instance.scene
-    const node = entity.node
+    const trailMeshs: {
+      particleSystems: MercParticleSystem[]
+    } = { particleSystems: [] }
     for (const trailer of entity.trailOptions) {
       const pointEmitter = new MercParticlePointEmitter()
       pointEmitter.initialPositionFunction = (particle) => {
@@ -70,20 +72,15 @@ export class TrailersSystem implements IDisposable {
           return particle
         }
       }
-      // pointEmitter.initialDirectionFunction = (particle) => {
-      // let direction = Vector3.Forward()
-      // direction.applyRotationQuaternionInPlace(QuaternionFromObj(entity.rotationQuaternion, TmpVectors.Quaternion[0]))
-      // ;(particle.props.direction as Vector3).copyFrom(direction)
-      // let direction = particle.props.direction as Vector3
-      // direction.x = entity.direction.x * -1
-      // direction.y = entity.direction.y * -1
-      // direction.z = entity.direction.z * -1
-      // return particle
-      // }
       let sps = MercParticles.engineTrail(`missile-trail-${++i}`, scene, pointEmitter)
+      trailMeshs.particleSystems.push(sps)
       entity.disposables.add(sps)
+      sps.colorGradients[0].color1.r = trailer.color.r
+      sps.colorGradients[0].color1.g = trailer.color.g
+      sps.colorGradients[0].color1.b = trailer.color.b
       sps.begin()
     }
+    SetComponent(entity, "trailMeshs", trailMeshs)
   }
   trailersOnEntityRemoved = (entity) => {
     console.log("[TrailersSystem] entity removed", entity.id)

@@ -1,11 +1,16 @@
 import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../../app.container"
-import { FluentContainer, FluentState, FluentTextBlock, FluentVerticalStackPanel } from "../../../utils/fluentGui"
+import {
+  FluentBehaviourState,
+  FluentContainer,
+  FluentTextBlock,
+  FluentVerticalStackPanel,
+} from "../../../utils/fluentGui"
 
 export class AutoHUD {
   hud: GUI.Container
-  autoState = new FluentState<TextBlock, FluentTextBlock>()
+  autoState = new FluentBehaviourState(false)
   auto: boolean = false
 
   get mainComponent(): GUI.Control {
@@ -32,17 +37,13 @@ export class AutoHUD {
             auto.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
             auto.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
           })
-          .setState(
-            this.autoState,
-            (tb, canAuto: boolean) => {
-              if (canAuto) {
-                tb.color("gold")
-              } else {
-                tb.color("brown")
-              }
-            },
-            false
-          )
+          .bindState(this.autoState, (tb, canAuto: boolean) => {
+            if (canAuto) {
+              tb.color("gold")
+            } else {
+              tb.color("brown")
+            }
+          })
       )
         .horizontalAlignment("right")
         .verticalAlignment("top")

@@ -8,6 +8,8 @@ import {
   StandardMaterial,
   Vector3,
   Texture,
+  AbstractMesh,
+  Observable,
 } from "@babylonjs/core"
 import { VRSystem } from "../../renderSystems/vrSystem"
 import { setSpriteBackUVs, setSpriteUVs } from "../../../../utils/sprites"
@@ -21,13 +23,32 @@ const GestureDistance = 0.05
 
 const DEBUG = false
 
+export class MotionHandCollision {
+  state: MotionHandCollision.State = MotionHandCollision.State.outside
+  constructor(public mesh: AbstractMesh, public radius: number, public callback: MotionHandCollision.Callback) {}
+}
+export namespace MotionHandCollision {
+  export type Callback = (mesh: AbstractMesh, state: State) => void
+  export enum State {
+    outside = 0,
+    entering = 1,
+    continueing = 2,
+    exiting = 3,
+  }
+}
+
 export class MotionHands implements IDisposable {
   static id = "motionHands"
+  static instance: MotionHands
   lastUpdate = 0
   inXR = false
   controllersAdded = false
 
+  private collisionChecks: MotionHandCollision[] = []
+
+  leftPointer: Mesh
   leftPlane: Mesh
+  rightPointer: Mesh
   rightPlane: Mesh
   leftMaterial: StandardMaterial
   rightMaterial: StandardMaterial
@@ -49,18 +70,69 @@ export class MotionHands implements IDisposable {
   constructor() {
     this.handsTexture = new Texture("assets/hands/hands.png", undefined, undefined, false, Texture.NEAREST_LINEAR)
     this.handsTexture.hasAlpha = true
+    MotionHands.instance = this
   }
 
   dispose() {
+    this.leftPointer?.dispose()
+    this.rightPointer?.dispose()
     this.leftPlane?.dispose()
     this.rightPlane?.dispose()
     this.leftMaterial?.dispose()
     this.rightMaterial?.dispose()
     this.handsTexture?.dispose()
+    this.collisionChecks = []
+  }
+
+  addCollisionCheck(mesh: AbstractMesh, radius: number, callback: MotionHandCollision.Callback) {
+    let collisionCheck = new MotionHandCollision(mesh, radius, callback)
+    this.collisionChecks.push(collisionCheck)
   }
 
   update(dt) {
     this.checkXR()
+    if (this.inXR) {
+      // TODO debouce?
+      // TODO separate collision tick vs framerate
+      let leftPointerPosition = this.leftPointer.absolutePosition
+      let rightPointerPosition = this.rightPointer.absolutePosition
+      for (let collisionCheck of this.collisionChecks) {
+        let buttonWorldPosition = collisionCheck.mesh.getAbsolutePosition()
+        let leftDistance = leftPointerPosition.subtract(buttonWorldPosition).length()
+        let rightDistance = rightPointerPosition.subtract(buttonWorldPosition).length()
+        if (leftDistance - collisionCheck.radius < 0.01 || rightDistance - collisionCheck.radius < 0.01) {
+          switch (collisionCheck.state) {
+            case MotionHandCollision.State.outside:
+            case MotionHandCollision.State.exiting: {
+              collisionCheck.state = MotionHandCollision.State.entering
+              break
+            }
+            case MotionHandCollision.State.entering: {
+              collisionCheck.state = MotionHandCollision.State.continueing
+              break
+            }
+          }
+          collisionCheck.callback(collisionCheck.mesh, collisionCheck.state)
+        } else {
+          switch (collisionCheck.state) {
+            case MotionHandCollision.State.outside: {
+              continue
+              break
+            }
+            case MotionHandCollision.State.entering:
+            case MotionHandCollision.State.continueing: {
+              collisionCheck.state = MotionHandCollision.State.exiting
+              break
+            }
+            case MotionHandCollision.State.exiting: {
+              collisionCheck.state = MotionHandCollision.State.outside
+              break
+            }
+          }
+          collisionCheck.callback(collisionCheck.mesh, collisionCheck.state)
+        }
+      }
+    }
   }
 
   checkXR() {
@@ -89,12 +161,18 @@ export class MotionHands implements IDisposable {
       sideOrientation: Mesh.DOUBLESIDE,
       updatable: true,
     })
+    this.leftPointer = MeshBuilder.CreateIcoSphere("left-pointer", { radius: 0.015, subdivisions: 2 })
+    this.leftPointer.isVisible = false
+    this.rightPointer = MeshBuilder.CreateIcoSphere("right-pointer", { radius: 0.015, subdivisions: 2 })
+    this.rightPointer.isVisible = false
     this.leftMaterial = new StandardMaterial("left-Material")
     this.rightMaterial = new StandardMaterial("right-Material")
     this.leftMaterial.diffuseTexture = this.handsTexture.clone()
     this.rightMaterial.diffuseTexture = this.handsTexture.clone()
     this.leftMaterial.diffuseColor = new Color3(98 / 255, 74 / 255, 46 / 255)
     this.rightMaterial.diffuseColor = new Color3(98 / 255, 74 / 255, 46 / 255)
+    this.leftMaterial.specularColor = new Color3(98 / 255, 74 / 255, 46 / 255)
+    this.rightMaterial.specularColor = new Color3(98 / 255, 74 / 255, 46 / 255)
 
     this.leftPlane.material = this.leftMaterial
     this.rightPlane.material = this.rightMaterial
@@ -107,6 +185,11 @@ export class MotionHands implements IDisposable {
 
     this.leftPlane.rotation.y = (-80 * Math.PI) / 180
     this.leftPlane.rotation.z = (-135 * Math.PI) / 180
+
+    this.leftPointer.position.set(-0.0325, 0.09, 0)
+    this.leftPointer.parent = this.leftPlane
+    this.rightPointer.position.set(-0.0325, 0.09, 0)
+    this.rightPointer.parent = this.rightPlane
 
     this.rightPlane.rotation.y = (-100 * Math.PI) / 180
     this.rightPlane.rotation.z = (-135 * Math.PI) / 180
@@ -127,9 +210,13 @@ export class MotionHands implements IDisposable {
       }
       let plane = this.rightPlane
       let handType = this.rightHandType
+      let pointer = this.rightPointer
       if (motion.handedness == "left") {
         plane = this.leftPlane
         handType = this.leftHandType
+        pointer = this.leftPointer
+        // pointer.parent = controller.grip ?? controller.pointer
+        // this.rightPointer.parent = controller.grip ?? controller.pointer
       } else if (motion.handedness == "right") {
         plane = this.rightPlane
         handType = this.rightHandType
@@ -167,150 +254,3 @@ export class MotionHands implements IDisposable {
     }
   }
 }
-
-// onControllersSet = (oldValue: MotionControllerState, newValue: MotionControllerState) => {
-//   switch (newValue.state) {
-//     case "added":
-//       const input = System.contexts.get(Contexts.Input) as Input
-//       const scene = System.contexts.get(Contexts.BabylonScene) as Scene
-//       // create the hand mesh
-//       let left = this.meshManager.create("leftHand", HandOpen)
-//       this.leftSprite = left
-//       left.index = HandOpen
-//       let leftMesh: InstancedMesh = left.instance as unknown as InstancedMesh
-//       // scale hand to 12 cm
-//       leftMesh.scaling = new Vector3(0.096, 0.096, 0.096)
-
-//       let leftInputSource = input.leftInputSource
-//       leftMesh.isPickable = false
-//       leftMesh.parent =  leftInputSource.grip || leftInputSource.pointer
-//       // leftMesh.rotation.x = 90 * Math.PI/180
-//       leftMesh.rotation.y = -90 * Math.PI/180
-//       leftMesh.rotation.z = -135 * Math.PI/180
-
-//       // create the hand mesh
-//       let right = this.meshManager.create("leftHand", HandOpen)
-//       this.rightSprite = right
-//       right.index = HandOpen
-//       let rightMesh: InstancedMesh = right.instance as unknown as InstancedMesh
-//       rightMesh.isPickable = false
-//       // scale hand to 12 cm
-//       rightMesh.scaling = new Vector3(0.096, 0.096, 0.096)
-//       rightMesh.rotation.y = -90 * Math.PI/180
-//       rightMesh.rotation.z = -135 * Math.PI/180
-//       // add the mesh to the controller
-//       let rightInputSource = input.rightInputSource
-//       rightMesh.parent = rightInputSource.grip || rightInputSource.pointer
-
-//       //// test item sprites
-//       // let pivotBox = MeshBuilder.CreateBox("pivot-box", { size: 2.5/16 * 0.4 }, scene)
-//       // let pivotBox = MeshBuilder.CreateSphere("pivot-example", {diameter: 2.5/16 * 0.4}, scene)
-//       // move the handle into the position of the hand
-//       let rightItem = this.itemMeshManager.create("rightItem", 64)
-//       rightItem.instance.isVisible = false
-//       // rightItem.index = 64
-//       // rightItem.playKeyframeAnimation("weapons", [64,65,66,67,68,69,70,71], true, 1000)
-//       let rightItemMesh: InstancedMesh = rightItem.instance as unknown as InstancedMesh
-//       rightItemMesh.isPickable = false
-//       rightItemMesh.scaling = new Vector3(0.4, 0.4, 0.4) // 1 meter sprite
-//       // rotate the item into alignment with the hand
-
-//       rightItemMesh.rotation.y = -90 * Math.PI/180
-//       rightItemMesh.rotation.z = -45 * Math.PI/180
-//       rightItemMesh.addRotation(-5 * Math.PI/180,0,0)
-//       // rightItemMesh.rotation = new Vector3(0,0,0)
-
-//       rightItemMesh.parent = rightInputSource.grip || rightInputSource.pointer
-//       let windowa = window as any
-//       windowa.rightItemMesh = rightItemMesh
-//       this.rightItemSprite = rightItem
-
-//       this.controllersAdded = true
-//       console.log("[MotionHands] Hand Meshes Loaded")
-
-//       if (DEBUG) {
-//         // this.debugLines = LinesBuilder.CreateLines("hand-lines", { updatable: true, points: [] }, scene)
-//         // this.debugLines.color = new Color3(1,0,0)
-
-//         this.pointMeshes = [0.2,0.4,0.6,0.8,1].map((c) => {
-//           let mesh = MeshBuilder.CreateSphere("point-1", { diameter: 0.025 }, scene);
-//           let mat = new StandardMaterial("ball-" + c, scene)
-//           // mat.emissiveColor = new Color3(c,c,c)
-//           mat.diffuseColor = new Color3(c,c,c)
-//           mat.specularColor = new Color3(0,0,0)
-//           mesh.material = mat
-//           return mesh
-//         })
-
-//         this.debugMesh = MeshBuilder.CreateSphere("debug-sphere", { diameter: 0.2 }, scene)
-//         let dmat = new StandardMaterial("ball-d", scene)
-//         // mat.emissiveColor = new Color3(c,c,c)
-//         dmat.diffuseColor = new Color3(0,0,0)
-//         dmat.specularColor = new Color3(0,0,0)
-//         this.debugMesh.material = dmat
-//         this.debugMesh.parent = leftInputSource.grip || leftInputSource.pointer
-//         this.debugAxis = new AxesViewer(scene, 0.2)
-//         this.normalAxis = new AxesViewer(scene, 0.25)
-//       }
-//       this.debugAxis = new AxesViewer(scene, 0.2)
-//       break
-//     case "removed":
-//       this.controllersAdded = false
-//       // dispose hand meshes
-//       if (this.rightItemSprite) {
-//         this.rightItemSprite.instance.dispose()
-//         this.rightItemSprite = undefined
-//       }
-//       this.leftSprite.instance.dispose()
-//       this.leftSprite = undefined
-//       this.rightSprite.instance.dispose()
-//       this.rightSprite = undefined
-
-//       //// debug items to dispose
-//       if (DEBUG) {
-//         this.normalAxis.dispose()
-//         this.normalAxis = undefined
-//         this.debugAxis.dispose()
-//         this.debugAxis = undefined
-//         this.debugMesh.dispose()
-//         this.debugMesh = undefined
-//         for (let mesh of this.pointMeshes) {
-//           mesh.dispose()
-//         }
-//         this.pointMeshes = []
-//       }
-//       break
-//   }
-// }
-// getPlayerHeldItem() {
-//   const level = LevelModel.currentLevel
-//   if (level == undefined || level.state != "ready") { return }
-//   const player = Component.Tag.firstWith(Tags.Player)
-//   if (player == undefined) { return }
-//   const equipment = Equipment.from(player)
-//   if (equipment == undefined) { return }
-//   let sprite = equipment.handHeldSprite
-//   if (this.rightItemSprite == undefined) { return }
-//   if (sprite == undefined) {
-//     this.rightItemSprite.instance.isVisible = false
-//   } else {
-//     let spriteData = SpriteData[sprite]
-//     this.rightItemSprite.instance.isVisible = true
-//     this.rightItemSprite.index = spriteData.index
-//     let rightItemMesh = this.rightItemSprite.instance
-
-//     if (spriteData.handRotation != undefined) {
-//       rightItemMesh.rotation = new Vector3(0,0,0)
-//       rightItemMesh
-//         .addRotation(spriteData.handRotation.x,0,0)
-//         .addRotation(0,spriteData.handRotation.y,0)
-//         .addRotation(0,0,spriteData.handRotation.z)
-//     } else {
-//       rightItemMesh.rotation.y = -90 * Math.PI/180
-//       rightItemMesh.rotation.z = -45 * Math.PI/180
-//       rightItemMesh.rotation.x = 0
-//       rightItemMesh.addRotation(-5 * Math.PI/180,0,0)
-
-//     }
-//   }
-// }

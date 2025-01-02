@@ -1,5 +1,5 @@
 import { Weapon } from "../../../data/weapons/weapon"
-import * as Weapons from "../../../data/weapons"
+import { Weapons } from "../../../data/weapons"
 import { TmpVectors, Vector3 } from "@babylonjs/core"
 import { EntityForId, queries, SetComponent, world } from "../../world"
 import {
@@ -67,7 +67,7 @@ export function missileTargetingSystem(dt: number) {
       continue
     }
     const weaponClass = Weapons[selectedWeapon.type] as Weapon
-    if (weaponClass.type == "dumbfire" || weaponClass.type == "friendorfoe") {
+    if (weaponClass.weaponType == "dumbfire" || weaponClass.weaponType == "friendorfoe") {
       continue
     }
     if (targeting.target == "") {

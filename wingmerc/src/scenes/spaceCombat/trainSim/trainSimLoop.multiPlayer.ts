@@ -20,7 +20,7 @@ import { rand, random } from "../../../utils/random"
 import { CombatHud } from "../hud/spaceCombatHUD"
 import { radarTargetingSystem } from "../../../world/systems/shipSystems/radarTargetingSystem"
 import { StatsScene } from "../../statsScene/statsLoop"
-import { damageSprayParticlePool, shieldPulserSystem } from "../../../world/damage"
+import { shieldPulserSystem } from "../../../world/damage"
 import "../../../world/systems/soundSystems/missileEngineSoundSystem"
 import { CombatControllerInput } from "../../../world/systems/input/combatInput/combatControllerInput"
 import { combatKeyboardInput } from "../../../world/systems/input/combatInput/combatKeyboardInput"
@@ -37,7 +37,7 @@ import { AfterburnerSoundSystem } from "../../../world/systems/soundSystems/afte
 import { AfterburnerTrailsSystem } from "../../../world/systems/renderSystems/afterburnerTrailsSystem"
 import { SystemsDamagedSpraySystem } from "../../../world/systems/renderSystems/systemsDamagedSpraySystem"
 import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
-import { IDisposable, TmpVectors, Vector3 } from "@babylonjs/core"
+import { IDisposable } from "@babylonjs/core"
 import { MusicPlayer } from "../../../utils/music/musicPlayer"
 import { HitTrackerSystem } from "../../../world/systems/weaponsSystems/hitTrackerSystem"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
@@ -46,7 +46,7 @@ import { TargetBoxesSystem } from "../../../world/systems/renderSystems/targetBo
 import { MissionType } from "../../../data/missions/missionData"
 import { SpaceDebrisSystem } from "../../../world/systems/visualsSystems/spaceDebrisSystem"
 import { weaponCommandSystem } from "../../../world/systems/controlSystems/weaponCommandSystem"
-import { CombatHudInWorld } from "../hud/spaceCombatHUD.InWorld"
+import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
 
 /**
  * If a player dies they should follow cam another player untill
@@ -102,8 +102,8 @@ export class TrainSimSceneMultiplayer implements GameScene, IDisposable {
     world.onEntityAdded.subscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.subscribe(this.onCombatEntityRemoved)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
-    damageSprayParticlePool.prime(50)
-    damagedSystemsSprayParticlePool.prime(20)
+    damageSprayParticlePool.value.prime(5)
+    damagedSystemsSprayParticlePool.value.prime(5)
     // queries.deathComes.onEntityAdded.subscribe(this.onDeath)
 
     this.hud = new CombatHud()

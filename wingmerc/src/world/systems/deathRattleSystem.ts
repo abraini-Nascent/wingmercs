@@ -1,4 +1,4 @@
-import { IDisposable } from "@babylonjs/core"
+import { IDisposable, TmpVectors } from "@babylonjs/core"
 import { Entity, queries, world } from "../world"
 import { AppContainer } from "../../app.container"
 import { MercParticles } from "../../utils/particles/mercParticles"
@@ -8,6 +8,7 @@ import { barks } from "../../data/barks"
 import { randomItem } from "../../utils/random"
 import { SAM, VoiceSound } from "../../utils/speaking"
 import { SoundEffects } from "../../utils/sounds/soundEffects"
+import { deathExplosionFrom } from "../../visuals/deathExplosionParticles"
 
 /**
  * makes a ship do the death rattle
@@ -91,9 +92,8 @@ export class DeathRattleSystem implements IDisposable {
 
         if (fade <= 0) {
           SoundEffects.Explosion(Vector3FromObj(entity.position))
-          const sphereEmitter = new MercParticleSphereEmitter()
-          Vector3FromObj(entity.position, sphereEmitter.position)
-          let sphereSps = MercParticles.deathExplosion(`death-explosion-${i}`, scene, sphereEmitter)
+          Vector3FromObj(entity.position, TmpVectors.Vector3[0])
+          deathExplosionFrom(TmpVectors.Vector3[0])
           observer.remove()
           observer = undefined
           world.addComponent(entity, "outOfCombat", true)

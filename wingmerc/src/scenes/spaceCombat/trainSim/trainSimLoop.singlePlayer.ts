@@ -8,10 +8,9 @@ import { netSyncServerSystem } from "../../../world/systems/netSystems/netServer
 import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
 import { CreateEntity, Entity, NerdStats, Score, queries, world } from "../../../world/world"
 import * as Ships from "../../../data/ships"
-import { rand, random } from "../../../utils/random"
-import { CombatHud, CombinedCombatHud } from "../hud/spaceCombatHUD"
+import { random } from "../../../utils/random"
+import { CombinedCombatHud } from "../hud/spaceCombatHUD"
 import { StatsScene } from "../../statsScene/statsLoop"
-import { damageSprayParticlePool } from "../../../world/damage"
 import "../../../world/systems/soundSystems/missileEngineSoundSystem"
 import { createCustomShip } from "../../../world/factories"
 import { PlayerAgent } from "../../../agents/playerAgent"
@@ -21,9 +20,10 @@ import { MusicPlayer } from "../../../utils/music/musicPlayer"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { MissionType } from "../../../data/missions/missionData"
 import { CombatSystems } from "../../../world/systems/combatSystems"
-import { generateClusteredPoints, generateNoiseAsteroid } from "../../../utils/voronoiAsteroid"
 import { LoadAsteroidField } from "../../../world/systems/missionSystems/missionHazards"
-import { VRSystem } from "../../../world/systems/renderSystems/vrSystem"
+import { deathExplosionParticlePool } from "../../../visuals/deathExplosionParticles"
+import { shieldSprayParticlePool } from "../../../visuals/shieldSprayParticles"
+import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps")
@@ -60,8 +60,10 @@ export class TrainSimScene implements GameScene, IDisposable {
     world.onEntityAdded.subscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.subscribe(this.onCombatEntityRemoved)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
-    damageSprayParticlePool.prime(50)
-    damagedSystemsSprayParticlePool.prime(20)
+    damageSprayParticlePool.value.prime(5)
+    damagedSystemsSprayParticlePool.value.prime(5)
+    deathExplosionParticlePool.value.prime(5)
+    shieldSprayParticlePool.value.prime(5)
 
     this.readyTimer = 3000
     appContainer.player = new PlayerAgent(this.playerShip)
@@ -72,8 +74,18 @@ export class TrainSimScene implements GameScene, IDisposable {
     MusicPlayer.instance.playSong("action")
     MusicPlayer.instance.playStinger("encounter")
 
+    const navNode = new TransformNode("arena nav")
+    navNode.position.set(0, 0, 0)
+    const navEntity = CreateEntity({
+      position: { x: 0, y: 0, z: 0 },
+      targetName: "Arena",
+      isTargetable: "nav",
+      node: navNode,
+    })
+
     this.hud = new CombinedCombatHud()
-    document.body.style.cursor = "none"
+    // braini
+    // document.body.style.cursor = "none"
     LoadAsteroidField(Vector3.Zero())
   }
 

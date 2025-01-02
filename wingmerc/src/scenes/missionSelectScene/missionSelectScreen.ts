@@ -1,12 +1,12 @@
 import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
 import {
+  FluentBehaviourState,
   FluentContainer,
   FluentGrid,
   FluentImage,
   FluentRectangle,
   FluentSimpleButton,
-  FluentState,
   FluentTextBlock,
   FluentVerticalStackPanel,
   Ref,
@@ -25,7 +25,7 @@ export class MissionSelectScreen {
   xrAspectRation = 16 / 9
   useMemory: boolean = null
 
-  activeMission: FluentState<GUI.Container, FluentContainer>
+  activeMission: FluentBehaviourState<Mission>
   onDone: () => void = null
 
   constructor(private missions: Mission[]) {
@@ -64,7 +64,7 @@ export class MissionSelectScreen {
       return tb
     }
     const missionToRef = new Map<Mission, Ref<GUI.Container>>()
-    this.activeMission = new FluentState()
+    this.activeMission = new FluentBehaviourState(undefined)
 
     this.screen = new FluentContainer(
       "Main Screen",
@@ -129,7 +129,10 @@ export class MissionSelectScreen {
               new FluentRectangle(
                 "container",
                 new FluentContainer("map")
-                  .setState(this.activeMission, (container, mission: Mission) => {
+                  .bindState(this.activeMission, (container, mission: Mission) => {
+                    if (mission == undefined) {
+                      return
+                    }
                     const missionImage = generateMissionScreen(mission)
                     const dataUrl = missionImage.toDataURL()
                     console.log(dataUrl)

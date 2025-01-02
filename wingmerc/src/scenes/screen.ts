@@ -40,6 +40,7 @@ export class MercScreen {
         width = width * screen.xrAspectRation
       }
       screen.xrPlane = MeshBuilder.CreatePlane("menu-plane", { height, width, sideOrientation: Mesh.DOUBLESIDE })
+      screen.xrPlane.isPickable = true
       screen.gui.attachToMesh(screen.xrPlane, true)
       let mat = new StandardMaterial("menu-plane-mat")
       mat.diffuseTexture = screen.gui
@@ -59,7 +60,7 @@ export class MercScreen {
       screen.gui.layer.isEnabled = true
       screen.gui.idealWidth = undefined
       if (screen.xrPlane) {
-        screen.xrPlane.dispose()
+        screen.xrPlane.dispose(false, true)
         screen.xrPlane = undefined
       }
       screen.xrMode = false

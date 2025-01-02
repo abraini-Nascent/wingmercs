@@ -1,16 +1,18 @@
-import { Gun } from "./gun";
+import { Gun } from "./gun"
 
 export const plasma: Gun = Object.seal({
   /** id */
   class: "plasma",
+  type: "Gun",
   /** display name */
   name: "Plasma Cannon",
   /** the weight in tonnes of the gun */
   weight: 0.5,
   /** color of the trail */
-  color: {r: 187/100, g: 30/100, b: 57/100, a: 1},
+  color: { r: 187 / 100, g: 30 / 100, b: 57 / 100, a: 1 },
   /** stats per tier */
-  tiers: [{
+  tiers: [
+    {
       /** tier */
       tier: 0,
       /** range before dissipating */
@@ -24,7 +26,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1500,
       /** how much damage it can take before being destroyed */
-      health: 10
+      health: 10,
     },
     {
       /** tier */
@@ -40,7 +42,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1500,
       /** how much damage it can take before being destroyed */
-      health: 10
+      health: 10,
     },
     {
       /** tier */
@@ -56,7 +58,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1500,
       /** how much damage it can take before being destroyed */
-      health: 15
+      health: 15,
     },
     {
       /** tier */
@@ -72,7 +74,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1500,
       /** how much damage it can take before being destroyed */
-      health: 20
+      health: 20,
     },
     {
       /** tier */
@@ -88,7 +90,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1500,
       /** how much damage it can take before being destroyed */
-      health: 25
+      health: 25,
     },
     {
       /** tier */
@@ -104,7 +106,7 @@ export const plasma: Gun = Object.seal({
       /** travel speed in mps */
       speed: 1700,
       /** how much damage it can take before being destroyed */
-      health: 30
-    }
-  ]
+      health: 30,
+    },
+  ],
 })

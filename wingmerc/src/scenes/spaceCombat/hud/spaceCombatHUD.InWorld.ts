@@ -4,7 +4,7 @@ import * as GUI from "@babylonjs/gui"
 import { AppContainer } from "../../../app.container"
 import { Display, EntityUUID, world } from "../../../world/world"
 import { InterceptorSubscription, interceptEvent } from "../../../app.pipeline"
-import { StatsVDU } from "./spaceCombatHUD.StatsVDU"
+import { StatsHud } from "./spaceCombatHUD.StatsVDU"
 import { TargetVDU } from "./spaceCombatHUD.TargetVDU"
 import { barPercentCustom } from "./spaceCombatHUD.helpers"
 import { RadarDisplay } from "./spaceCombatHUD.Radar"
@@ -43,7 +43,7 @@ export class CombatHudInWorld {
 
   leftVDU: Display = "weapons"
   rightVDU: Display = "target"
-  statsVDU: StatsVDU
+  statsVDU: StatsHud
   registerHitInterceptor: InterceptorSubscription
   hitPlayer: Set<EntityUUID> = new Set()
   flashTimer = 0
@@ -111,7 +111,7 @@ export class CombatHudInWorld {
     this.weapons = new WeaponsVDU()
     this.guns = new GunsVDU()
     this.radarDisplay = new RadarDisplay()
-    this.statsVDU = new StatsVDU()
+    this.statsVDU = new StatsHud()
     this.commsVDU = new CommunicationsVDU()
     this.debugAiVdu = new DebugAIVDU()
 

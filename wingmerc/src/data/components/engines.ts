@@ -1,4 +1,4 @@
-import { EngineModifierDetails } from "../ships/shipTemplate";
+import { EngineModifierDetails } from "../ships/shipTemplate"
 
 export const BasicEngines = {
   id: "BasicEngines",
@@ -8,11 +8,13 @@ export const BasicEngines = {
   cost: 10000,
   weight: 1,
   cruiseSpeed: {
-    value: 0.1
+    value: 0.1,
+    percent: true,
   },
-  accelleration: {
-    value: 0.1
-  }
+  engineAccelleration: {
+    value: 0.1,
+    percent: true,
+  },
 } as EngineModifierDetails
 
 export const LightEngines = {
@@ -23,11 +25,13 @@ export const LightEngines = {
   cost: 10000,
   weight: 1,
   cruiseSpeed: {
-    value: 0.1
+    value: 0.1,
+    percent: true,
   },
-  accelleration: {
-    value: 0.1
-  }
+  engineAccelleration: {
+    value: 0.1,
+    percent: true,
+  },
 } as EngineModifierDetails
 
 export const MediumEngines = {
@@ -37,9 +41,10 @@ export const MediumEngines = {
   size: "Medium",
   cost: 10000,
   weight: 1,
-  accelleration: {
-    value: 0.25
-  }
+  engineAccelleration: {
+    value: 0.25,
+    percent: true,
+  },
 } as EngineModifierDetails
 
 export const ThickEngines = {
@@ -50,11 +55,13 @@ export const ThickEngines = {
   cost: 10000,
   weight: 1,
   cruiseSpeed: {
-    value: -0.1
+    value: -0.1,
+    percent: true,
   },
-  accelleration: {
-    value: 0.5
-  }
+  engineAccelleration: {
+    value: 0.5,
+    percent: true,
+  },
 } as EngineModifierDetails
 
 export const HeavyEngines = {
@@ -63,12 +70,14 @@ export const HeavyEngines = {
   name: "Heavy Engines",
   size: "Large",
   cost: 10000,
-  weight: 1,
-  health: {
-    value: 0.5
+  weight: 2,
+  extraHealth: {
+    value: 0.5,
+    percent: true,
   },
   cruiseSpeed: {
-    value: 0.5
+    value: 0.5,
+    percent: true,
   },
 } as EngineModifierDetails
 
@@ -80,8 +89,8 @@ export const EngineTypes = {
   HeavyEngines: "HeavyEngines",
 } as const
 
-export type EngineTypes = typeof EngineTypes[keyof typeof EngineTypes];
-export type Engines = { [engineType in EngineTypes]: EngineModifierDetails };
+export type EngineTypes = (typeof EngineTypes)[keyof typeof EngineTypes]
+export type Engines = { [engineType in EngineTypes]: EngineModifierDetails }
 export const Engines = {
   BasicEngines: BasicEngines,
   LightEngines: LightEngines,

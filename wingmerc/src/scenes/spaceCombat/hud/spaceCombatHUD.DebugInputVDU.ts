@@ -2,20 +2,28 @@ import { AppContainer } from "./../../../app.container"
 import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
 import { Entity } from "../../../world/world"
-import { DisposeBag, FluentState, FluentTextBlock, FluentVerticalStackPanel, Ref } from "../../../utils/fluentGui"
+import {
+  DisposeBag,
+  FluentBehaviourState,
+  FluentState,
+  FluentTextBlock,
+  FluentVerticalStackPanel,
+  Ref,
+} from "../../../utils/fluentGui"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class DebugInputVDU {
+export class DebugInputVDU implements VDU {
   screen: GUI.Container
   disposeBag = new DisposeBag()
   detailsStack = new Ref<GUI.StackPanel>()
-  pitchState = new FluentState<TextBlock, FluentTextBlock>()
-  yawState = new FluentState<TextBlock, FluentTextBlock>()
-  rollState = new FluentState<TextBlock, FluentTextBlock>()
-  burnerState = new FluentState<TextBlock, FluentTextBlock>()
-  driftState = new FluentState<TextBlock, FluentTextBlock>()
-  breakState = new FluentState<TextBlock, FluentTextBlock>()
-  throttleState = new FluentState<TextBlock, FluentTextBlock>()
-  fpsState = new FluentState<TextBlock, FluentTextBlock>()
+  pitchState = new FluentBehaviourState<string>("")
+  yawState = new FluentBehaviourState<string>("")
+  rollState = new FluentBehaviourState<string>("")
+  burnerState = new FluentBehaviourState<string>("")
+  driftState = new FluentBehaviourState<string>("")
+  breakState = new FluentBehaviourState<string>("")
+  throttleState = new FluentBehaviourState<string>("")
+  fpsState = new FluentBehaviourState<string>("")
   get mainComponent(): GUI.Control {
     return this.screen
   }
@@ -25,6 +33,7 @@ export class DebugInputVDU {
   dispose() {
     this.disposeBag.dispose()
   }
+  vduButtonPressed(_button: number) {}
   setupMain() {
     const styleFont = (control: GUI.TextBlock) => {
       control.fontFamily = "monospace"
@@ -38,24 +47,18 @@ export class DebugInputVDU {
       new FluentTextBlock("title", "-=[AI Debugging]=-").resizeToFit(true).modifyControl(styleFont),
       FluentVerticalStackPanel(
         "stack-main",
-        new FluentTextBlock("pitch", "")
-          .modifyControl(styleFont)
-          .setState(this.pitchState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("yaw", "").modifyControl(styleFont).setState(this.yawState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("roll", "").modifyControl(styleFont).setState(this.rollState, (tb, v) => tb.setText(v), ""),
+        new FluentTextBlock("pitch", "").modifyControl(styleFont).bindState(this.pitchState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("yaw", "").modifyControl(styleFont).bindState(this.yawState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("roll", "").modifyControl(styleFont).bindState(this.rollState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("burner", "")
           .modifyControl(styleFont)
-          .setState(this.burnerState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("drift", "")
-          .modifyControl(styleFont)
-          .setState(this.driftState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("break", "")
-          .modifyControl(styleFont)
-          .setState(this.breakState, (tb, v) => tb.setText(v), ""),
+          .bindState(this.burnerState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("drift", "").modifyControl(styleFont).bindState(this.driftState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("break", "").modifyControl(styleFont).bindState(this.breakState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("throttle", "")
           .modifyControl(styleFont)
-          .setState(this.throttleState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("fps", "").modifyControl(styleFont).setState(this.fpsState, (tb, v) => tb.setText(v), "")
+          .bindState(this.throttleState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("fps", "").modifyControl(styleFont).bindState(this.fpsState, (tb, v) => tb.setText(v))
       )
         .storeIn(this.detailsStack)
         .width(240)

@@ -1,14 +1,17 @@
 import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
 import { Vector3 } from "@babylonjs/core"
-import { Entity, EntityForId } from "../../../world/world"
+import { AutoPilotCommand, Entity, EntityForId, world } from "../../../world/world"
+import { VDU } from "./SpaceCombatHUD.VDU"
+import { AppContainer } from "../../../app.container"
 
-export class DestinationVDU {
+export class DestinationVDU implements VDU {
   screen: GUI.Container
   destinationPanel: GUI.StackPanel
   title: TextBlock
   destinationName: TextBlock
   destinationDistance: TextBlock
+  canAuto: TextBlock
 
   get mainComponent(): GUI.Control {
     return this.screen
@@ -23,6 +26,29 @@ export class DestinationVDU {
     this.destinationPanel.dispose()
     this.screen.dispose()
   }
+
+  vduButtonPressed(button: number) {
+    if (button == 0 || button == 4) {
+      let fireCommand = AppContainer.instance.player.playerEntity.fireCommand
+      if (fireCommand) {
+        fireCommand.nav = true
+      } else {
+        world.addComponent(AppContainer.instance.player.playerEntity, "fireCommand", {
+          nav: true,
+        })
+      }
+    }
+    if (button == 9) {
+      const autoPilotCommand: AutoPilotCommand = {
+        autopilot: true,
+        runTime: 0,
+        wingmen: [],
+        location: { x: 100, y: 100, z: 0 }, // TODO this should come from the current targeted nav becon
+      }
+      world.addComponent(AppContainer.instance.player.playerEntity, "autoPilotCommand", autoPilotCommand)
+    }
+  }
+
   setupMain() {
     const container = new GUI.Container("TargetVDU")
     container.heightInPixels = 240
@@ -54,7 +80,7 @@ export class DestinationVDU {
     const destinationName = new GUI.TextBlock("Name")
     this.destinationName = destinationName
     destinationName.fontFamily = "monospace"
-    destinationName.text = "[krant]"
+    destinationName.text = "[Desination]"
     destinationName.color = "gold"
     destinationName.fontSize = 24
     destinationName.height = "24px"
@@ -72,6 +98,18 @@ export class DestinationVDU {
     destinationDistance.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
     destinationDistance.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_RIGHT
     destinationPanel.addControl(destinationDistance)
+
+    const canAuto = new GUI.TextBlock("Distance")
+    this.canAuto = canAuto
+    canAuto.fontFamily = "monospace"
+    canAuto.text = "AUTO ->"
+    canAuto.color = "white"
+    canAuto.fontSize = 24
+    canAuto.height = "24px"
+    canAuto.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    canAuto.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_RIGHT
+    canAuto.verticalAlignment = GUI.TextBlock.VERTICAL_ALIGNMENT_BOTTOM
+    this.screen.addControl(canAuto)
   }
 
   update(playerEntity: Entity, dt: number) {
@@ -94,5 +132,6 @@ export class DestinationVDU {
         .length()
     )
     this.destinationDistance.text = `${distance.toString().padStart(5)} m`
+    this.canAuto.isVisible = playerEntity.canAutopilot
   }
 }

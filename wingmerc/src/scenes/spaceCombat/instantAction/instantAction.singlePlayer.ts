@@ -8,21 +8,20 @@ import { cameraSystem } from "../../../world/systems/renderSystems/cameraSystem"
 import { netSyncClientSystem } from "../../../world/systems/netSystems/netClientSystem"
 import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem"
 import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
-import { Campaign, Entity, NerdStats, Score, queries, world } from "../../../world/world"
+import { Entity, NerdStats, Score, queries, world } from "../../../world/world"
 import { CombatHud } from "../hud/spaceCombatHUD"
-import { StatsScene } from "../../statsScene/statsLoop"
-import { damageSprayParticlePool } from "../../../world/damage"
 import "../../../world/systems/soundSystems/missileEngineSoundSystem"
 import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
 import { IDisposable } from "@babylonjs/core"
 import { MusicPlayer } from "../../../utils/music/musicPlayer"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
-import { exampleMultiStepMission, examplePatrolMission } from "../../../data/missions/missionData"
+import { examplePatrolMission } from "../../../data/missions/missionData"
 import { CombatSystems } from "../../../world/systems/combatSystems"
 import { StatsScreen } from "../../statsScene/statsScreen"
 import { MissionOverScreen } from "../../missionOverScene/missionOverScreen"
 import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
-import { CombatHudInWorld } from "../hud/spaceCombatHUD.InWorld"
+import { shieldSprayParticlePool } from "../../../visuals/shieldSprayParticles"
+import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
 
 const divFps = document.getElementById("fps")
 export class InstantActionScene implements GameScene, IDisposable {
@@ -58,8 +57,9 @@ export class InstantActionScene implements GameScene, IDisposable {
     world.onEntityAdded.subscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.subscribe(this.onCombatEntityRemoved)
     // NOTE: if this gets to taking too long we should move it out of the constructor and into a initialize generator function
-    damageSprayParticlePool.prime(50)
-    damagedSystemsSprayParticlePool.prime(20)
+    damageSprayParticlePool.value.prime(5)
+    damagedSystemsSprayParticlePool.value.prime(5)
+    shieldSprayParticlePool.value.prime(5)
 
     this.hud = new CombatHud()
     this.readyTimer = 3000

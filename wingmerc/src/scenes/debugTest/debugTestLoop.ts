@@ -195,6 +195,7 @@ export class DebugTestLoop implements GameScene, IDisposable {
     // "UP" [38]
     if (kbd?.getInput(KeyboardMap.D) && this.debouncer.tryNow(KeyboardMap.D)) {
       if (world.has(this.ship)) {
+        this.ship.node.getChildMeshes().forEach((mesh) => (mesh.isPickable = true))
         const ray = new Ray(
           camera.position,
           new Vector3(this.ship.position.x, this.ship.position.y, this.ship.position.z).subtract(camera.position)
@@ -202,7 +203,7 @@ export class DebugTestLoop implements GameScene, IDisposable {
         const pickedInfo = appContainer.scene.pickWithRay(ray)
         if (pickedInfo.hit) {
           console.log(pickedInfo.pickedPoint)
-          registerHit(this.ship, { id: "asd", damage: 200, originatorId: "" }, pickedInfo.pickedPoint, 200)
+          registerHit(this.ship, { id: "asd", damage: 2, originatorId: "" }, pickedInfo.pickedPoint, 20)
         }
       }
     }
@@ -227,6 +228,7 @@ export class DebugTestLoop implements GameScene, IDisposable {
 
     scene.render()
     if (this.ship) {
+      if (this.ship.movementCommand) this.ship.movementCommand.afterburner = 1
       divFps.innerHTML = engine.getFps().toFixed() + " fps"
       divFps.innerHTML += "<br/>mission: " + this.ship.ai.blackboard.intelligence.mission
       divFps.innerHTML += "<br/>objective: " + this.ship.ai.blackboard.intelligence.objective

@@ -1,10 +1,12 @@
-import { Weapon } from "./weapon";
+import { Weapon } from "./weapon"
 
 export const imagerecognition: Weapon = Object.seal({
   /** id */
   class: "imagerecognition",
-  /** type */
-  type: "imagerecognition",
+  /** structure slot type */
+  type: "Weapon",
+  /** weapon type */
+  weaponType: "imagerecognition",
   /** display name */
   name: "Image Recognition",
   /** the weight in tonnes of the weapon */
@@ -26,5 +28,5 @@ export const imagerecognition: Weapon = Object.seal({
   /** the pitch turn rate in degrees per second */
   pitch: 100,
   /** the roll turn rate in degrees per second */
-  roll: 100
+  roll: 100,
 })

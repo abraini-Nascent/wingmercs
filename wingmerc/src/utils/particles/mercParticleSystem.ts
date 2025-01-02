@@ -10,6 +10,7 @@ import {
   Mesh,
   MeshBuilder,
   Nullable,
+  Observable,
   Observer,
   Quaternion,
   Scalar,
@@ -21,6 +22,8 @@ import {
 import { MercParticlePointEmitter, MercParticlesEmitter } from "./mercParticleEmitters"
 import { queries } from "../../world/world"
 import { Vector3FromObj } from "../math"
+
+const DEBUG = false
 
 type MercParticleProps = {
   age: number
@@ -102,17 +105,22 @@ export class MercParticleSystem {
   speed: number
   gravity: Vector3
   direction: Vector3
+  /** stops the emissions and will move to done when particles eol */
   stopped: boolean = true
+  /** pauses the emissions without moving to done when particles eol */
+  paused: boolean = false
+  /** system is stopped and all particles are eol */
   done: boolean = false
 
   initialPositionFunction: (particle: SolidParticle) => SolidParticle
   initialDirectionFunction: (particle: SolidParticle) => SolidParticle
+  onDoneObservable = new Observable<void>()
   onDone: () => void
 
   private sceneObserver: Observer<Scene>
 
   constructor(
-    name: string,
+    public name: string,
     private scene: Scene,
     type: number | ((system: SolidParticleSystem) => void) = 1,
     size: number = 1,
@@ -145,11 +153,14 @@ export class MercParticleSystem {
   }
 
   dispose() {
+    DEBUG && console.log("[MercParticleSystem] disposing", this.name)
     this.sceneObserver.remove()
     this.SPS.dispose()
+    this.onDoneObservable.clear()
   }
 
   begin = () => {
+    DEBUG && console.log("[MercParticleSystem] beginning", this.name)
     // reset
     this.stopped = false
     this.done = false
@@ -194,7 +205,7 @@ export class MercParticleSystem {
     // if (props.startPos) {
     // let start: Vector3 = props.startPos
     // let length = start.subtract(particle.position).length()
-    // console.log("travel length:", length)
+    // DEBUG && console.log("travel length:", length)
     // }
 
     /// Life Time
@@ -213,7 +224,7 @@ export class MercParticleSystem {
         props.lifeTime = Scalar.Lerp(lifeTime1, lifeTime2, scale)
       })
     } else {
-      props.lifeTime = 0
+      props.lifeTime = 3
     }
 
     /// Direction
@@ -363,6 +374,7 @@ export class MercParticleSystem {
     }
     particle.isVisible = false
     particle.position.setAll(0)
+    particle.position.setAll(10)
     particle.rotation.setAll(0)
     particle.velocity.setAll(0)
     particle.scale.setAll(1)
@@ -377,9 +389,13 @@ export class MercParticleSystem {
   private animate = () => {
     this.duration += this.scene.getEngine().getDeltaTime() / 1000
     if (this.targetStopDuration != 0 && this.duration >= this.targetStopDuration) {
+      // DEBUG && console.log("[MercParticleSystem] targetStopDuration complete ", this.targetStopDuration, this.duration)
       this.stopped = true
     }
     if (this.stopped) {
+      return
+    }
+    if (this.paused) {
       return
     }
     // let scaledUpdateSpeed = this.updateSpeed * this.scene?.getAnimationRatio() || 1;
@@ -416,7 +432,7 @@ export class MercParticleSystem {
           this.newParticlesRemaining = this.emitCount - this.emittedCount
         }
       }
-      // console.log("adding particles", this.newParticlesRemaining)
+      // DEBUG && console.log("adding particles", this.newParticlesRemaining)
     }
   }
 
@@ -455,13 +471,21 @@ export class MercParticleSystem {
       scaledUpdateSpeed = (oldDiff * scaledUpdateSpeed) / diff
       this.recycleParticle(particle)
       this.finishedCount += 1
-      if (this.emitCount > 0 && this.finishedCount == this.emitCount) {
+      !this.name.includes("missile-trail") &&
+        DEBUG &&
+        console.log("[MercParticleSystem] finished total ", this.finishedCount, this.stopped, this.name)
+      if (this.emitCount > 0 && this.finishedCount >= this.emitCount) {
         this.stopped = true
       }
+      if (this.stopped && this.emitted.size > 0) {
+        DEBUG && console.log("[MercParticleSystem] stopped and waiting for ", this.emitted.size, this.name)
+      }
       if (this.emitted.size == 0 && this.stopped) {
+        DEBUG && console.log("[MercParticleSystem] system done ", this.name)
         if (this.onDone) {
           this.onDone()
         }
+        this.onDoneObservable.notifyObservers()
         this.done = true
       }
       return particle
@@ -603,10 +627,13 @@ export class MercParticleSystem {
 
 export class MercParticleSystemPool {
   count = 0
-  systems = new Map<string, MercParticleSystem>()
+  activeSystems = new Set<MercParticleSystem>()
   pool: MercParticleSystem[] = []
   factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem
-  constructor(factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem) {
+  constructor(
+    public readonly name: string,
+    factory: (count: number, emitter: MercParticlesEmitter) => MercParticleSystem
+  ) {
     this.factory = factory
   }
   prime(count: number) {
@@ -622,25 +649,50 @@ export class MercParticleSystemPool {
       }, 1)
     }
   }
-  getSystem(entityId: string, emitter: MercParticlesEmitter): MercParticleSystem {
+  acquireSystem(emitter: MercParticlesEmitter, releaseOnDone: boolean = true): MercParticleSystem {
+    let mps: MercParticleSystem
     if (this.pool.length == 0) {
       this.count += 1
-      let sps = this.factory(this.count, emitter)
-      this.systems.set(entityId, sps)
-      return sps
+      DEBUG &&
+        console.log(
+          `[MercParticleSystemPool][${this.name}] growing pool size, count: ${this.activeSystems.size}/${this.count}`
+        )
+      mps = this.factory(this.count, emitter)
+    } else {
+      DEBUG &&
+        console.log(
+          `[MercParticleSystemPool][${this.name}] reusing system, total: ${this.activeSystems.size}/${this.count}`
+        )
+      mps = this.pool.pop()
+      mps.initialPositionFunction = emitter.initialPositionFunction
+      mps.initialDirectionFunction = emitter.initialDirectionFunction
     }
-    let sps = this.pool.pop()
-    sps.initialPositionFunction = emitter.initialPositionFunction
-    sps.initialDirectionFunction = emitter.initialDirectionFunction
-    sps.begin()
-    return sps
+    this.activeSystems.add(mps)
+    mps.SPS.mesh.setEnabled(true)
+    if (releaseOnDone) {
+      mps.onDoneObservable.addOnce(() => {
+        DEBUG && console.log(`[MercParticleSystemPool][${this.name}] system done`)
+        this.release(mps)
+        mps = undefined
+      })
+    }
+    mps.begin()
+    return mps
   }
-  release(entityId) {
-    if (this.systems.has(entityId)) {
-      let sps = this.systems.get(entityId)
-      sps.stopped = true
-      this.systems.delete(entityId)
-      this.pool.push(sps)
+  release(mps: MercParticleSystem) {
+    if (this.activeSystems.has(mps)) {
+      mps.stopped = true
+      this.activeSystems.delete(mps)
+      this.pool.push(mps)
+      mps.SPS.mesh.setEnabled(false)
+      DEBUG &&
+        console.log(
+          `[MercParticleSystemPool][${this.name}] releasing system ${mps.name}, total: ${this.activeSystems.size}/${this.count}`
+        )
+    } else {
+      console.warn(
+        `[MercParticleSystemPool][${this.name}] !! ${mps.name} not found in active list. cannot release system`
+      )
     }
   }
   clear() {
@@ -648,10 +700,10 @@ export class MercParticleSystemPool {
       sps.dispose()
     }
     this.pool = []
-    for (const sps of this.systems.values()) {
+    for (const sps of this.activeSystems.values()) {
       sps.dispose()
     }
-    this.systems = new Map<string, MercParticleSystem>()
+    this.activeSystems.clear()
   }
 }
 

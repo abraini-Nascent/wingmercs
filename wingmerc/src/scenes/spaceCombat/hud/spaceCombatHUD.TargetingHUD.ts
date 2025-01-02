@@ -1,5 +1,5 @@
 import { Weapon } from "../../../data/weapons/weapon"
-import * as Weapons from "../../../data/weapons"
+import { Weapons } from "../../../data/weapons"
 import * as GUI from "@babylonjs/gui"
 import { Axis, Color3, Color4, Mesh, MeshBuilder, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { Entity, EntityForId, EntityUUID, queries } from "../../../world/world"
@@ -149,7 +149,7 @@ export class TargetingHUD {
     let canLock = false
     const mount = playerEntity.weapons.mounts[playerEntity.weapons.selected]
     const weapon = Weapons[mount.type] as Weapon
-    canLock = mount.count > 0 && (weapon.type == "heatseeking" || weapon.type == "imagerecognition")
+    canLock = mount.count > 0 && (weapon.weaponType == "heatseeking" || weapon.weaponType == "imagerecognition")
     if (playerEntity.targeting?.target == undefined || playerEntity.targeting?.target == "") {
       this.targetId = undefined
       this.missileLockTargetPlane.isVisible = false

@@ -1,5 +1,5 @@
 import { Vector3 } from "@babylonjs/core"
-import { heatseeking } from "./data/weapons"
+import { Weapons } from "./data/weapons"
 import { createLiveWeapon } from "./world/factories"
 import { Entity, EntityForId, world } from "./world/world"
 import { AppContainer } from "./app.container"
@@ -25,7 +25,7 @@ export class DebugConsole {
         gunInterceptPosition: { x: 0, y: 0, z: 0, inRange: false, active: false },
       },
     }
-    createLiveWeapon(heatseeking, firingEntity, Vector3.Zero())
+    createLiveWeapon(Weapons.heatseeking, firingEntity, Vector3.Zero())
   }
   killEnemy() {
     let player = AppContainer.instance.player.playerEntity

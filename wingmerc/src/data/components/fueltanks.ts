@@ -1,38 +1,41 @@
-import { FuelTankModifierDetails } from './../ships/shipTemplate';
+import { FuelTankModifierDetails } from "./../ships/shipTemplate"
 
 export const ShieldedFuelTank = {
   cost: 10000,
   size: "Medium",
-  name: "Shielded",
+  type: "FuelTank",
+  name: "Shielded Fuel Tank",
   weight: 1,
-  health: {
-    value: 50
-  }
+  extraHealth: {
+    value: 50,
+  },
 } as FuelTankModifierDetails
 
 export const ExpandedFuelTank = {
   cost: 10000,
   size: "Medium",
-  name: "Expanded",
+  type: "FuelTank",
+  name: "Expanded Fuel Tank",
   weight: 1,
-  capacity: {
+  fuelCapacity: {
     value: 1,
-    percent: true
-  }
+    percent: true,
+  },
 } as FuelTankModifierDetails
 
 export const ReinforcedFuelTank = {
   cost: 10000,
   size: "Medium",
-  name: "Reinforced",
+  type: "FuelTank",
+  name: "Reinforced Fuel Tank",
   weight: 1,
-  capacity: {
-    value: .5,
-    percent: true
+  fuelCapacity: {
+    value: 0.5,
+    percent: true,
   },
-  health: {
-    value: 25
-  }
+  extraHealth: {
+    value: 25,
+  },
 } as FuelTankModifierDetails
 
 export const FuelTankTypes = {
@@ -41,8 +44,8 @@ export const FuelTankTypes = {
   ReinforcedFuelTank: "ReinforcedFuelTank",
 } as const
 
-export type FuelTankTypes = typeof FuelTankTypes[keyof typeof FuelTankTypes];
-export type FuelTanks = { [powerPlant in FuelTankTypes]: FuelTankModifierDetails };
+export type FuelTankTypes = (typeof FuelTankTypes)[keyof typeof FuelTankTypes]
+export type FuelTanks = { [powerPlant in FuelTankTypes]: FuelTankModifierDetails }
 
 export const FuelTanks: FuelTanks = {
   ShieldedFuelTank: ShieldedFuelTank,

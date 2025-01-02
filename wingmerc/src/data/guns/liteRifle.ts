@@ -3,6 +3,7 @@ import { Gun } from "./gun"
 export const literifle: Gun = Object.seal({
   /** id */
   class: "literifle",
+  type: "Gun",
   /** display name */
   name: "Lite Rifle",
   /** the weight in tonnes of the gun */

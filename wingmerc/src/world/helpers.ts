@@ -4,7 +4,7 @@ import { QuaternionFromObj, Vector3FromObj } from "../utils/math"
 import { ShipTemplate } from "../data/ships/shipTemplate"
 import * as Ships from "../data/ships"
 import * as Guns from "../data/guns"
-import * as Weapons from "../data/weapons"
+import { Weapons } from "../data/weapons"
 
 /// Helper functions to transform, collect, or express data from the world
 

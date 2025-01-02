@@ -1,10 +1,10 @@
-import { TextBlock } from "@babylonjs/gui";
+import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
-import { Entity } from "../../../world/world";
-import { DisposeBag, FluentTextBlock, FluentVerticalStackPanel, Ref } from "../../../utils/fluentGui";
+import { Entity } from "../../../world/world"
+import { DisposeBag, FluentTextBlock, FluentVerticalStackPanel, Ref } from "../../../utils/fluentGui"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class ObjectivesVDU {
-
+export class ObjectivesVDU implements VDU {
   screen: GUI.Container
   disposeBag = new DisposeBag()
   detailsStack = new Ref<GUI.StackPanel>()
@@ -18,6 +18,7 @@ export class ObjectivesVDU {
   dispose() {
     this.disposeBag.dispose()
   }
+  vduButtonPressed(_button: number) {}
   setupMain() {
     const styleFont = (control: GUI.TextBlock) => {
       control.fontFamily = "monospace"
@@ -26,16 +27,11 @@ export class ObjectivesVDU {
       control.resizeToFit = true
       control.height = "20px"
     }
-    this.screen = 
-      FluentVerticalStackPanel("stack", 
-        new FluentTextBlock("title", "-=[Objectives]=-")
-          .resizeToFit(true)
-          .modifyControl(styleFont),
-        FluentVerticalStackPanel("stack-main",
-        ).storeIn(this.detailsStack)
-        .width(240)
-        .horizontalAlignment("left")
-      )
+    this.screen = FluentVerticalStackPanel(
+      "stack",
+      new FluentTextBlock("title", "-=[Objectives]=-").resizeToFit(true).modifyControl(styleFont),
+      FluentVerticalStackPanel("stack-main").storeIn(this.detailsStack).width(240).horizontalAlignment("left")
+    )
       .width(240)
       .height(240)
       .build()
@@ -58,7 +54,6 @@ export class ObjectivesVDU {
   }
 
   update(playerEntity: Entity, dt: number) {
-    
     if (playerEntity.objectiveDetails) {
       for (const objective of playerEntity.objectiveDetails) {
         const objectiveKey = `${objective.id}`
@@ -85,11 +80,13 @@ export class ObjectivesVDU {
               stepTB.color("green")
             }
           } else {
-            const textblock = new FluentTextBlock(`objective-${stepKey}`, `- ${step.type} ${step.target}${step.location ? `\r\n  at ${step.location.name}` : ''}`)
-            .modifyControl(this.styleStep)
-            .textHorizontalAlignment("left")
-            const padding = textblock
-            .boxPadding(0,0,5,0)
+            const textblock = new FluentTextBlock(
+              `objective-${stepKey}`,
+              `- ${step.type} ${step.location ? `\r\n  at ${step.location.name}` : ""}`
+            )
+              .modifyControl(this.styleStep)
+              .textHorizontalAlignment("left")
+            const padding = textblock.boxPadding(0, 0, 5, 0)
             this.detailsStack.get().addControl(padding.build())
             this.objectives.set(stepKey, textblock)
           }
@@ -97,6 +94,5 @@ export class ObjectivesVDU {
       }
     }
     this.detailsStack.get().isVisible = true
-    
   }
 }

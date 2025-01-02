@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>9-Patch Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      border: 1px solid #000;
+    }
+
+    #controls {
+      margin: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>9-Patch Generator</h1>
+  <div id="controls">
+    <div class="input-group">
+      <label for="fontFile">Upload TTF Font:</label>
+      <input type="file" id="fontFile" accept="font/ttf">
+    </div>
+    <div class="input-group">
+      <label for="textInput">Enter Text for 9-Patch:</label>
+      <input type="text" id="textInput" value="╔═╗║ ║╚═╝">
+    </div>
+    <div class="input-group">
+      <label for="fontSize">Font Size (px):</label>
+      <input type="number" id="fontSize" value="16" min="1">
+    </div>
+    <div class="input-group">
+      <label for="cellHeightSize">Cell Height Size (px):</label>
+      <input type="number" id="cellHeightSize" value="16" min="1">
+    </div>
+    <div class="input-group">
+      <label for="cellWidthSize">Cell Width Size (px):</label>
+      <input type="number" id="cellWidthSize" value="16" min="1">
+    </div>
+    <div class="input-group">
+      <label for="cellSize">Cell Size (px):</label>
+      <input type="number" id="cellSize" value="16" min="1">
+    </div>
+    <button id="generate">Generate 9-Patch</button>
+    <button id="export">Export PNG</button>
+  </div>
+  <canvas id="preview" width="256" height="256"></canvas>
+  <script src="./src/9patch.js" defer></script>
+</body>
+
+</html>

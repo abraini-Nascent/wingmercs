@@ -1,7 +1,8 @@
-import { Color3, IDisposable, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
+import { Color3, IDisposable, InstancedMesh, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
 import { Entity, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { GreasedLineModel } from "../../../utils/greasedLineModel"
+import { AppContainer } from "../../../app.container"
 
 const DEBUG = false
 let i = 0
@@ -25,7 +26,7 @@ export class MeshedSystem implements IDisposable {
   }
 
   shieldedOnEntityAdded = (entity: Entity) => {
-    MeshedSystem.addShieldMesh(entity, entity.shieldMeshName)
+    MeshedSystem.addShieldMesh(entity, entity.shieldMeshName, entity.node)
   }
 
   meshedOnEntityAdded = (entity: Entity) => {
@@ -36,7 +37,7 @@ export class MeshedSystem implements IDisposable {
     MeshedSystem.addEntityMesh(entity, entity.meshName)
   }
 
-  meshedOnEntityRemoved = (entity) => {
+  meshedOnEntityRemoved = (entity: Entity) => {
     DEBUG && console.log("[meshed] disposing entity", entity)
     const oldNode = entity.node
     if (oldNode == undefined) {
@@ -51,10 +52,8 @@ export class MeshedSystem implements IDisposable {
       DEBUG && console.log("[meshed] disposing mesh", mesh)
       mesh.dispose()
     }
-    if (entity.trailMeshs) {
-      entity.trailMeshs.disposables.forEach((mesh) => {
-        mesh.dispose()
-      })
+    if (entity.engineMesh) {
+      entity.engineMesh.dispose(false, true)
     }
     oldNode.dispose()
   }
@@ -62,11 +61,22 @@ export class MeshedSystem implements IDisposable {
   static addLineMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
     const meshNode = ObjModels[meshName] as TransformNode
     const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+    let offsetNode: TransformNode
+    if (entity.currentPlayer && entity.cockpitOffset) {
+      offsetNode = new TransformNode(`${entity}-${meshName}-node-${i}-cockpit-offset`)
+      offsetNode.parent = node
+      offsetNode.position.set(entity.cockpitOffset.x, entity.cockpitOffset.y, entity.cockpitOffset.z)
+    }
     const children = meshNode.getChildMeshes()
     for (let mi = 0; mi < children.length; mi += 1) {
       const mesh = children[mi]
-      const lines = GreasedLineModel.fromMesh(mesh, { thresholdAngle: 10, color: "#ff0000" })
-      lines.setParent(node)
+      const lines = GreasedLineModel.fromMesh(mesh, { thresholdAngle: 3, color: "#0000FF" })
+      lines.isPickable = false
+      if (offsetNode) {
+        lines.parent = offsetNode
+      } else {
+        lines.setParent(node)
+      }
     }
     if (entity.node == undefined) {
       world.addComponent(entity, "node", node)
@@ -87,6 +97,8 @@ export class MeshedSystem implements IDisposable {
       const mesh = children[mi]
       // TODO: we could actually make instances instead of cloning
       const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
+      instanceMesh.isPickable = false
+      instanceMesh.isNearPickable = false
       if (mat != undefined) {
         instanceMesh.material = mat
       }
@@ -111,7 +123,10 @@ export class MeshedSystem implements IDisposable {
       const mesh = children[mi]
       // TODO: we could actually make instances instead of cloning
       const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
+      instanceMesh.setEnabled(true)
       instanceMesh.isVisible = true
+      instanceMesh.isPickable = false
+      instanceMesh.isNearPickable = false
       if (mat != undefined) {
         instanceMesh.material = mat
       }
@@ -133,45 +148,45 @@ export class MeshedSystem implements IDisposable {
     }
     if (entity.physicsRadius == undefined) {
       world.addComponent(entity, "physicsRadius", radius)
-    } else if (entity.physicsRadius < radius) {
-      entity.physicsRadius = radius
     }
   }
 
-  static addShieldMesh(entity: Entity, meshName: string, existingNode?: TransformNode) {
-    let shieldMesh: Mesh
-    const node = existingNode ?? entity.node ?? new TransformNode(`${entity}-${meshName}-node-${i}`)
+  static addShieldMesh(entity: Entity, meshName: string, existingNode: TransformNode) {
+    const node = existingNode
     const hullMesh = ObjModels[meshName] as TransformNode
     const hullChildren = hullMesh.getChildMeshes()
     // there should be only one child
     let radius = 0
+    const mat = new StandardMaterial(`${meshName}-mat-${i}`)
+    mat.emissiveColor = new Color3(0, 0, 0.5)
+    mat.diffuseColor = new Color3(0, 0, 0.5)
+    mat.specularColor = new Color3(0.1, 0.1, 0.9)
+    mat.alpha = 0
+    mat.wireframe = true
+    const shieldMeshes = []
     for (let mi = 0; mi < hullChildren.length; mi += 1) {
       const mesh = hullChildren[mi]
       const instanceMesh = (mesh as Mesh).clone(`${meshName}-hull-${i}-${mi}`, node)
-      const mat = new StandardMaterial(`${meshName}-mat-${i}`)
-      mat.emissiveColor = new Color3(0, 0, 0.5)
-      mat.diffuseColor = new Color3(0, 0, 0.5)
-      mat.specularColor = Color3.Black()
-      mat.alpha = 0
-      mat.wireframe = true
+      instanceMesh.setEnabled(true)
       instanceMesh.material = mat
       instanceMesh.isVisible = true
-      shieldMesh = instanceMesh
+      instanceMesh.isPickable = false
+      instanceMesh.isNearPickable = false
+      instanceMesh.scaling.setAll(2)
       let meshRadius = instanceMesh.getBoundingInfo().boundingSphere.radius
       if (meshRadius > radius) {
         radius = meshRadius
       }
+      shieldMeshes.push(instanceMesh)
     }
     if (entity.node == undefined) {
       world.addComponent(entity, "node", node)
     }
     if (entity.physicsRadius == undefined) {
       world.addComponent(entity, "physicsRadius", radius)
-    } else if (entity.physicsRadius < radius) {
-      entity.physicsRadius = radius
     }
-    if (shieldMesh) {
-      world.addComponent(entity, "shieldMesh", shieldMesh)
+    if (shieldMeshes.length > 0) {
+      world.addComponent(entity, "shieldMesh", shieldMeshes)
     }
   }
 

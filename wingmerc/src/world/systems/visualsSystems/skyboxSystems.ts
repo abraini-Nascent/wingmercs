@@ -1,10 +1,9 @@
-import { StarfieldSystem } from './starfieldSystem';
-import { SkyboxPlanetSystem } from './skyboxPlanetSystem';
-import { SkyboxNebulaSystem } from './skyboxNebulaSystem';
-import { IDisposable, Scene } from '@babylonjs/core';
+import { StarfieldSystem } from "./starfieldSystem"
+import { SkyboxPlanetSystem } from "./skyboxPlanetSystem"
+import { SkyboxNebulaSystem } from "./skyboxNebulaSystem"
+import { IDisposable, Scene } from "@babylonjs/core"
 
 export class SkyboxSystems implements IDisposable {
-
   skyboxNebulaSystem: SkyboxNebulaSystem
   skyboxPlanetSystem: SkyboxPlanetSystem
   starfieldSystem: StarfieldSystem

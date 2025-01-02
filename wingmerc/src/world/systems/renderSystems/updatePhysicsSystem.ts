@@ -53,43 +53,24 @@ export class UpdatePhysicsSystem implements IDisposable {
     const body = new PhysicsBody(node, physicsType, false, app.scene)
     // maybe intense but we need to let the body update to the nodes position
     body.disablePreStep = false
-    // TODO this should be baked into the glb or a seperate matching glb instead of generated
-    // let meshes = node.getChildMeshes()
-    // meshes.shift()
-    // meshes = meshes.map((mesh) => mesh.clone("meh", node))
-    // meshes.forEach((mesh) => mesh.scaling = new Vector3(2, 2, 2))
-    // const wholeMesh = Mesh.MergeMeshes(meshes as Mesh[])
-    // const hullShape = new PhysicsShapeConvexHull(wholeMesh, app.scene)
-    // dispose of merged meshes
-    // meshes.forEach((mesh) => mesh.dispose())
-    // const sphereShape = new PhysicsShapeSphere(Vector3.Zero(), 1, app.scene)
     let hullShape
 
-    // if (entity.targetName == "LiteCarrier") {
-    //   debugger
-    // }
     if (entity.physicsMeshName) {
       let hullShapeMesh = (ObjModels[entity.physicsMeshName] as TransformNode).getChildMeshes()[1] as Mesh
       // HACK: I don't know why but when I add the imported mesh as a physics mesh it's upside down.
       hullShapeMesh = new Mesh("entity hull", AppContainer.instance.scene, undefined, hullShapeMesh, false, false)
-      let physicsHullShape = new PhysicsShapeMesh(hullShapeMesh, app.scene)
-      let hullShapeContainer = new PhysicsShapeContainer(AppContainer.instance.scene)
+      const physicsHullShape = new PhysicsShapeMesh(hullShapeMesh, app.scene)
+      const hullShapeContainer = new PhysicsShapeContainer(AppContainer.instance.scene)
       hullShapeContainer.addChild(
         physicsHullShape,
         undefined,
         Quaternion.RotationAxis(Vector3.Forward(true), ToRadians(180))
       )
       hullShape = hullShapeContainer
-      // hullShapeMesh = hullShapeMesh.createInstance("entity hull")
-      // hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
-      // hullShapeMesh.bakeCurrentTransformIntoVertices()
-      // let physicsHullShape = new PhysicsShapeMesh(hullShapeMesh as unknown as Mesh, app.scene)
-      // hullShapeMesh.rotate(Vector3.Forward(true), ToRadians(180))
-      // hullShapeMesh.bakeCurrentTransformIntoVertices()
       hullShapeMesh.dispose()
       // hullShape = physicsHullShape
-      // } else if (entity.physicsRadius != undefined) {
-      //   hullShape = new PhysicsShapeSphere(Vector3.Zero(), entity.physicsRadius, app.scene)
+    } else if (entity.physicsUseRadius && entity.physicsRadius != undefined) {
+      hullShape = new PhysicsShapeSphere(Vector3.Zero(), entity.physicsRadius, app.scene)
     } else {
       let meshes = entity.node.getChildMeshes()
       if (meshes.length == 1) {

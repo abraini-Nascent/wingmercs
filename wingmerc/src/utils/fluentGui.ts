@@ -1,4 +1,4 @@
-import { EventState, Observable, Observer } from "@babylonjs/core"
+import { EventState, Observable, Observer, TmpVectors } from "@babylonjs/core"
 import {
   AdvancedDynamicTexture,
   Button,
@@ -198,7 +198,7 @@ export abstract class FluentControl<TControl extends Control, TDerived extends F
     }
     return this as unknown as TDerived
   }
-  // Bottom positioning logic is derrived from the height of the parent container and the height of the held container
+  /** Bottom positioning logic is derrived from the height of the parent container and the height of the held container */
   public bottom(value: number): TDerived {
     this.control.topInPixels = this.control.parent.heightInPixels - value - this.control.heightInPixels
     return this as unknown as TDerived
@@ -214,7 +214,7 @@ export abstract class FluentControl<TControl extends Control, TDerived extends F
     return this as unknown as TDerived
   }
 
-  // Right positioning logic is derrived from the width of the parent container and the width of the held container
+  /** Right positioning logic is derrived from the width of the parent container and the width of the held container */
   public right(value: number): TDerived {
     this.control.leftInPixels = this.control.parent.widthInPixels - value - this.control.widthInPixels
     return this as unknown as TDerived
@@ -306,11 +306,45 @@ export abstract class FluentControl<TControl extends Control, TDerived extends F
     return this as unknown as TDerived
   }
 
-  // provide access if things need to get super specific and off the rails
+  /** Gets or sets front color of control if it's disabled. Only applies to Checkbox class. */
+  public disabledColorItem(value: string): TDerived {
+    this.control.disabledColorItem = value
+    return this as unknown as TDerived
+  }
+
+  /**
+   * Border color when control is focused
+   * When not defined the ADT color will be used. If no ADT color is defined, focused state won't have any border
+   */
+  public focusedColor(value: string): TDerived {
+    this.control.focusedColor = value
+    return this as unknown as TDerived
+  }
+  /**
+   * The tab index of this control. -1 indicates this control is not part of the tab navigation.
+   * A positive value indicates the order of the control in the tab navigation.
+   * A value of 0 indicated the control will be focused after all controls with a positive index.
+   * More than one control can have the same tab index and the navigation would then go through all controls with the same value in an order defined by the layout or the hierarchy.
+   * The value can be changed at any time.
+   * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+   */
+  public tabIndex(value: number): TDerived {
+    this.control.tabIndex = value
+    return this as unknown as TDerived
+  }
+
+  /** provide access if things need to get super specific and off the rails */
   public modifyControl(modifier: (control: TControl) => void): TDerived {
     modifier(this.control)
     return this as unknown as TDerived
   }
+
+  public hitTestVisible(value: boolean): TDerived {
+    this.control.isHitTestVisible = value
+    return this as unknown as TDerived
+  }
+
+  /// Padding and Box Padding
 
   // A modifier system (similar to padding, alignment, etc.)
   public padding(top: number, right: number, bottom: number, left: number): TDerived {
@@ -321,31 +355,30 @@ export abstract class FluentControl<TControl extends Control, TDerived extends F
     return this as unknown as TDerived
   }
 
-  /// Box Padding
-
   /** mimics css box model padding by addind space _around_ the content size */
   public boxPadding(top: number, right?: number, bottom?: number, left?: number): FluentBoxModelContainer {
     return new FluentBoxModelContainer(this).setBoxPadding(top, right, bottom, left)
   }
 
-  /// State
-  public setState<T>(
-    state: FluentState<any, any>,
-    updateFn: (control: TDerived, newValue: T) => void,
-    initialValue?: T
-  ): TDerived {
-    state.setControl(this as unknown as TDerived) // Correctly cast `this` to the derived FluentControl type (FC)
-    state.bind(updateFn, initialValue)
+  /** Sets the state and runs the update function with the current state value even if there is no initial value */
+  public bindState<T>(state: FluentState<T>, updateFn: (control: TDerived, newValue: T) => void): TDerived {
+    state.bind(this as unknown as TDerived, updateFn)
     return this as unknown as TDerived
   }
 
   /// Events
 
   public onPointerClick(
-    callback: (eventData: Vector2WithInfo, eventState: EventState) => void,
+    callback: (control: TDerived, eventData: Vector2WithInfo, eventState: EventState) => void,
     disposeBag?: DisposeBag
   ): TDerived {
-    this.addObserver(this.control.onPointerClickObservable, callback, disposeBag)
+    this.addObserver(
+      this.control.onPointerClickObservable,
+      (e, s) => {
+        callback(this as unknown as TDerived, e, s)
+      },
+      disposeBag
+    )
     return this as unknown as TDerived
   }
 
@@ -366,18 +399,30 @@ export abstract class FluentControl<TControl extends Control, TDerived extends F
   }
 
   public onPointerDown(
-    callback: (eventData: Vector2WithInfo, eventState: EventState) => void,
+    callback: (control: TDerived, eventData: Vector2WithInfo, eventState: EventState) => void,
     disposeBag?: DisposeBag
   ): TDerived {
-    this.addObserver(this.control.onPointerDownObservable, callback, disposeBag)
+    this.addObserver(
+      this.control.onPointerDownObservable,
+      (e, s) => {
+        callback(this as unknown as TDerived, e, s)
+      },
+      disposeBag
+    )
     return this as unknown as TDerived
   }
 
   public onPointerUp(
-    callback: (eventData: Vector2WithInfo, eventState: EventState) => void,
+    callback: (control: TDerived, eventData: Vector2WithInfo, eventState: EventState) => void,
     disposeBag?: DisposeBag
   ): TDerived {
-    this.addObserver(this.control.onPointerUpObservable, callback, disposeBag)
+    this.addObserver(
+      this.control.onPointerUpObservable,
+      (e, s) => {
+        callback(this as unknown as TDerived, e, s)
+      },
+      disposeBag
+    )
     return this as unknown as TDerived
   }
 }
@@ -446,36 +491,84 @@ export class FluentBoxModelContainer extends FluentControl<Container, FluentCont
 
 /// State Management
 
-export class FluentState<C extends Control, FC extends FluentControl<C, FC>> {
+export interface FluentState<T> {
+  getValue(): any
+  /** Method to run the update function and update the state value.
+   * Update is run with new value before old value is overriden in the state object with new value.
+   * You can get the old value from the state object in your update function if you need to compare old and new value set. */
+  setValue(newValue: any): void
+  bind<C extends Control, FC extends FluentControl<C, FC>>(
+    control: FluentControl<any, any>,
+    updateFn: (control: FC, newValue: T) => void
+  )
+}
+export class FluentSubjectState<T> implements FluentState<T> {
   private value: any
-  private control: FluentControl<C, FC>
-  private updateFn: (control: FluentControl<C, FC>, newValue: any) => void
+  private observers: {
+    control: FluentControl<any, any>
+    updateFn: (control: FluentControl<any, any>, newValue: any) => void
+  }[] = []
 
-  constructor() {}
+  constructor(initialValue?: any) {
+    this.value = initialValue
+  }
 
   // Method to read the current state value
   public getValue(): any {
     return this.value
   }
 
-  // Method to update the state value and run the update function
   public setValue(newValue: any): void {
     if (this.value !== newValue) {
+      for (const observer of this.observers) {
+        observer.updateFn(observer.control, newValue)
+      }
       this.value = newValue
-      this.updateFn(this.control, newValue)
     }
   }
 
-  setControl(control: FluentControl<any, any>) {
-    this.control = control
+  bind<C extends Control, FC extends FluentControl<C, FC>>(
+    control: FluentControl<C, FC>,
+    updateFn: (control: FC, newValue: T) => void
+  ) {
+    this.observers.push({ control, updateFn })
+    return control
+  }
+}
+
+export class FluentBehaviourState<T> implements FluentState<T> {
+  private value: T
+  private observers: {
+    control: FluentControl<any, any>
+    updateFn: (control: FluentControl<any, any>, newValue: any) => void
+  }[] = []
+
+  constructor(initialValue: T) {
+    this.value = initialValue
   }
 
-  bind<T>(updateFn: (control: FC, newValue: T) => void, initialValue?: T) {
-    this.updateFn = updateFn
-    if (initialValue) {
-      this.value = initialValue
+  // Method to read the current state value
+  public getValue(): T {
+    return this.value
+  }
+
+  /** Method to run the update function and update the state value.
+   * Update is run with new value before old value is overriden in the state object with new value.
+   * You can get the old value from the state object in your update function if you need to compare old and new value set. */
+  public setValue(newValue: any): void {
+    for (const observer of this.observers) {
+      observer.updateFn(observer.control, newValue)
     }
-    return this.control
+    this.value = newValue
+  }
+
+  bind<C extends Control, FC extends FluentControl<C, FC>>(
+    control: FluentControl<any, any>,
+    updateFn: (control: FC, newValue: T) => void
+  ) {
+    this.observers.push({ control, updateFn })
+    updateFn(control as any, this.value)
+    return control
   }
 }
 
@@ -483,20 +576,26 @@ export class FluentState<C extends Control, FC extends FluentControl<C, FC>> {
 
 function FluentContainerCtor(name?: string): FluentContainer
 function FluentContainerCtor(existing?: Container): FluentContainer
-function FluentContainerCtor(name?: string, ...controls: FluentControl<Control, any>[]): FluentContainer
-function FluentContainerCtor(arg1?: string | Container, ...controls: FluentControl<Control, any>[]): FluentContainer {
+function FluentContainerCtor(
+  name?: string,
+  ...controls: (FluentControl<Control, any> | FluentControl<Control, any>[])[]
+): FluentContainer
+function FluentContainerCtor(
+  arg1?: string | Container,
+  ...controls: (FluentControl<Control, any> | FluentControl<Control, any>)[]
+): FluentContainer {
   return new FluentContainer(arg1 as any, controls as any)
 }
 export class FluentContainer extends FluentControl<Container, FluentContainer> {
   constructor(name?: string)
   constructor(existing?: Container)
-  constructor(name?: string, ...controls: FluentControl<Control, any>[])
-  constructor(arg1?: string | Container, ...controls: FluentControl<Control, any>[]) {
+  constructor(name?: string, ...controls: (FluentControl<Control, any> | FluentControl<Control, any>[])[])
+  constructor(arg1?: string | Container, ...controls: (FluentControl<Control, any> | FluentControl<Control, any>[])[]) {
     let container: Container
 
     if (typeof arg1 === "string") {
       container = new Container(arg1)
-    } else if (arg1 instanceof FluentContainer) {
+    } else if (arg1 instanceof Container) {
       container = arg1
     } else {
       container = new Container()
@@ -505,15 +604,17 @@ export class FluentContainer extends FluentControl<Container, FluentContainer> {
     // Pass the initialized panel to the base FluentControl class
     super(container)
 
-    // Add any additional FluentControls passed as children
-    controls.forEach((control) => {
+    const flatControls = controls.flat()
+
+    // Add each control to the container
+    flatControls.forEach((control) => {
       this.addControl(control)
     })
   }
 
   // Add a control to the container
-  public addControl(...controls: FluentControl<any, any>[]): FluentContainer {
-    for (const control of controls) {
+  public addControl(...controls: (FluentControl<any, any> | FluentControl<any, any>[])[]): FluentContainer {
+    for (const control of controls.flat()) {
       const builtControl = control.build()
       this.control.addControl(builtControl)
     }
@@ -531,26 +632,48 @@ export class FluentContainer extends FluentControl<Container, FluentContainer> {
     return this
   }
 
+  /** Remove all the child controls */
   public clear(): FluentContainer {
     this.control.clearControls()
     return this
   }
 
-  // Apply a background color to the container
+  /** Grow to the size of the position of the furthest child */
+  public growHeight(ratio: number = 1): FluentContainer {
+    let maxHeight = 0
+    this.control.children.forEach((c) => {
+      if (c.topInPixels + c.heightInPixels > maxHeight) {
+        maxHeight = c.topInPixels + c.heightInPixels
+      }
+    })
+    this.control.heightInPixels = maxHeight * ratio
+    console.log(maxHeight, maxHeight * ratio)
+    return this
+  }
+
+  /** Apply a background color to the container */
   public background(color: string): FluentContainer {
     this.control.background = color
     return this
   }
 
-  // Set the container's width
-  public width(value: string | number): FluentContainer {
-    this.control.width = value
+  /** Set the container's width */
+  public width(value: string | number | ((height: string | number) => string | number)): FluentContainer {
+    if (typeof value == "function") {
+      this.control.width = value(this.control.width)
+    } else {
+      this.control.width = value
+    }
     return this
   }
 
-  // Set the container's height
-  public height(value: string | number): FluentContainer {
-    this.control.height = value
+  /** Set the container's height */
+  public height(value: string | number | ((height: string | number) => string | number)): FluentContainer {
+    if (typeof value == "function") {
+      this.control.height = value(this.control.height)
+    } else {
+      this.control.height = value
+    }
     return this
   }
 
@@ -858,7 +981,7 @@ export class FluentGrid extends FluentControl<Grid, FluentGrid> {
       grid = new Grid()
     }
     super(grid)
-    this.control = grid
+    // this.control = grid
   }
 
   // Define the number of rows and columns in the grid
@@ -886,10 +1009,13 @@ export class FluentGrid extends FluentControl<Grid, FluentGrid> {
   }
 
   // Add a control to the specified row and column
-  public addControlAt(control: FluentControl<any, any>, row: number, col: number): FluentGrid {
+  public addControlAt(control: FluentControl<any, any>, row: number, col: number, colSpan?: number): FluentGrid {
     const builtControl = control.build()
     this.control.addControl(builtControl, row, col)
     this.controls.push({ row, col, control })
+    if (colSpan) {
+      this.control
+    }
     return this
   }
 
@@ -999,9 +1125,16 @@ export class FluentTextBlock extends FluentControl<TextBlock, FluentTextBlock> {
   }
 
   /** Sets text to display */
-  public setText(value: string): FluentTextBlock {
-    this.control.text = value
+  public setText(value: string | ((text: string) => string)): FluentTextBlock {
+    if (typeof value === "string") {
+      this.control.text = value
+    } else {
+      this.control.text = value(this.control.text)
+    }
     return this
+  }
+  public text(): string {
+    return this.control.text
   }
 
   /** Sets a boolean indicating that the TextBlock will be resized to fit its content */
@@ -1094,7 +1227,10 @@ export class FluentInputText extends FluentControl<InputText, FluentInputText> {
 
 /// Buttons
 
-export class FluentButton extends FluentControl<Button, FluentButton> {
+export class FluentButton extends FluentContainer {
+  get button(): Button {
+    return this.control as Button
+  }
   constructor(arg1: string | Button | undefined) {
     if (typeof arg1 == "string") {
       const button = new Button(arg1)
@@ -1103,6 +1239,21 @@ export class FluentButton extends FluentControl<Button, FluentButton> {
       const button = arg1 ?? new Button()
       super(button)
     }
+  }
+  thickness(value: number): this {
+    this.button.thickness = value
+    return this
+  }
+  textBlock(cb: (tb: FluentTextBlock) => void): this {
+    if ((this.button as any)._textBlock) {
+      cb(new FluentTextBlock((this.button as any)._textBlock))
+    }
+    return this
+  }
+  /** Gets or sets background color of control if it's disabled */
+  public disabledColor(value: string): this {
+    this.control.disabledColor = value
+    return this
   }
 }
 
@@ -1140,7 +1291,7 @@ export class FluentImage extends FluentControl<Image, FluentImage> {
 
 const disposeBag = new DisposeBag()
 const buttonRef = new Ref<Button>()
-const headlineState = new FluentState()
+const headlineState = new FluentBehaviourState<string>("Headline2")
 new FluentContainer("root")
   .addControl(
     new FluentStackPanel("stack panel")
@@ -1158,16 +1309,16 @@ new FluentContainer("root")
           }, disposeBag)
           .modifyControl((c) => (c.thickness = 5))
       )
-      .addControl(
-        buttonRef.capture(
-          new FluentSimpleButton("button", "Lets GO!").color("blue").onPointerClick((data) => {
-            if (buttonRef.isValid) {
-              new FluentButton(buttonRef.get()).color("red")
-            }
-          }, disposeBag)
-        )
-      )
-      .addControl(new FluentTextBlock("tb", "Headline").setState(headlineState, (c, v) => c.setText(v), "Headline2"))
+      // .addControl(
+      //   // buttonRef.capture(
+      //   //   new FluentSimpleButton("button", "Lets GO!").color("blue").onPointerClick((data) => {
+      //   //     if (buttonRef.isValid) {
+      //   //       new FluentButton(buttonRef.get()).color("red")
+      //   //     }
+      //   //   }, disposeBag)
+      //   // )
+      // )
+      .addControl(new FluentTextBlock("tb", "Headline").bindState(headlineState, (c, v) => c.setText(v)))
   )
   .build()
 

@@ -43,21 +43,25 @@ export function CommunicationsOptions(ship: Entity): Array<{ label: string; acti
       if (targetedShip && targetedShip.id == wingMember.id) {
         continue
       }
+      if (nearbyHangars.some((hanger) => hanger.id == wingMember.id)) {
+        continue
+      }
       communicationOptions.push({ label: wingMember.targetName, action: () => openComms(ship, wingMember) })
     }
     return communicationOptions
   }
   const communicationOptions: Array<{ label: string; action: () => void }> = []
   const commShip = EntityForId(commId)
+  console.log("[communications] commShip", commShip)
   if (commShip.hangerBay) {
+    console.log("[communications] commShip has hangerBay", commShip.hangerBay)
     communicationOptions.push({ label: "Request Landing", action: () => requestLanding(ship, commShip) })
     communicationOptions.push({ label: "Close Comms", action: () => closeComms(ship) })
-  }
-  if (commShip.teamId != ship.teamId) {
+  } else if (commShip.teamId != ship.teamId) {
+    console.log("[communications] commShip is enemy", commShip.hangerBay)
     communicationOptions.push({ label: "Taunt", action: () => tauntEnemy(ship, commShip) })
     communicationOptions.push({ label: "Close Comms", action: () => closeComms(ship) })
-  }
-  if (commShip.teamId == ship.teamId && commShip.groupId == ship.groupId) {
+  } else if (commShip.teamId == ship.teamId && commShip.groupId == ship.groupId) {
     return openWingCommands(ship, commShip)
   }
   return communicationOptions

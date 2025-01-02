@@ -8,10 +8,9 @@ export const Saber: ShipTemplate = Object.seal({
   maxWeight: 35,
   baseWeight: 17,
   modelDetails: {
-    base: "spaceCraft3",
-    cockpit: "cockpit",
-    physics: "spaceCraft3Hull",
-    shield: "spaceCraft3Hull",
+    base: "craftSpeederC",
+    physics: "craftSpeederCHull",
+    shield: "craftSpeederCHull",
     trails: [
       {
         start: {
@@ -109,6 +108,7 @@ export const Saber: ShipTemplate = Object.seal({
       slots: ["PowerPlant", "Shields", "Thruster"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -116,6 +116,7 @@ export const Saber: ShipTemplate = Object.seal({
         {
           maxCount: 4,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 0,
             y: -2.5,
@@ -135,6 +136,7 @@ export const Saber: ShipTemplate = Object.seal({
       slots: ["Radar"],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
@@ -152,11 +154,13 @@ export const Saber: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -168,6 +172,7 @@ export const Saber: ShipTemplate = Object.seal({
           },
         },
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -183,6 +188,7 @@ export const Saber: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: -4.5,
             y: -2.5,
@@ -202,11 +208,13 @@ export const Saber: ShipTemplate = Object.seal({
       slots: [],
       utilityMounts: [
         {
+          mountType: "UtilityMount",
           maxSize: "Small",
         },
       ],
       gunMounts: [
         {
+          mountType: "GunMount",
           base: {
             type: "particleCannon",
           },
@@ -218,6 +226,7 @@ export const Saber: ShipTemplate = Object.seal({
           },
         },
         {
+          mountType: "GunMount",
           base: {
             type: "massdriver",
           },
@@ -233,6 +242,7 @@ export const Saber: ShipTemplate = Object.seal({
         {
           maxCount: 2,
           maxSize: "Medium",
+          mountType: "WeaponMount",
           position: {
             x: 2.5,
             y: -2.5,

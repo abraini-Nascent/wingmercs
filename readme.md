@@ -99,7 +99,11 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 - [ ] fof targeting friend if radio damaged
 - [ ] heat tracking new target if stronger signal in range
 - [ ] ship turrets
-- [ ] performance
+## Performance:
+General BabylonJs notes.
+Cloned meshes reuse geometry and materials
+Disposing meshes doesn't dispose materials
+
   - [x] world.update takes ~0.15ms when there are many entities. ship ai and movement command are the largest abusers of update. update should only be used when reindexing. none of our queries have a predicate. a simpler "add component if needed" might be better
   - [ ] draw call is too long on vr headsets.
     - [ ] 1000 unique meshes for the nebula cell is too much, maybe this could be moved into a shader

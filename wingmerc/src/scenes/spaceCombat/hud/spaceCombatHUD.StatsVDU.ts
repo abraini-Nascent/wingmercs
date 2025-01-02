@@ -6,7 +6,7 @@ import { Sound } from "@babylonjs/core"
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { VoiceSound } from "../../../utils/speaking"
 
-export class StatsVDU {
+export class StatsHud {
   statsPanel: GUI.StackPanel
   shieldsFore: TextBlock
   shieldsAft: TextBlock

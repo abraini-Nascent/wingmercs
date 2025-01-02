@@ -24,8 +24,9 @@ export class VRSystem {
     console.log("[XR] Can Multiview", canMultiview)
     return AppContainer.instance.scene
       .createDefaultXRExperienceAsync({
-        useMultiview: canMultiview ? true : false,
         disableTeleportation: true,
+        disableNearInteraction: true,
+        disableHandTracking: true,
         inputOptions: {
           doNotLoadControllerMeshes: true,
         },
@@ -35,6 +36,17 @@ export class VRSystem {
           console.log("[XR] NO SUPPORTED")
           this.xr = undefined
           return false
+        }
+        if (canMultiview && false) {
+          const _layers = xr.baseExperience.featuresManager.enableFeature(
+            WebXRFeatureName.LAYERS,
+            "latest",
+            {
+              preferMultiviewOnInit: true,
+            },
+            true,
+            false
+          )
         }
         console.log("[XR] READY")
         console.dir(xr)

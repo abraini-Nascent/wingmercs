@@ -1,32 +1,19 @@
-import { SkyboxSystems } from "./../../world/systems/visualsSystems/skyboxSystems"
 import * as GUI from "@babylonjs/gui"
 import { MercScreen } from "../screen"
 import { AppContainer } from "../../app.container"
 import { TrainSimScene } from "../spaceCombat/trainSim/trainSimLoop.singlePlayer"
 import { DebugTestLoop } from "../debugTest/debugTestLoop"
 import { SoundEffects } from "../../utils/sounds/soundEffects"
-import {
-  Axis,
-  Color3,
-  Material,
-  Mesh,
-  MeshBuilder,
-  Observer,
-  Plane,
-  Space,
-  StandardMaterial,
-  Vector3,
-  WebXRState,
-} from "@babylonjs/core"
-import { SettingsMenuScene } from "../settingsMenu/settingsMenuLoop"
+import { Mesh, Observer } from "@babylonjs/core"
 import { ControlsMenuScene } from "../controlsMenu/controlsMenuLoop"
 import { ShipSelectionScene } from "../shipCustomizer/shipSelection/shipSelectionLoop"
 import { MultiplayerMenuScene } from "../multiplayerMenu/multiplayerMenuLoop"
-import { InstantActionScene } from "../spaceCombat/instantAction/instantAction.singlePlayer"
 import { ModelTestLoop } from "../modelTest/modelTestLoop"
-import { VRSystem } from "../../world/systems/renderSystems/vrSystem"
 import { InstantActionSetupScene } from "../spaceCombat/instantAction/instanceAction.setup"
 import { MainMenuScene } from "./mainMenuLoop"
+import { StatsScene } from "../statsScene/statsLoop"
+import { FluentGrid, FluentTextBlock } from "../../utils/fluentGui"
+import { RetroGui } from "../../utils/retroGui"
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -114,6 +101,35 @@ export class MainMenuScreen extends MercScreen {
         }
       }
     }
+  }
+
+  mainGrid(): void {
+    // this.gui.idealWidth = 1920
+    // this.gui.idealHeight = 1080
+    // this.gui.useSmallestIdeal = true
+    const renderWidth = AppContainer.instance.engine.getRenderWidth()
+    const renderHeight = AppContainer.instance.engine.getRenderHeight()
+    console.log("renderHeight", renderHeight)
+    RetroGui.Grid.initialize(25, 40, renderWidth, renderHeight)
+    const title = new FluentTextBlock("title")
+      .setText("-=Squadron: Mercenaries=-")
+      .fontFamily("KongfaceRegular")
+      .fontSize("25px")
+      .color("#FFC107")
+      .modifyControl((tb) => {
+        RetroGui.Grid.moveControl(tb, 1, 0, 40, 2)
+      })
+      .textHorizontalAlignment("center")
+
+    this.gui.addControl(title.build())
+
+    const newGameButton = this.createMainMenuButton("new game", "New Game")
+    newGameButton.onPointerClickObservable.addOnce(() => {
+      SoundEffects.Select()
+      this.newGameMenu()
+    })
+    RetroGui.Grid.moveControl(newGameButton, 19, 1)
+    this.gui.addControl(newGameButton)
   }
 
   clearMainPanel(): void {
@@ -283,6 +299,40 @@ export class MainMenuScreen extends MercScreen {
         this.dispose()
       })
       mainPanel.addControl(debugButton)
+
+      const screenTestButton = this.createMainMenuButton("screen test", "Screen Test")
+      screenTestButton.onPointerClickObservable.addOnce(() => {
+        SoundEffects.Select()
+        queueMicrotask(() => {
+          const appContainer = AppContainer.instance
+          appContainer.server = true
+          appContainer.gameScene.dispose()
+          appContainer.gameScene = new StatsScene(
+            {
+              livesLeft: 0,
+              timeLeft: 0,
+              total: 90000,
+            },
+            {
+              afterburnerFuelSpent: 100,
+              armorDamageGiven: 100,
+              armorDamageTaken: 50,
+              driftTime: 1000,
+              missilesEaten: 1,
+              missilesDodged: 1,
+              missilesHit: 1,
+              missilesLaunched: 1,
+              roundsHit: 50,
+              roundsMissed: 25,
+              shieldDamageGiven: 500,
+              shieldDamageTaken: 250,
+              totalKills: 5,
+            }
+          )
+          this.dispose()
+        })
+      })
+      mainPanel.addControl(screenTestButton)
 
       const debugModelsButton = this.createMainMenuButton("model viewer", "Model Viewer")
       debugModelsButton.onPointerClickObservable.addOnce(() => {

@@ -1,7 +1,7 @@
 import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3 } from "@babylonjs/core"
 import { CreateEntity, Entity, EntityUUID, HandoffEntity, queries, SetComponent, world } from "../../world"
 import * as Guns from "../../../data/guns"
-import * as Weapons from "../../../data/weapons"
+import { Weapons } from "../../../data/weapons"
 import { Gun } from "../../../data/guns/gun"
 import { Weapon } from "../../../data/weapons/weapon"
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
@@ -62,6 +62,9 @@ const handleFireCommand = (entity: Entity) => {
     }
     for (const gunIndex of guns.groups[guns.selected]) {
       const gun = guns.mounts[gunIndex]
+      if (gun == undefined) {
+        continue
+      }
       const gunClass: Gun = Guns[gun.class]
       const gunStats = gun.stats
       if (gun.delta > 0) {
@@ -84,7 +87,6 @@ const handleFireCommand = (entity: Entity) => {
         } else {
           // reduce energy
           powerPlant.currentCapacity -= energy
-          SetComponent(entity, "powerPlant", powerPlant)
         }
       } else {
         const { gunAmmo } = entity
@@ -99,7 +101,6 @@ const handleFireCommand = (entity: Entity) => {
 
       // set gun delta to delay
       gun.delta = delay
-      SetComponent(entity, "guns", guns)
       // calculate velocity
       const { playerId, rotationQuaternion, position, direction } = entity
       const forward = new Vector3(0, 0, -1)
@@ -151,7 +152,8 @@ const handleFireCommand = (entity: Entity) => {
         //     length: 2,
         //   },
         // ],
-        physicsRadius: 0.5,
+        physicsRadius: 0.25,
+        physicsUseRadius: true,
       })
       /// bolt prime model
       const bolt = boltForGun(new Color3(gunClass.color.r, gunClass.color.g, gunClass.color.b))
@@ -187,7 +189,7 @@ const handleFireCommand = (entity: Entity) => {
     }
     const weaponClass = Weapons[selectedWeapon.type] as Weapon
     if (
-      (weaponClass.type == "heatseeking" || weaponClass.type == "imagerecognition") &&
+      (weaponClass.weaponType == "heatseeking" || weaponClass.weaponType == "imagerecognition") &&
       !(
         targeting != undefined &&
         weapons != undefined &&
@@ -233,7 +235,7 @@ const handleFireCommand = (entity: Entity) => {
       SoundEffects.MissileLaunch(Vector3FromObj(startPosition))
 
       let target = targeting.target
-      if (target == undefined && weaponClass.type == "friendorfoe") {
+      if (target == undefined && weaponClass.weaponType == "friendorfoe") {
         // find nearest enemy
         const nearestTarget = nearestEnemy(entity, weaponClass.range)
         console.log("[weaponCommandSystem] targeting nearest enemy", target)

@@ -1,12 +1,13 @@
-import { Entity } from './../../world';
-import { IDisposable, Scalar, TmpVectors, Vector3 } from "@babylonjs/core";
-import { queries, world } from "../../world";
-import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles";
-import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math";
-import { MercParticleCustomEmitter } from "../../../utils/particles/mercParticleEmitters";
+import { MercParticleSystem } from "./../../../utils/particles/mercParticleSystem"
+import { Entity } from "./../../world"
+import { IDisposable, Scalar, TmpVectors, Vector3 } from "@babylonjs/core"
+import { queries, world } from "../../world"
+import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
+import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
+import { MercParticleCustomEmitter } from "../../../utils/particles/mercParticleEmitters"
 
 export class SystemsDamagedSpraySystem implements IDisposable {
-  
+  entityMpcMap = new Map<Entity, MercParticleSystem>()
   constructor() {
     queries.systemsDamaged.onEntityAdded.subscribe(this.systemsDamagedOnEntityAdded)
     queries.systemsDamaged.onEntityRemoved.subscribe(this.systemsDamagedOnEntityRemoved)
@@ -40,7 +41,7 @@ export class SystemsDamagedSpraySystem implements IDisposable {
         // velocity.x = velocity.x * -1
         // velocity.y = velocity.y * -1
         // velocity.z = velocity.z * -1
-        let direction = (particle.props.direction as Vector3)
+        let direction = particle.props.direction as Vector3
         direction.set(velocity.x, velocity.y, velocity.z)
         direction.x += Scalar.RandomRange(-Math.PI, Math.PI)
         direction.y += Scalar.RandomRange(-Math.PI, Math.PI)
@@ -50,7 +51,8 @@ export class SystemsDamagedSpraySystem implements IDisposable {
     )
     let entityId = entity.id
     console.log(`[SystemsDamaged] \\${entityId}\\ added damaged systems spray`)
-    let system = damagedSystemsSprayParticlePool.getSystem(entityId, emitter)
+    let system = damagedSystemsSprayParticlePool.value.acquireSystem(emitter, false)
+    this.entityMpcMap.set(entity, system)
     system.begin()
     let timeout: unknown
     let spark: () => void
@@ -59,7 +61,8 @@ export class SystemsDamagedSpraySystem implements IDisposable {
       timeout = setTimeout(() => {
         if (world.has(entity) == false || entity.deathRattle) {
           clearTimeout(timeout as number)
-          damagedSystemsSprayParticlePool.release(entityId)
+          damagedSystemsSprayParticlePool.value.release(system)
+          this.entityMpcMap.delete(entity)
           return
         }
         system.begin()
@@ -71,6 +74,10 @@ export class SystemsDamagedSpraySystem implements IDisposable {
 
   systemsDamagedOnEntityRemoved = (entity: Entity) => {
     console.log(`[SystemsDamaged] \\${entity.id}\\ removed damaged systems spray`)
-    damagedSystemsSprayParticlePool.release(entity.id)
+    const system = this.entityMpcMap.get(entity)
+    if (system) {
+      damagedSystemsSprayParticlePool.value.release(system)
+      this.entityMpcMap.delete(entity)
+    }
   }
 }

@@ -29,6 +29,7 @@ export function loadAssets(onFinishedLoading: () => void) {
         let node = new TransformNode(modelName, scene)
         for (const mesh of task.loadedMeshes) {
           mesh.isVisible = false
+          mesh.setEnabled(false)
           mesh.position.x = 0
           mesh.position.y = 0
           mesh.position.z = 0

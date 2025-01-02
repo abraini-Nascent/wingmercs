@@ -3,6 +3,7 @@ import { Gun } from "./gun"
 export const massdriver: Gun = Object.seal({
   /** id */
   class: "massdriver",
+  type: "Gun",
   /** display name */
   name: "Mass Driver",
   /** the weight in tonnes of the gun */

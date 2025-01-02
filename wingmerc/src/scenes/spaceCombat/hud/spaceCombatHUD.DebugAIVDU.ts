@@ -5,22 +5,23 @@ import {
   DisposeBag,
   FluentContainer,
   FluentStackPanel,
-  FluentState,
+  FluentSubjectState,
   FluentTextBlock,
   FluentVerticalStackPanel,
   Ref,
 } from "../../../utils/fluentGui"
+import { VDU } from "./SpaceCombatHUD.VDU"
 
-export class DebugAIVDU {
+export class DebugAIVDU implements VDU {
   screen: GUI.Container
   disposeBag = new DisposeBag()
   detailsStack = new Ref<GUI.StackPanel>()
-  missionState = new FluentState<TextBlock, FluentTextBlock>()
-  objectiveState = new FluentState<TextBlock, FluentTextBlock>()
-  tacticState = new FluentState<TextBlock, FluentTextBlock>()
-  sohState = new FluentState<TextBlock, FluentTextBlock>()
-  socState = new FluentState<TextBlock, FluentTextBlock>()
-  maneuverState = new FluentState<TextBlock, FluentTextBlock>()
+  missionState = new FluentSubjectState<string>("")
+  objectiveState = new FluentSubjectState<string>("")
+  tacticState = new FluentSubjectState<string>("")
+  sohState = new FluentSubjectState<string>("")
+  socState = new FluentSubjectState<string>("")
+  maneuverState = new FluentSubjectState<string>("")
   get mainComponent(): GUI.Control {
     return this.screen
   }
@@ -30,6 +31,7 @@ export class DebugAIVDU {
   dispose() {
     this.disposeBag.dispose()
   }
+  vduButtonPressed(_button: number) {}
   setupMain() {
     const styleFont = (control: GUI.TextBlock) => {
       control.fontFamily = "monospace"
@@ -45,18 +47,18 @@ export class DebugAIVDU {
         "stack-main",
         new FluentTextBlock("mission", "")
           .modifyControl(styleFont)
-          .setState(this.missionState, (tb, v) => tb.setText(v), ""),
+          .bindState(this.missionState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("objective", "")
           .modifyControl(styleFont)
-          .setState(this.objectiveState, (tb, v) => tb.setText(v), ""),
+          .bindState(this.objectiveState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("tactic", "")
           .modifyControl(styleFont)
-          .setState(this.tacticState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("soh", "").modifyControl(styleFont).setState(this.sohState, (tb, v) => tb.setText(v), ""),
-        new FluentTextBlock("soc", "").modifyControl(styleFont).setState(this.socState, (tb, v) => tb.setText(v), ""),
+          .bindState(this.tacticState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("soh", "").modifyControl(styleFont).bindState(this.sohState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("soc", "").modifyControl(styleFont).bindState(this.socState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("maneuver", "")
           .modifyControl(styleFont)
-          .setState(this.maneuverState, (tb, v) => tb.setText(v), "")
+          .bindState(this.maneuverState, (tb, v) => tb.setText(v))
       )
         .storeIn(this.detailsStack)
         .width(240)

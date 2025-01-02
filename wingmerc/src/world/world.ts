@@ -22,6 +22,7 @@ import { SerializableType, SerializeAs, serialize } from "../utils/serialize"
 import { generateUUIDv4 } from "../utils/random"
 import { Mission, MissionDetails, Objective } from "../data/missions/missionData"
 import { Vector3FromObj } from "../utils/math"
+import { MercParticleSystem } from "../utils/particles/mercParticleSystem"
 
 export type Disposables = Set<IDisposable>
 export type EntityUUID = string
@@ -47,9 +48,9 @@ export type MovementCommand = {
   deltaSpeed: number
 }
 export type FireCommand = {
-  gun: number
-  weapon: number
-  lock: boolean
+  gun?: number
+  weapon?: number
+  lock?: boolean
   target?: boolean
   nav?: boolean
 }
@@ -349,16 +350,18 @@ export type Entity = {
   shieldMeshName?: string
   physicsMeshName?: string
   physicsRadius?: number
+  physicsUseRadius?: true
   meshName?: string
   linemeshName?: string
   cockpitName?: string
   firstPersonMeshName?: string
   engineMesh?: Mesh
-  shieldMesh?: Mesh
+  shieldMesh?: Mesh[]
   meshInstance?: InstancedMesh
   boltMesh?: InstancedMesh
   meshColor?: { r: number; g: number; b: number; a?: number }
   scale?: { x: number; y: number; z: number }
+  cockpitOffset?: { x: number; y: number; z: number }
   visible?: boolean
   disposables: Disposables
 
@@ -370,8 +373,7 @@ export type Entity = {
     start?: { x: number; y: number; z: number; a?: number }
   }[]
   trailMeshs?: {
-    trails: { trail: TrailMesh; node: TransformNode }[]
-    disposables: IDisposable[]
+    particleSystems: MercParticleSystem[]
   }
   bodyType?: "animated" | "static" | "dynamic"
   body?: PhysicsBody

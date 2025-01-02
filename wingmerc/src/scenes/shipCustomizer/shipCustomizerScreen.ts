@@ -27,7 +27,7 @@ import { TrainSimScene } from "../spaceCombat/trainSim/trainSimLoop.singlePlayer
 import { AfterburnerTypes, Afterburners } from "../../data/components/afterburners"
 import { Gun, GunType } from "../../data/guns/gun"
 import * as Guns from "../../data/guns"
-import * as Weapons from "../../data/weapons"
+import { Weapons } from "../../data/weapons"
 import * as GunAffixes from "../../data/affixes/gunAffixes"
 import { Weapon } from "../../data/weapons/weapon"
 import { allGunSelections, gunSelectionName, applyModifier, allAmmos } from "../../world/factories"
@@ -405,8 +405,8 @@ export class ShipCustomizerScreen extends MercScreen {
         if (shield.fore != undefined) {
           detailsSection.addControl(this.printComponentModifier("Fore", shield.fore))
         }
-        if (shield.rechargeRate != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Recharge Rate", shield.rechargeRate))
+        if (shield.shieldRechargeRate != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Recharge Rate", shield.shieldRechargeRate))
         }
         if (shield.energyDrain != undefined) {
           detailsSection.addControl(this.printComponentModifier("Energy Drain", shield.energyDrain))
@@ -417,14 +417,14 @@ export class ShipCustomizerScreen extends MercScreen {
         detailsSection.addControl(this.textItem("name", `${powerPlant.name}`))
         detailsSection.addControl(this.textItem("class", `${powerPlant.size}`))
         detailsSection.addControl(this.textItem("cost", `$${powerPlant.cost}`))
-        if (powerPlant.health != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Health", powerPlant.health))
+        if (powerPlant.extraHealth != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", powerPlant.extraHealth))
         }
-        if (powerPlant.maxCapacity != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Capacity", powerPlant.maxCapacity))
+        if (powerPlant.powerMaxCapacity != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Capacity", powerPlant.powerMaxCapacity))
         }
-        if (powerPlant.rate != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Recharge Rate", powerPlant.rate))
+        if (powerPlant.powerRechargeRate != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Recharge Rate", powerPlant.powerRechargeRate))
         }
       }
       if (component.type == "Thruster") {
@@ -432,8 +432,8 @@ export class ShipCustomizerScreen extends MercScreen {
         detailsSection.addControl(this.textItem("name", `${thruster.name}`))
         detailsSection.addControl(this.textItem("class", `${thruster.size}`))
         detailsSection.addControl(this.textItem("cost", `$${thruster.cost}`))
-        if (thruster.health != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Health", thruster.health))
+        if (thruster.extraHealth != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", thruster.extraHealth))
         }
         if (thruster.breakingForce != undefined) {
           detailsSection.addControl(this.printComponentModifier("Breaking Force", thruster.breakingForce))
@@ -456,11 +456,11 @@ export class ShipCustomizerScreen extends MercScreen {
         detailsSection.addControl(this.textItem("name", `${fuelTank.name}`))
         detailsSection.addControl(this.textItem("class", `${fuelTank.size}`))
         detailsSection.addControl(this.textItem("cost", `$${fuelTank.cost}`))
-        if (fuelTank.health != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Health", fuelTank.health))
+        if (fuelTank.extraHealth != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Health", fuelTank.extraHealth))
         }
-        if (fuelTank.capacity != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Capacity", fuelTank.capacity))
+        if (fuelTank.fuelCapacity != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Capacity", fuelTank.fuelCapacity))
         }
       }
       if (component.type == "Utility") {
@@ -470,14 +470,14 @@ export class ShipCustomizerScreen extends MercScreen {
         const utilityLabelItem = new FlexItem("name", utilityLabel)
         utilityLabel.horizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_CENTER
         detailsSection.addControl(utilityLabelItem)
-        if (utility.energy != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Energy", utility.energy))
+        if (utility.extraEnergy != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Energy", utility.extraEnergy))
         }
-        if (utility.fuel != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Fuel", utility.fuel))
+        if (utility.extraFuel != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Fuel", utility.extraFuel))
         }
-        if (utility.shields != undefined) {
-          detailsSection.addControl(this.printComponentModifier("Shields", utility.shields))
+        if (utility.extraShields != undefined) {
+          detailsSection.addControl(this.printComponentModifier("Shields", utility.extraShields))
         }
         if (utility.ammoCount != undefined) {
           detailsSection.addControl(this.textItem("ammo", `Ammo count: ${utility.ammoCount}`))
@@ -1422,3 +1422,13 @@ export class ShipCustomizerScreen extends MercScreen {
     return text1
   }
 }
+
+/**
+we need a mockup for a text mode ui that is 25 rows by 53 cols for a ship management screen.
+the ui can have scroll areas, tabbed areas, screen swap menu items, and other classic ux tools to fit a large complex set of info in a small area.
+the ships have a stats that include: "name, class, weight, cruise speed, max speed, pitch, yaw, roll, shields fore, shields aft".
+the player has an inventory of parts they can add to the ship, the categories of parts are: "guns, missiles, afterburner, engine, shields, power plant, thruster, fuel tank, utility, ammo".
+when a player selects a part we should display the parts stats that include: "name, class, cost" and can include extra stats such as: "top speed", "recharge rate", "energy drain", and many more stats.
+the players ship has  a list of sections: "Front, Core, Left, Right, Back". Each section has a variable list of "Slots" that match the part categories.  When a part is in a slot the part name should fill the slot. the player should be able to drag items from the inventory into the ship slot to equip it. the players should be able to drap the item off the ship to de-equip it. click on a part on the ship should show its stats.
+there should be a place for going "back" to the previous screen and "continue" to the next screen
+ */

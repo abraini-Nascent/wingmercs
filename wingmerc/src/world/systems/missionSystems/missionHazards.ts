@@ -145,6 +145,7 @@ function field(
     }
     const node = new TransformNode("asteroid")
     asteroid.parent = node
+    asteroid.isPickable = false
     node.position.copyFrom(asteroidPoint)
     placedAsteroids.push({ radius, position: asteroidPoint })
 

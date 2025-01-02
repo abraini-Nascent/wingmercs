@@ -1,10 +1,12 @@
-import { Weapon } from "./weapon";
+import { Weapon } from "./weapon"
 
 export const enemyDumbfire: Weapon = Object.seal({
   /** id */
   class: "enemyDumbfire",
-  /** type */
-  type: "dumbfire",
+  /** structure slot type */
+  type: "Weapon",
+  /** weapon type */
+  weaponType: "dumbfire",
   /** display name */
   name: "EnemyDumbfire",
   /** the weight in tonnes of the weapon */
@@ -26,5 +28,5 @@ export const enemyDumbfire: Weapon = Object.seal({
   /** the pitch turn rate in degrees per second */
   pitch: 0,
   /** the roll turn rate in degrees per second */
-  roll: 0
+  roll: 0,
 })

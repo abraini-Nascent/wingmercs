@@ -2,7 +2,16 @@ import "@babylonjs/core/Debug/debugLayer"
 import "@babylonjs/inspector"
 import "@babylonjs/loaders/glTF"
 import "@babylonjs/gui/2D"
-import { AssetsManager, Engine, Scene, Vector3, HemisphericLight, TargetCamera, FreeCamera } from "@babylonjs/core"
+import {
+  AssetsManager,
+  Engine,
+  Scene,
+  Vector3,
+  HemisphericLight,
+  TargetCamera,
+  FreeCamera,
+  ScenePerformancePriority,
+} from "@babylonjs/core"
 import "./world/systems/controlSystems/weaponCommandSystem"
 import { AppContainer } from "./app.container"
 import "./world/systems/renderSystems/updatePhysicsSystem"
@@ -16,6 +25,11 @@ import { VRSystem } from "./world/systems/renderSystems/vrSystem"
 import { MissionOverScene } from "./scenes/missionOverScene/missionOverLoop"
 import { generateMission } from "./world/missionFactory"
 import { MissionSelectScene } from "./scenes/missionSelectScene/missionSelectLoop"
+import { StatsScene } from "./scenes/statsScene/statsLoop"
+import { ShipCustomizerRetroScreen } from "./scenes/shipCustomizer/shipCustomizerRetroScreen"
+import { Dirk } from "./data/ships"
+import { ShipCustomizerRetroScene } from "./scenes/shipCustomizer/shipCustomizerRetroLoop"
+import { MissionSelectRetroScene } from "./scenes/missionSelectScene/missionSelectRetroLoop"
 
 class App {
   assetsManager: AssetsManager
@@ -45,6 +59,9 @@ class App {
     const container = AppContainer.instance
     const engine = new Engine(canvas, false, { antialias: false }, false)
     const scene = new Scene(engine)
+    // scene.performancePriority = ScenePerformancePriority.Intermediate
+    scene.skipPointerMovePicking = true
+    scene.autoClear = false
     // let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
     const camera = new FreeCamera("sceneCamera", new Vector3(0, 0, 0), scene)
     camera.inputs.clear()
@@ -89,10 +106,49 @@ class App {
       engine.hideLoadingUI()
       Engine.audioEngine.setGlobalVolume(0.5)
       if (AppContainer.instance.debug) {
-        // AppContainer.instance.gameScene = new MissionSelectScene()
-        // AppContainer.instance.gameScene = new MissionOverScene()
-        AppContainer.instance.gameScene = new MainMenuScene()
-        // AppContainer.instance.gameScene = new FlexTestScene()
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get("screen-test")) {
+          switch (urlParams.get("screen-test")) {
+            case "stats": {
+              AppContainer.instance.gameScene = new StatsScene(
+                {
+                  livesLeft: 1,
+                  timeLeft: 56,
+                  total: 90000,
+                },
+                {
+                  afterburnerFuelSpent: 100,
+                  armorDamageGiven: 100,
+                  armorDamageTaken: 50,
+                  driftTime: 1000,
+                  missilesEaten: 1,
+                  missilesDodged: 1,
+                  missilesHit: 1,
+                  missilesLaunched: 1,
+                  roundsHit: 50,
+                  roundsMissed: 25,
+                  shieldDamageGiven: 500,
+                  shieldDamageTaken: 250,
+                  totalKills: 5,
+                }
+              )
+              break
+            }
+            case "ship": {
+              AppContainer.instance.gameScene = new ShipCustomizerRetroScene(Dirk)
+              break
+            }
+            case "mission": {
+              AppContainer.instance.gameScene = new MissionSelectRetroScene()
+              break
+            }
+          }
+        } else {
+          // AppContainer.instance.gameScene = new MissionSelectScene()
+          // AppContainer.instance.gameScene = new MissionOverScene()
+          AppContainer.instance.gameScene = new MainMenuScene()
+          // AppContainer.instance.gameScene = new FlexTestScene()
+        }
       } else {
         AppContainer.instance.gameScene = new MainMenuScene()
       }
@@ -118,7 +174,7 @@ class App {
       }
     })
 
-    for (const diff of [20, 40, 60, 80, 100]) console.log(generateMission(diff))
+    // for (const diff of [20, 40, 60, 80, 100]) console.log(generateMission(diff))
 
     //   const testcanvas = document.createElement('canvas');
     //   // Set canvas size

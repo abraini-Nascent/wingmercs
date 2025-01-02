@@ -1,55 +1,59 @@
-import { PowerPlantModifierDetails } from './../ships/shipTemplate';
+import { PowerPlantModifierDetails } from "./../ships/shipTemplate"
 
 export const HighCapPowerPlant = {
   cost: 10000,
   size: "Medium",
+  type: "PowerPlant",
   weight: 1,
-  maxCapacity: {
+  powerMaxCapacity: {
     value: 1.0,
-    percent: true
+    percent: true,
   },
-  name: "High Capacity Power Plant"
+  name: "High Capacity Power Plant",
 } as PowerPlantModifierDetails
 
 export const HighRatePowerPlant = {
   cost: 10000,
   size: "Medium",
+  type: "PowerPlant",
   weight: 1,
-  rate: {
+  powerRechargeRate: {
     value: 1.0,
-    percent: true
+    percent: true,
   },
-  name: "High Rate Power Plant"
+  name: "High Rate Power Plant",
 } as PowerPlantModifierDetails
 
 export const OverChargedPowerPlant = {
   cost: 10000,
   size: "Medium",
+  type: "PowerPlant",
   weight: 1,
-  maxCapacity: {
+  powerMaxCapacity: {
     value: 0.25,
-    percent: true
+    percent: true,
   },
-  rate: {
+  powerRechargeRate: {
     value: 0.25,
-    percent: true
+    percent: true,
   },
-  name: "Over Charged Power Plant"
+  name: "Over Charged Power Plant",
 } as PowerPlantModifierDetails
 
 export const SuperChargedPowerPlant = {
   cost: 10000,
   size: "Medium",
+  type: "PowerPlant",
   weight: 1,
-  maxCapacity: {
+  powerMaxCapacity: {
     value: 0.5,
-    percent: true
+    percent: true,
   },
-  rate: {
+  powerRechargeRate: {
     value: 0.5,
-    percent: true
+    percent: true,
   },
-  name: "Super Charged Power Plant"
+  name: "Super Charged Power Plant",
 } as PowerPlantModifierDetails
 
 export const PowerPlantTypes = {
@@ -59,12 +63,12 @@ export const PowerPlantTypes = {
   SuperChargedPowerPlant: "SuperChargedPowerPlant",
 } as const
 
-export type PowerPlantTypes = typeof PowerPlantTypes[keyof typeof PowerPlantTypes];
-export type PowerPlants = { [powerPlant in PowerPlantTypes]: PowerPlantModifierDetails };
+export type PowerPlantTypes = (typeof PowerPlantTypes)[keyof typeof PowerPlantTypes]
+export type PowerPlants = { [powerPlant in PowerPlantTypes]: PowerPlantModifierDetails }
 
 export const PowerPlants: PowerPlants = {
   HighCapPowerPlant: HighCapPowerPlant,
   HighRatePowerPlant: HighRatePowerPlant,
   OverChargedPowerPlant: OverChargedPowerPlant,
-  SuperChargedPowerPlant: SuperChargedPowerPlant
+  SuperChargedPowerPlant: SuperChargedPowerPlant,
 }

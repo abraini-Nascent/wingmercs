@@ -1,4 +1,4 @@
-import * as Weapons from "../../../data/weapons"
+import { Weapons } from "../../../data/weapons"
 import { Weapon } from "../../../data/weapons/weapon"
 import { Vector3 } from "@babylonjs/core"
 import { EntityForId, queries, world } from "../../world"
@@ -57,7 +57,7 @@ export function missileSteeringSystem(dt: number) {
     }
     // steer the missile
     // TODO: I think this should be a generic "guided" property
-    if (weaponClass.type == "heatseeking") {
+    if (weaponClass.weaponType == "heatseeking") {
       const target = EntityForId(missileRange.target)
       if (target == undefined) {
         // maybe the target deaded?

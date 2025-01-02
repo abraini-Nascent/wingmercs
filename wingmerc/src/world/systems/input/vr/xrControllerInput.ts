@@ -1,11 +1,9 @@
-import { IDisposable } from "@babylonjs/core";
-import { VRSystem } from "../../renderSystems/vrSystem";
+import { IDisposable } from "@babylonjs/core"
+import { VRSystem } from "../../renderSystems/vrSystem"
 
 export class XRControllerInput implements IDisposable {
   inXR = false
-  dispose() {
-
-  }
+  dispose() {}
   update() {
     this.checkXR()
   }
@@ -27,7 +25,9 @@ export class XRControllerInput implements IDisposable {
     console.log("[xr input] XR Input ", input)
     for (const controller of input.controllers) {
       const motion = controller.motionController
-      if (motion == undefined) { continue }
+      if (motion == undefined) {
+        continue
+      }
       motion
     }
   }
