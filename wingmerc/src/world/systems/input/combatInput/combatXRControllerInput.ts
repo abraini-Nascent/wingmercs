@@ -250,6 +250,7 @@ export class CombatXRControllerInput implements IDisposable {
   }
 
   pointerUpdate() {
+    return
     if (this.hotas) {
       VRSystem.setPointerEnabled(false)
     } else {

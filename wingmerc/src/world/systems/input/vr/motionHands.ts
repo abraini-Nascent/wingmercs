@@ -82,6 +82,7 @@ export class MotionHands implements IDisposable {
     this.rightMaterial?.dispose()
     this.handsTexture?.dispose()
     this.collisionChecks = []
+    MotionHands.instance = undefined
   }
 
   addCollisionCheck(mesh: AbstractMesh, radius: number, callback: MotionHandCollision.Callback) {
