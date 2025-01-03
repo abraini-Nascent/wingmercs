@@ -1,8 +1,7 @@
-import { Color3, IDisposable, InstancedMesh, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
+import { Color3, IDisposable, Mesh, StandardMaterial, TransformNode } from "@babylonjs/core"
 import { Entity, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { GreasedLineModel } from "../../../utils/greasedLineModel"
-import { AppContainer } from "../../../app.container"
 
 const DEBUG = false
 let i = 0
@@ -68,16 +67,16 @@ export class MeshedSystem implements IDisposable {
       offsetNode.position.set(entity.cockpitOffset.x, entity.cockpitOffset.y, entity.cockpitOffset.z)
     }
     const children = meshNode.getChildMeshes()
-    for (let mi = 0; mi < children.length; mi += 1) {
-      const mesh = children[mi]
-      const lines = GreasedLineModel.fromMesh(mesh, { thresholdAngle: 3, color: "#0000FF" })
-      lines.isPickable = false
-      if (offsetNode) {
-        lines.parent = offsetNode
-      } else {
-        lines.setParent(node)
-      }
+    const totalMesh = Mesh.MergeMeshes(children as Mesh[], false)
+    totalMesh.bakeCurrentTransformIntoVertices()
+    const lines = GreasedLineModel.fromMesh(totalMesh, { thresholdAngle: 5, color: "#0000FF" })
+    if (offsetNode) {
+      lines.parent = offsetNode
+    } else {
+      lines.setParent(node)
     }
+    // lines.setParent(node)
+    totalMesh.dispose()
     if (entity.node == undefined) {
       world.addComponent(entity, "node", node)
     }
