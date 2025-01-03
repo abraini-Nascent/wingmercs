@@ -9,7 +9,7 @@ import { QuaternionFromObj, ToDegree, Vector3FromObj } from "../utils/math"
 import { RouletteSelectionStochastic, rand, randomItem } from "../utils/random"
 import { AppContainer } from "../app.container"
 import { barks } from "../data/barks"
-import { SAM, VoiceSound } from "../utils/speaking"
+import { PlayVoiceSound, SAM, VoiceSound } from "../utils/speaking"
 import { SoundEffects } from "../utils/sounds/soundEffects"
 import { shieldSprayFrom } from "../visuals/shieldSprayParticles"
 import { sparkSprayFrom } from "../visuals/sparkSprayParticles"
@@ -199,22 +199,7 @@ export function registerHit(
             let bark: { english: string; ipa: string; sam?: string } = randomItem(barks.enemySpooked)
             let voice = hitEntity.voice ?? SAM
             setTimeout(() => {
-              VoiceSound(bark.ipa, voice).then((sound) => {
-                if (sound) {
-                  sound.maxDistance = 10000
-                  sound.spatialSound = true
-                  sound.attachToMesh(hitEntity.node)
-                  sound.play()
-                  world.addComponent(hitEntity, "speaking", sound)
-                  sound.onEndedObservable.addOnce(() => {
-                    if (hitEntity.speaking == sound) {
-                      world.removeComponent(hitEntity, "speaking")
-                    }
-                    sound.detachFromMesh()
-                    sound.dispose()
-                  })
-                }
-              })
+              VoiceSound(bark.ipa, voice).then((sound) => PlayVoiceSound(sound, hitEntity))
             }, 1)
           }
           /*

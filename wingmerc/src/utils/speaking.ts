@@ -64,7 +64,7 @@ export type Voice = {
   throat: number
   mouth: number
 }
-export function VoiceSoundLocal(phoneticSentence: string, voice: Voice): Sound | undefined {
+export async function VoiceSoundLocal(phoneticSentence: string, voice: Voice): Promise<Sound | undefined> {
   const samSentence = translateIPA(phoneticSentence, AppContainer.instance.debug)
   // console.log(`${bark.english}: \\${samSentence}\\`)
   const sam = new SamJs({
@@ -83,36 +83,46 @@ export function VoiceSoundLocal(phoneticSentence: string, voice: Voice): Sound |
     return undefined
   }
 }
-export async function VoiceSound(phoneticSentence: string, voice: Voice): Promise<Sound | undefined> {
+let messagesCount = 0
+export async function VoiceSoundWorker(phoneticSentence: string, voice: Voice): Promise<Sound | undefined> {
+  console.log("[Speaking] creating", phoneticSentence)
   return new Promise((resolve, reject) => {
-    worker.onmessage = (event) => {
-      const { success, audioData, error } = event.data
+    const thisMessageId = messagesCount++
+    const listener = (event) => {
+      const { success, audioData, error, messageId } = event.data
+      if (messageId != thisMessageId) {
+        // not my sound
+        return
+      }
       if (success) {
         const context = Engine.audioEngine.audioContext
         const audioBuffer = context.createBuffer(1, audioData.length, 22050)
         audioBuffer.copyToChannel(new Float32Array(audioData), 0)
         const sound = CreateSoundFromAudioBuffer(audioBuffer)
+        worker.removeEventListener("message", listener)
         resolve(sound)
       } else {
-        console.error(error)
+        console.error("[Speaking] error:", error)
         reject(error)
       }
-      worker.terminate()
     }
+    worker.addEventListener("message", listener)
 
     worker.onerror = (error) => {
       console.error("Worker error:", error)
       reject(error)
-      worker.terminate()
     }
     const samSentence = translateIPA(phoneticSentence, AppContainer.instance.debug)
     worker.postMessage({
       samSentence,
       voice,
       samDebug: AppContainer.instance.debug,
+      messageId: thisMessageId,
     })
   })
 }
+export const VoiceSound = VoiceSoundWorker
+
 function CreateSoundFromAudioBuffer(audioBuffer: AudioBuffer): Sound {
   const sound = new Sound("VoiceSound", audioBuffer, undefined, undefined)
   sound.setVolume(AppContainer.instance.volumes.global * AppContainer.instance.volumes.voice)
@@ -120,6 +130,7 @@ function CreateSoundFromAudioBuffer(audioBuffer: AudioBuffer): Sound {
 }
 export function PlayVoiceSound(sound: Sound | undefined, entity: Entity) {
   if (sound) {
+    console.log("[Speaking]", entity.id)
     sound.maxDistance = 10000
     sound.spatialSound = true
     sound.attachToMesh(entity.node)

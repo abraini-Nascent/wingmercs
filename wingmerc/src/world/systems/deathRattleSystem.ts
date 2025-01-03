@@ -6,7 +6,7 @@ import { MercParticlePointEmitter, MercParticleSphereEmitter } from "../../utils
 import { Vector3FromObj } from "../../utils/math"
 import { barks } from "../../data/barks"
 import { randomItem } from "../../utils/random"
-import { SAM, VoiceSound } from "../../utils/speaking"
+import { PlayVoiceSound, SAM, VoiceSound } from "../../utils/speaking"
 import { SoundEffects } from "../../utils/sounds/soundEffects"
 import { deathExplosionFrom } from "../../visuals/deathExplosionParticles"
 
@@ -44,29 +44,7 @@ export class DeathRattleSystem implements IDisposable {
     let bark: { english: string; ipa: string; sam: string } = randomItem(barks.enemyDeath)
     setTimeout(() => {
       let voice = entity.voice ?? SAM
-      VoiceSound(bark.ipa, voice).then((sound) => {
-        if (sound) {
-          sound.maxDistance = 10000
-          sound.spatialSound = true
-          sound.attachToMesh(entity.node)
-          sound.play()
-          if (entity.speaking != undefined) {
-            entity.speaking.detachFromMesh()
-            entity.speaking.dispose()
-            world.removeComponent(entity, "speaking")
-            queueMicrotask(() => {
-              world.addComponent(entity, "speaking", sound)
-              sound.onEndedObservable.addOnce(() => {
-                if (entity.speaking == sound) {
-                  world.removeComponent(entity, "speaking")
-                }
-                sound.detachFromMesh()
-                sound.dispose()
-              })
-            })
-          }
-        }
-      })
+      VoiceSound(bark.ipa, voice).then((sound) => PlayVoiceSound(sound, entity))
     }, 1)
     let sps = MercParticles.fireSmokeTrail(`death-rattle-${i}`, scene, pointEmitter)
     sps.begin()
