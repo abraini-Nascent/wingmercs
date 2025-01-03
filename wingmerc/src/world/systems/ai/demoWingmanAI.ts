@@ -1,6 +1,7 @@
 import { Vector3 } from "@babylonjs/core"
 import { Entity, MovementCommand, queries, SetComponent } from "../../world"
 import { SteeringBehaviours, SteeringHardTurnClamp } from "./steeringBehaviours"
+import { debugLog } from "../../../utils/debuglog"
 
 export function demoWingmanAI(entity: Entity, dt: number) {
   const { ai } = entity
@@ -35,7 +36,7 @@ export function demoWingmanAI(entity: Entity, dt: number) {
     SteeringHardTurnClamp
   )
 
-  console.log(`[AI wingman] steering:`, steering)
+  debugLog(`[AI wingman] steering:`, steering)
   movementCommand.pitch = steering.pitch
   movementCommand.yaw = steering.yaw
   movementCommand.roll = steering.roll

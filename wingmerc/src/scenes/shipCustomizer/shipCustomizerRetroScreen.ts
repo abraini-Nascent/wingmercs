@@ -44,6 +44,8 @@ import { Gun } from "../../data/guns/gun"
 import { CRTScreenGfx } from "../CRTScreenGfx"
 import { weightForShip } from "../../world/helpers"
 import { MainMenuScene } from "../mainMenu/mainMenuLoop"
+import { debugLog } from "../../utils/debuglog"
+import { debugDir } from "../../utils/debugDir"
 
 type InventorySection = "Guns" | "Weapons" | "Comps"
 type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility"
@@ -164,7 +166,7 @@ export class ShipCustomizerViewModel {
     this.weightState.setValue(weightForShip(this.ship))
   }
   addPart(part: ShipCustomizerViewModel.Part, slot: ShipCustomizerViewModel.Slot) {
-    console.log("adding part", part, " to slot", slot)
+    debugLog("adding part", part, " to slot", slot)
     this.removePart(part, slot)
     const slotId = slot.slot
     switch (slotId) {
@@ -419,7 +421,7 @@ export class ShipCustomizerViewModel {
         part = anyValue.item ?? anyValue.modifier
       }
     }
-    console.log("part", part)
+    debugLog("part", part)
     const modifierString = (mod: ComponentModifier | number, unit?: string): string => {
       if (typeof mod == "number") {
         return `${mod}`
@@ -1240,7 +1242,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
                 name: string
                 tier?: string
               }[]
-              console.dir(parts, { depth: 100 })
+              debugDir(parts, { depth: 100 })
               let row = 1
               let rows = parts.flatMap((p) => {
                 // const partName = itemSelectionNameParts(p.item as any)
@@ -1323,7 +1325,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
           RetroGui.Grid.moveControl(scrollviewRef.get(), 3, 0, 30, this.windowHeight - 4)
         })
         .onPointerUp((c, e, s) => {
-          console.log("on up in inventory")
+          debugLog("on up in inventory")
         }),
     ]
   }

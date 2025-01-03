@@ -62,7 +62,7 @@ export class DebugTestLoop implements GameScene, IDisposable {
   // systems
   spaceDebrisSystem: SpaceDebrisSystem
   skyboxSystems: SkyboxSystems
-  combatSystems: CombatSystems = new CombatSystems()
+  combatSystems: CombatSystems
 
   constructor() {
     divFps.style.height = "175px"
@@ -84,7 +84,6 @@ export class DebugTestLoop implements GameScene, IDisposable {
     appContainer.scene.activeCamera = camera
     appContainer.camera = camera
 
-    this.skyboxSystems = new SkyboxSystems(appContainer.scene)
     // MeshBuilder.CreateBox("box", { size: 10 })
 
     this.setup()
@@ -100,12 +99,15 @@ export class DebugTestLoop implements GameScene, IDisposable {
 
     // systems
     // dispose systems last since they help with cleanup
-    this.skyboxSystems.dispose()
-    this.spaceDebrisSystem.dispose()
-    this.combatSystems.dispose()
+    this.skyboxSystems?.dispose()
+    this.spaceDebrisSystem?.dispose()
+    this.combatSystems?.dispose()
   }
 
   setup() {
+    return
+    this.skyboxSystems = new SkyboxSystems(AppContainer.instance.scene)
+    this.combatSystems = new CombatSystems()
     let ship = structuredClone(Broadsword)
     let model1 = createCustomShip(ship, 0, 0, 0, 2, 1, undefined, {
       missionDetails: {
@@ -222,8 +224,8 @@ export class DebugTestLoop implements GameScene, IDisposable {
     this.screen.updateScreen(delta)
 
     this.checkInput(delta)
-    this.combatSystems.update(delta)
-    this.skyboxSystems.update(delta)
+    this.combatSystems?.update(delta)
+    this.skyboxSystems?.update(delta)
     updateRenderSystem()
 
     scene.render()

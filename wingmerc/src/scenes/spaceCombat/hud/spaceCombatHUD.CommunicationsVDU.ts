@@ -1,13 +1,9 @@
 import { TextBlock } from "@babylonjs/gui"
 import * as GUI from "@babylonjs/gui"
 import { Entity } from "../../../world/world"
-import {
-  DisposeBag,
-  FluentTextBlock,
-  FluentVerticalStackPanel,
-  Ref,
-} from "../../../utils/fluentGui"
+import { DisposeBag, FluentTextBlock, FluentVerticalStackPanel, Ref } from "../../../utils/fluentGui"
 import { CommunicationsOptions } from "../../../world/systems/ai/communications"
+import { debugLog } from "../../../utils/debuglog"
 
 export class CommunicationsVDU {
   screen: GUI.Container
@@ -33,13 +29,8 @@ export class CommunicationsVDU {
     }
     this.screen = FluentVerticalStackPanel(
       "stack",
-      new FluentTextBlock("title", "-=[Communications]=-")
-        .resizeToFit(true)
-        .modifyControl(styleFont),
-      FluentVerticalStackPanel("stack-main")
-        .storeIn(this.commsStack)
-        .width(240)
-        .horizontalAlignment("left")
+      new FluentTextBlock("title", "-=[Communications]=-").resizeToFit(true).modifyControl(styleFont),
+      FluentVerticalStackPanel("stack-main").storeIn(this.commsStack).width(240).horizontalAlignment("left")
     )
       .width(240)
       .height(240)
@@ -65,17 +56,14 @@ export class CommunicationsVDU {
   update(playerEntity: Entity, dt: number) {
     // we only want to call this when asked to open comms
     if (playerEntity.openComms != this.lastComms) {
-      console.log("[commsVDU] new open comms", playerEntity.openComms)
+      debugLog("[commsVDU] new open comms", playerEntity.openComms)
       this.lastComms = playerEntity.openComms
       this.commsStack.get().clearControls()
       const options = CommunicationsOptions(playerEntity)
       let optionIdx = 0
       for (const option of options) {
         optionIdx += 1
-        const textblock = new FluentTextBlock(
-          `objective-${optionIdx}`,
-          `${optionIdx}. ${option.label}`
-        )
+        const textblock = new FluentTextBlock(`objective-${optionIdx}`, `${optionIdx}. ${option.label}`)
           .modifyControl(this.styleObjective)
           .textHorizontalAlignment("left")
         this.commsStack.get().addControl(textblock.build())

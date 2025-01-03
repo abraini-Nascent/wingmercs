@@ -1,20 +1,20 @@
-import { DebounceTimedMulti } from '../../../utils/debounce';
-import { GameScene } from '../../gameScene';
-import { AppContainer } from "../../../app.container";
-import { ShipSelectionScreen } from './shipSelectionScreen';
-import { IDisposable} from '@babylonjs/core';
-import { MeshedSystem } from '../../../world/systems/renderSystems/meshedSystem';
-import { CreateEntity, Entity, world } from '../../../world/world';
-import * as Ships from "../../../data/ships";
-import { ShipTemplate } from '../../../data/ships/shipTemplate';
+import { DebounceTimedMulti } from "../../../utils/debounce"
+import { GameScene } from "../../gameScene"
+import { AppContainer } from "../../../app.container"
+import { ShipSelectionScreen } from "./shipSelectionScreen"
+import { IDisposable } from "@babylonjs/core"
+import { MeshedSystem } from "../../../world/systems/renderSystems/meshedSystem"
+import { CreateEntity, Entity, world } from "../../../world/world"
+import * as Ships from "../../../data/ships"
+import { ShipTemplate } from "../../../data/ships/shipTemplate"
+import { debugLog } from "../../../utils/debuglog"
 
 export class ShipSelectionScene implements GameScene, IDisposable {
-
   screen: ShipSelectionScreen
   screenEntities = new Set<Entity>()
 
   meshedSystem: MeshedSystem
-  shipModels: {[name: string]:Entity} = {}
+  shipModels: { [name: string]: Entity } = {}
 
   debouncer = new DebounceTimedMulti()
 
@@ -45,7 +45,7 @@ export class ShipSelectionScene implements GameScene, IDisposable {
 
   onScreenEntityAdded = (entity: Entity) => {
     this.screenEntities.add(entity)
-    console.log("[task] ship entity added")
+    debugLog("[task] ship entity added")
   }
 
   onScreenEntityRemoved = (entity: Entity) => {
@@ -53,13 +53,24 @@ export class ShipSelectionScene implements GameScene, IDisposable {
   }
 
   setup() {
-    const ships = ["Dirk", "Epee", "Rapier", "Saber", "Broadsword", "Razor", "EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
+    const ships = [
+      "Dirk",
+      "Epee",
+      "Rapier",
+      "Saber",
+      "Broadsword",
+      "Razor",
+      "EnemyLight01",
+      "EnemyMedium01",
+      "EnemyMedium02",
+      "EnemyHeavy01",
+    ]
     for (const ship of ships) {
       const shipData = Ships[ship] as ShipTemplate
       this.shipModels[ship] = CreateEntity({
         meshName: shipData.modelDetails.base,
         shieldMeshName: shipData.modelDetails.shield,
-        physicsMeshName: shipData.modelDetails.physics
+        physicsMeshName: shipData.modelDetails.physics,
       })
     }
     queueMicrotask(() => {
@@ -73,5 +84,5 @@ export class ShipSelectionScene implements GameScene, IDisposable {
     const scene = AppContainer.instance.scene
     this.screen.updateScreen(delta)
     scene.render()
-  };
+  }
 }

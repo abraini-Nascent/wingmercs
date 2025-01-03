@@ -1,7 +1,8 @@
-import { IDisposable } from "@babylonjs/core";
-import { AppContainer } from "../../app.container";
-import { SettingsMenuScreen } from "./settingsMenuScreen";
-import { Entity, world } from "../../world/world";
+import { IDisposable } from "@babylonjs/core"
+import { AppContainer } from "../../app.container"
+import { SettingsMenuScreen } from "./settingsMenuScreen"
+import { Entity, world } from "../../world/world"
+import { debugLog } from "../../utils/debuglog"
 
 export class SettingsMenuScene implements IDisposable {
   screen: SettingsMenuScreen
@@ -21,7 +22,7 @@ export class SettingsMenuScene implements IDisposable {
     this.screen.dispose()
     this.screen = undefined
     for (const entity of this.screenEntities) {
-      console.log("[MainMenu] removing entity", entity)
+      debugLog("[MainMenu] removing entity", entity)
       world.remove(entity)
     }
     this.screenEntities.clear()
@@ -39,10 +40,9 @@ export class SettingsMenuScene implements IDisposable {
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
     // don't start the game while menu is open
-    this.screen.updateScreen(delta);
+    this.screen.updateScreen(delta)
 
     scene.render()
-    return;
+    return
   }
 }
-

@@ -124,15 +124,7 @@ export class CRTScreenGfx {
     this.uiLayer = uiLayer
   }
 }
-export class StatsScreen {
-  uiScene: Scene
-  uiLayer: Layer
-  uiRenderTarget: RenderTargetTexture
-  uiCamera: Camera
-  crtEffect: PostProcess
-
-  gui: AdvancedDynamicTexture
-  screen: GUI.Container
+export class StatsScreen extends MercScreen {
   title: TextBlock
   scorePanel: GUI.StackPanel
   oldHighScore: number
@@ -141,88 +133,11 @@ export class StatsScreen {
 
   xrPlane: Mesh
   xrMode = false
-  xrIdealWidth = 1024
-  xrAspectRation = 16 / 9
+  xrIdealWidth = 1920
+  xrAspectRation = 16 / 10
 
   constructor(private score: Score, private stats: NerdStats) {
-    // Create the UI scene
-    const uiScene = new Scene(AppContainer.instance.engine)
-    this.uiScene = uiScene
-
-    // UI camera (orthographic camera for 2D)
-    const uiCamera = new ArcRotateCamera("UICamera", Math.PI / 2, Math.PI / 4, 3, Vector3.Zero(), uiScene)
-    uiCamera.mode = Camera.ORTHOGRAPHIC_CAMERA
-    uiCamera.orthoLeft = -1
-    uiCamera.orthoRight = 1
-    uiCamera.orthoTop = 1
-    uiCamera.orthoBottom = -1
-    this.uiCamera = uiCamera
-
-    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Stats", true, uiScene)
-    AppContainer.instance.scene.addTexture
-    const uiRenderTarget = new RenderTargetTexture(
-      "UIRenderTarget",
-      { width: 1024, height: 1024 },
-      AppContainer.instance.scene,
-      false
-    )
-    uiRenderTarget.renderList = uiScene.meshes // Add only the UI elements to the render list
-    this.uiRenderTarget = uiRenderTarget
-
-    let time = 0.0 // For animation
-    let alpha = 0 // For the v-sync line
-    const scanlineDark = 0.4 // Darkness of scanlines
-    const scanlineThick = 5.0 // Thickness of scanlines
-    const curveAmount = 0.01 // Curve distortion amount
-    const noiseIntensity = 0.125 // the amount of noise
-    const jitterAmount = 0.001 // Controls the blur strength
-
-    // Apply the CRT shader as a PostProcess
-    // const crtEffect = new PostProcess(
-    //   "CRT",
-    //   "/assets/shaders/crt-jitter",
-    //   [
-    //     "time",
-    //     "jitterAmount",
-    //     "noiseIntensity",
-    //     "vSyncAlpha",
-    //     "scanlineDark",
-    //     "scanlineThick",
-    //     "curveDistortion",
-    //     "screenHeight",
-    //   ], // Custom uniforms
-    //   null, // No custom samplers
-    //   1.0, // Full resolution
-    //   uiCamera
-    // )
-    // this.crtEffect = crtEffect
-
-    // // Update uniforms in each frame
-
-    // crtEffect.onApply = (effect) => {
-    //   time += AppContainer.instance.engine.getDeltaTime() * 0.001 // Increment time
-    //   effect.setFloat("time", time)
-    //   alpha += AppContainer.instance.engine.getDeltaTime() * 0.00025 // Increment time
-    //   if (alpha > 1) {
-    //     alpha = 0
-    //   }
-    //   console.log({ alpha })
-    //   effect.setFloat("time", time)
-    //   effect.setFloat("jitterAmount", jitterAmount)
-    //   effect.setFloat("noiseIntensity", noiseIntensity)
-    //   effect.setFloat("vSyncAlpha", alpha)
-    //   effect.setFloat("scanlineDark", scanlineDark)
-    //   effect.setFloat("scanlineThick", scanlineThick)
-    //   effect.setFloat("curveDistortion", curveAmount)
-    //   effect.setFloat("screenHeight", AppContainer.instance.engine.getRenderHeight())
-    // }
-
-    // Layer for compositing UI over the main scene
-    const uiLayer = new Layer("UILayer", null, AppContainer.instance.scene)
-    uiLayer.texture = uiRenderTarget
-    this.uiLayer = uiLayer
-
-    this.gui = advancedTexture
+    super("Stats Screen")
 
     if (this.isLocalStorageAvailable()) {
       let storedScore = window.localStorage.getItem("wing_merc_highScore")
@@ -237,18 +152,12 @@ export class StatsScreen {
         window.localStorage.setItem("wing_merc_highScore", `${Math.round(this.score.total)}`)
       }
     }
+    MercScreen.xrPanel(this)
     this.setupMainGrid()
   }
 
   dispose() {
-    this.gui.removeControl(this.screen)
-    this.screen.dispose()
-    this.uiRenderTarget.dispose()
-    this.uiLayer.dispose()
-    this.uiCamera.dispose()
-    this.uiScene.dispose()
-    this.crtEffect.dispose()
-    this.gui.dispose()
+    super.dispose()
   }
 
   setupMainGrid() {
@@ -652,7 +561,6 @@ export class StatsScreen {
   }
 
   updateScreen(dt: number) {
-    this.uiScene.render()
     MercScreen.xrPanel(this)
   }
 

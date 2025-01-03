@@ -18,6 +18,7 @@ import { ObjectivesVDU } from "./spaceCombatHUD.ObjectivesVDU"
 import { CommunicationsVDU } from "./spaceCombatHUD.CommunicationsVDU"
 import { Axis, Color3, Mesh, MeshBuilder, Space, StandardMaterial, Vector3 } from "@babylonjs/core"
 import { FluentContainer, FluentControl } from "../../../utils/fluentGui"
+import { debugLog } from "../../../utils/debuglog"
 
 export class CombatHudInWorld {
   power: TextBlock
@@ -99,7 +100,7 @@ export class CombatHudInWorld {
   }
 
   deinit() {
-    console.log("[SpaceCombatHud] deinit")
+    debugLog("[SpaceCombatHud] deinit")
   }
   setupMain() {
     this.speedHUD = new SpeedHUD()

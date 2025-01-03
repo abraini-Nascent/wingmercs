@@ -2,6 +2,7 @@ import { IDisposable, Sound } from "@babylonjs/core"
 import { Entity, queries } from "../../world"
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { Vector3FromObj } from "../../../utils/math"
+import { debugLog } from "../../../utils/debuglog"
 
 export class AfterburnerSoundSystem implements IDisposable {
   afterburnerSounds = new Map<Entity, Sound>()
@@ -19,7 +20,7 @@ export class AfterburnerSoundSystem implements IDisposable {
   }
 
   afterburnerOnEntityAdded = (entity: Entity) => {
-    console.log("afterburner on")
+    debugLog("[Afterburner sounds] afterburner on")
     if (this.afterburnerSounds.has(entity) == false) {
       let sound = SoundEffects.AfterburnerEngine(entity.node.position)
       sound.attachToMesh(entity.node)
@@ -31,7 +32,7 @@ export class AfterburnerSoundSystem implements IDisposable {
     }
   }
   afterburnerOnEntityRemoved = (entity) => {
-    console.log("afterburner off")
+    debugLog("[Afterburner sounds] afterburner off")
     if (this.afterburnerSounds.has(entity)) {
       let sound = this.afterburnerSounds.get(entity)
       sound.detachFromMesh()

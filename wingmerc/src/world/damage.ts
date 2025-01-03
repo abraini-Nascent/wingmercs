@@ -14,6 +14,7 @@ import { SoundEffects } from "../utils/sounds/soundEffects"
 import { shieldSprayFrom } from "../visuals/shieldSprayParticles"
 import { sparkSprayFrom } from "../visuals/sparkSprayParticles"
 import { damageSprayFrom } from "../visuals/damageSprayParticles"
+import { debugLog } from "../utils/debuglog"
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0)
 export type ParticleEntity = Pick<Entity, "id" | "damage" | "originatorId">
@@ -32,7 +33,7 @@ export class ShieldPulser {
       let mat = shieldMesh.material as StandardMaterial
       mat.emissiveColor.set(0.9, 0.1, 0.1)
     }
-    console.log("[shield pulser] pulsing", entity.id, shieldMesh.material.alpha)
+    debugLog("[shield pulser] pulsing", entity.id, shieldMesh.material.alpha)
     this.pulsing.add(entityId)
   }
   update(dt) {
@@ -55,7 +56,7 @@ export class ShieldPulser {
         mat.alpha = 0
         mat.emissiveColor.set(0.0, 0.0, 0.5)
         this.pulsing.delete(entityId)
-        console.log("[shield pulser] pulsing complete", entity.id, shieldMesh.material.alpha)
+        debugLog("[shield pulser] pulsing complete", entity.id, shieldMesh.material.alpha)
       }
     }
   }
@@ -83,13 +84,13 @@ export function registerHit(
   directionOfHit.normalize()
 
   if (hitEntity.shields != undefined || hitEntity.armor != undefined) {
-    console.log(`[Damage] calculating damage for particle: ${particleEntity.id}`)
+    debugLog(`[Damage] calculating damage for particle: ${particleEntity.id}`)
     /// determine if we were hit in the front of back shields
     // rotate the vector by ship rotation to get the vector in world space
     const hitEntityQ = QuaternionFromObj(hitEntity.rotationQuaternion, TmpVectors.Quaternion[0])
     hitEntityQ.multiplyInPlace(TURN)
     const vectorToShip = directionOfHit.applyRotationQuaternionInPlace(hitEntityQ)
-    // console.log(`rotated to ship ${vectorToShip}`)
+    // debugLog(`rotated to ship ${vectorToShip}`)
     // flatten vector to ground plane
     const flatVector = TmpVectors.Vector3[1].set(vectorToShip.x, 0, vectorToShip.z).normalize()
     // find signed angle of flat vector
@@ -101,7 +102,7 @@ export function registerHit(
     const player = AppContainer.instance.player?.playerEntity
     if (hitEntity.shields != undefined) {
       let oldShieldDamage = damage
-      // console.log("hit from incoming angle", incomingDegrees)
+      // debugLog("hit from incoming angle", incomingDegrees)
       if (quadrant == "fore" && hitEntity.shields.currentFore >= 0) {
         hitEntity.shields.currentFore -= damage
         if (hitEntity.shields.currentFore < 0) {
@@ -110,7 +111,7 @@ export function registerHit(
         } else {
           damage = 0
         }
-        console.log("[Damage] hit front shield", hitEntity.shields.currentFore, damage)
+        debugLog("[Damage] hit front shield", hitEntity.shields.currentFore, damage)
         if (oldShieldDamage != damage) {
           shieldSprayFrom(hitPointWorld, directionOfHit)
           shieldPulserSystem.pulse(hitEntity)
@@ -124,7 +125,7 @@ export function registerHit(
         } else {
           damage = 0
         }
-        console.log("[Damage] hit back shield", hitEntity.shields.currentAft, damage)
+        debugLog("[Damage] hit back shield", hitEntity.shields.currentAft, damage)
         if (oldShieldDamage != damage) {
           shieldSprayFrom(hitPointWorld, directionOfHit)
           shieldPulserSystem.pulse(hitEntity)
@@ -149,7 +150,7 @@ export function registerHit(
           } else {
             damage = 0
           }
-          console.log("[Damage] hit front armor", hitEntity.armor.front, damage)
+          debugLog("[Damage] hit front armor", hitEntity.armor.front, damage)
         } else if (incomingDegrees >= 45 && incomingDegrees <= 135) {
           // right
           hitEntity.armor.right -= damage
@@ -159,7 +160,7 @@ export function registerHit(
           } else {
             damage = 0
           }
-          console.log("[Damage] hit right armor", hitEntity.armor.right, damage)
+          debugLog("[Damage] hit right armor", hitEntity.armor.right, damage)
         } else if (incomingDegrees > 135 || incomingDegrees <= -135) {
           // back
           hitEntity.armor.back -= damage
@@ -169,7 +170,7 @@ export function registerHit(
           } else {
             damage = 0
           }
-          console.log("[Damage] hit back armor", hitEntity.armor.back, damage)
+          debugLog("[Damage] hit back armor", hitEntity.armor.back, damage)
         } else if (incomingDegrees < -45 && incomingDegrees >= -135) {
           // left
           hitEntity.armor.left -= damage
@@ -179,7 +180,7 @@ export function registerHit(
           } else {
             damage = 0
           }
-          console.log("[Damage] hit left armor", hitEntity.armor.left, damage)
+          debugLog("[Damage] hit left armor", hitEntity.armor.left, damage)
         }
         damageSprayFrom(hitPointWorld, directionOfHit)
         SoundEffects.ArmorHit(hitEntityPosition.clone(), hitEntity == player)
@@ -228,7 +229,7 @@ export function registerHit(
             randomDamage += rand(1, remaining)
           }
           hitEntity.health.current -= randomDamage
-          console.log(
+          debugLog(
             `[Damage] hit health for ${randomDamage} damage, ${hitEntity.health.current} / ${hitEntity.health.base} health remaining`
           )
           const damagedSystem = selectSystemForQuadrant(hitEntity, quadrant)
@@ -261,8 +262,8 @@ export function registerHit(
           if (hitEntity.systemsDamaged == undefined) {
             world.addComponent(hitEntity, "systemsDamaged", true)
           }
-          console.log("[Damage] damaged system:", damagedSystem, randomDamage)
-          console.log("[Damage] remaining health:", hitEntity.health)
+          debugLog("[Damage] damaged system:", damagedSystem, randomDamage)
+          debugLog("[Damage] remaining health:", hitEntity.health)
           // double up particle effects and play a different sound
           if (hitEntity.health.current <= 0 && hitEntity.deathRattle == undefined) {
             // death animation or something
@@ -272,7 +273,7 @@ export function registerHit(
       }
     }
   } else {
-    console.log("[Damage] Hit something without shields or armor, spray sparks")
+    debugLog("[Damage] Hit something without shields or armor, spray sparks")
     sparkSprayFrom(hitPointWorld, directionOfHit)
   }
 }

@@ -11,6 +11,7 @@ import { applyModifier } from "../../factories"
 import { nearestEnemy } from "../ai/shipIntelligence"
 import { MercParticlePointEmitter } from "../../../utils/particles/mercParticleEmitters"
 import { MercParticles } from "../../../utils/particles/mercParticles"
+import { debugLog } from "../../../utils/debuglog"
 
 export const weaponCommandSystem = () => {
   for (const fireCommandEntity of queries.fireCommands.entities) {
@@ -97,7 +98,7 @@ const handleFireCommand = (entity: Entity) => {
           gunAmmo[gun.ammo].current -= 1
         }
       }
-      // console.log(`firing gun ${gunIndex} !`)
+      // debugLog(`firing gun ${gunIndex} !`)
 
       // set gun delta to delay
       gun.delta = delay
@@ -188,6 +189,7 @@ const handleFireCommand = (entity: Entity) => {
       canFire = false
     }
     const weaponClass = Weapons[selectedWeapon.type] as Weapon
+    debugLog("[weaponCommandSystem] attempting to fire", weaponClass, entity.id)
     if (
       (weaponClass.weaponType == "heatseeking" || weaponClass.weaponType == "imagerecognition") &&
       !(
@@ -199,6 +201,7 @@ const handleFireCommand = (entity: Entity) => {
       )
     ) {
       canFire = false
+      debugLog("[weaponCommandSystem] can't fire weapon", entity.id)
     }
     if (canFire) {
       const weaponClass: Weapon = Weapons[weapons.mounts[weapons.selected].type]
@@ -217,7 +220,7 @@ const handleFireCommand = (entity: Entity) => {
       weapons.delta = weaponClass.delay
       SetComponent(entity, "weapons", weapons)
       // missile away
-      console.log("[Weapons] !!Missile Away!!")
+      debugLog("[weaponCommandSystem] !!Missile Away!!", entity.id)
       const launchPosition = Vector3FromObj(mount.position)
       launchPosition.applyRotationQuaternionInPlace(QuaternionFromObj(rotationQuaternion))
       const startPosition = {
@@ -238,7 +241,7 @@ const handleFireCommand = (entity: Entity) => {
       if (target == undefined && weaponClass.weaponType == "friendorfoe") {
         // find nearest enemy
         const nearestTarget = nearestEnemy(entity, weaponClass.range)
-        console.log("[weaponCommandSystem] targeting nearest enemy", target)
+        debugLog("[weaponCommandSystem] targeting nearest enemy", target)
         target = nearestTarget.id
       }
       // create missile
@@ -421,7 +424,7 @@ const handleFireCommand = (entity: Entity) => {
 
   /// LOCKING
   if (fireCommand.lock) {
-    // console.log("[WeaponSystems] attempting lock")
+    // debugLog("[WeaponSystems] attempting lock")
     // FOR NOW: assuming a target sparse environment, we will just check locking against every enemy
     const entityId = entity.id
     const { direction, position, targeting, vduState } = entity
@@ -453,7 +456,7 @@ const handleFireCommand = (entity: Entity) => {
         closestTarget = targetId
       }
     }
-    // console.log("[WeaponSystems] locked target", closestTarget)
+    // debugLog("[WeaponSystems] locked target", closestTarget)
     if (targeting.target != closestTarget) {
       // reset target time when target changes
       targeting.targetingTime = 0

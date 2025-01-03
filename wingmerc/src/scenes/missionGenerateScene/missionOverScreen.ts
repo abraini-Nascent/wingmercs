@@ -23,8 +23,7 @@ export class MissionOverScreen {
   onDone: () => void = null
 
   constructor() {
-    const advancedTexture =
-      AdvancedDynamicTexture.CreateFullscreenUI("Mission Over")
+    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Mission Over")
     this.gui = advancedTexture
     this.setupMain()
   }
@@ -50,9 +49,9 @@ export class MissionOverScreen {
       return tb
     }
 
-    console.log("+= mission salvage =+")
-    console.dir(AppContainer.instance.player.playerEntity.salvageClaims)
-    console.log("-= mission salvage =-")
+    // console.log("+= mission salvage =+")
+    // console.dir(AppContainer.instance.player.playerEntity.salvageClaims)
+    // console.log("-= mission salvage =-")
 
     this.screen = new FluentContainer(
       "Main Screen",
@@ -62,12 +61,8 @@ export class MissionOverScreen {
         .addControl(
           FluentVerticalStackPanel(
             "Parts Panel",
-            new FluentTextBlock("salvage title", "SALVAGE")
-              .modifyControl(styleTitle)
-              .resizeToFit(),
-            new FluentTextBlock("salvage desc", "Claim your salvage")
-              .modifyControl(styleFont)
-              .resizeToFit(),
+            new FluentTextBlock("salvage title", "SALVAGE").modifyControl(styleTitle).resizeToFit(),
+            new FluentTextBlock("salvage desc", "Claim your salvage").modifyControl(styleFont).resizeToFit(),
             new FluentContainer(
               "shares remaining container",
               new FluentTextBlock("remaining title", "Remaining Claims")

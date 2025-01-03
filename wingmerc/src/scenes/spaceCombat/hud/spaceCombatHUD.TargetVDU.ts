@@ -6,6 +6,7 @@ import * as Ships from "../../../data/ships"
 import { StaticVDU } from "./spaceCombatHUD.StaticVDU"
 import { rand, random } from "../../../utils/random"
 import { VDU } from "./SpaceCombatHUD.VDU"
+import { debugLog } from "../../../utils/debuglog"
 
 export class TargetVDU implements VDU {
   screen: GUI.Container
@@ -160,7 +161,7 @@ export class TargetVDU implements VDU {
       this.staticTimer = Math.max(this.staticTimer - dt, 0)
       this.static.update(dt)
       if (this.staticTimer == 0) {
-        console.log("off")
+        debugLog("static off")
         this.static.isVisible = false
         this.enemyTarget.mainPanel.isVisible = true
       }
@@ -175,7 +176,7 @@ export class TargetVDU implements VDU {
             1000 * (playerEntity.systems.state.targeting / playerEntity.systems.base.targeting)
           )
           this.enemyTarget.mainPanel.isVisible = false
-          console.log("on")
+          debugLog("static on")
         }
       }
     }

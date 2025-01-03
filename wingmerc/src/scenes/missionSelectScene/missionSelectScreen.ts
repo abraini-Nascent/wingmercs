@@ -135,7 +135,7 @@ export class MissionSelectScreen {
                     }
                     const missionImage = generateMissionScreen(mission)
                     const dataUrl = missionImage.toDataURL()
-                    console.log(dataUrl)
+                    // console.log(dataUrl)
                     container.clear()
                     container.addControl(new FluentImage("mission image", dataUrl).size(500, 500))
                   })

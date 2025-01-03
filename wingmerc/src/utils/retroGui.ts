@@ -171,13 +171,13 @@ export namespace RetroGui {
         const gridHeightPixels = Math.round(heightPixels / cellHeight) * cellHeight
         control.heightInPixels = gridHeightPixels
       }
-      console.log({
-        name: control.name,
-        top: control.topInPixels,
-        left: control.leftInPixels,
-        width: control.widthInPixels,
-        height: control.heightInPixels,
-      })
+      // console.log({
+      //   name: control.name,
+      //   top: control.topInPixels,
+      //   left: control.leftInPixels,
+      //   width: control.widthInPixels,
+      //   height: control.heightInPixels,
+      // })
     }
 
     /** absolute position a control */

@@ -42,7 +42,7 @@ export class MissionSelectRetroScreen {
   xrMode: boolean = false
   xrPlane: Mesh
   xrIdealWidth = 1920
-  xrAspectRation = 16 / 9
+  xrAspectRation = 16 / 10
   useMemory: boolean = null
 
   vm: MissionSelectViewModel
@@ -61,11 +61,12 @@ export class MissionSelectRetroScreen {
     // this.gui.dispose()
     // this.crt = new CRTScreenGfx()
     // this.gui = this.crt.gui
+    MercScreen.xrPanel(this)
     this.setupMain()
   }
   dispose() {
-    this.gui.removeControl(this.screen)
-    this.screen.dispose()
+    // this.gui.removeControl(this.screen)
+    // this.screen.dispose()
     this.gui.dispose()
     if (this.crt) {
       this.crt.dispose()
@@ -234,6 +235,7 @@ export class MissionSelectRetroScreen {
     )
       // .background("gray")
       .background(RetroGui.colors.background)
+      .isPointerBlocker(true)
       .build()
     this.screen.isPointerBlocker = true
     this.screen.isHitTestVisible = false
@@ -246,7 +248,7 @@ export class MissionSelectRetroScreen {
         .color(RetroGui.colors.foreground)
         .modifyControl((tb) => {
           this.styleText(tb, RetroGui.colors.foreground)
-          RetroGui.Grid.moveControl(tb, 0, 0, 34, 1)
+          RetroGui.Grid.moveControl(tb, 0, 0, 20, 1)
         }),
       new FluentSimpleButton("done button", "BACK")
         .textBlock((tb) => {
@@ -260,10 +262,12 @@ export class MissionSelectRetroScreen {
             AppContainer.instance.gameScene = new MainMenuScene()
           }
         })
-        .modifyControl((b: any) => {
+        .modifyControl((b: GUI.Button) => {
           RetroGui.Grid.moveControl(b, 0, 30, 8, 1)
           RetroGui.Components.configureButton(b)
+          b.isHitTestVisible = true
         }),
+      // .zIndex(15),
       new FluentSimpleButton("continue button", "CONTINUE")
         .textBlock((tb) => {
           tb.modifyControl(this.styleLabel)
@@ -277,6 +281,7 @@ export class MissionSelectRetroScreen {
           RetroGui.Grid.moveControl(b, 0, 39, 15, 1)
           RetroGui.Components.configureButton(b)
         }),
+      // .zIndex(6),
       new FluentRectangle("screen").thickness(this.cellWidth / 8).modifyControl((r) => {
         this.styleBox(r)
         RetroGui.Grid.moveControlMidCell(r, 1, 0, 0, 24)
@@ -344,7 +349,7 @@ export class MissionSelectRetroScreen {
           }
           const missionImage = generateMissionScreen(mission)
           const dataUrl = missionImage.toDataURL()
-          console.log(dataUrl)
+          // console.log(dataUrl)
           container.clear()
           container.addControl(new FluentImage("mission image", dataUrl).size(750, 750))
         })

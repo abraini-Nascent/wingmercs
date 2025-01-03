@@ -1,5 +1,6 @@
 import * as GUI from "@babylonjs/gui"
 import { FlexContainer, FlexDirection, FlexItem } from "../utils/guiHelpers"
+import { debugLog } from "../utils/debuglog"
 
 export function MainMenuButton(name: string, text: string): GUI.Button {
   let button = GUI.Button.CreateSimpleButton(name, text)
@@ -13,7 +14,7 @@ export function MainMenuButton(name: string, text: string): GUI.Button {
 }
 export function clearSection(section: FlexContainer) {
   section.children.forEach((child) => {
-    console.log("removing", child)
+    debugLog("removing", child)
     section.removeControl(child)
     child.dispose().dispose()
   })

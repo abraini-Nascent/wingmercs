@@ -19,6 +19,7 @@ import { ShipCustomizerScene } from "../shipCustomizerLoop"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { Button, ButtonItem, TextBlock } from "../../components"
 import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
+import { debugLog } from "../../../utils/debuglog"
 
 export class ShipSelectionScreen extends MercScreen {
   // xr
@@ -72,7 +73,7 @@ export class ShipSelectionScreen extends MercScreen {
         shipsRoot.width = AppContainer.instance.engine.getRenderWidth()
         shipsRoot.height = AppContainer.instance.engine.getRenderHeight()
         shipsRoot.markDirty()
-        console.log("Resize: ", shipsRoot.width, shipsRoot.height)
+        debugLog("Resize: ", shipsRoot.width, shipsRoot.height)
       })
     )
 
@@ -185,7 +186,7 @@ export class ShipSelectionScreen extends MercScreen {
   setShipStats() {
     // remove old children
     for (const child of this.statsScroll.children) {
-      console.log("[shipselection] disposing child", child)
+      debugLog("[shipselection] disposing child", child)
       this.statsScroll.removeControl(child).dispose()?.dispose()
     }
     const ship = Ships[this.carouselNames[this.currentIndex]] as ShipTemplate
@@ -220,9 +221,7 @@ export class ShipSelectionScreen extends MercScreen {
 
     // Apply the rotation to the parent transform node
     let rotation = angle * next
-    console.log(
-      `next: ${next}, current: ${this.currentIndex}, angle: ${ToDegree(angle)}, rotation: ${ToDegree(rotation)}`
-    )
+    debugLog(`next: ${next}, current: ${this.currentIndex}, angle: ${ToDegree(angle)}, rotation: ${ToDegree(rotation)}`)
 
     // Create animation
     const rotateAnimation = new Animation(

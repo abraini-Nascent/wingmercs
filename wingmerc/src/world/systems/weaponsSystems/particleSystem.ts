@@ -3,6 +3,7 @@ import { HavokPlugin, PhysicsEngineV2, Quaternion, ShapeCastResult, Vector3 } fr
 import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
 import { registerHit } from "../../damage"
+import { debugLog } from "../../../utils/debuglog"
 
 const DEBUG = false
 const shapeLocalResult = new ShapeCastResult()
@@ -18,7 +19,7 @@ export function particleSystem() {
       continue
     }
     if (world.has(entity) == false) {
-      console.log("[Particle System] dead particle found and removed")
+      debugLog("[Particle System] dead particle found and removed")
       queries.particle.remove(entity)
       // skipping dead particle
       continue
@@ -74,10 +75,10 @@ export function particleSystem() {
       }
       if (entity.originatorId == hitEntity.originatorId) {
         // we were shot out by the same thing!
-        console.log("[ParticleSystem] we were shot out by the same thing and hit each other!")
+        false && debugLog("[ParticleSystem] we were shot out by the same thing and hit each other!")
         continue
       }
-      console.log(`[ParticleSystem] contact: ${entity.id}`)
+      debugLog(`[ParticleSystem] contact: ${entity.id}`)
       // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
       registerHit(hitEntity, entity, hitWorldResult.hitPoint, entity.damage ?? 1)
       const shooter = EntityForId(entity.originatorId)

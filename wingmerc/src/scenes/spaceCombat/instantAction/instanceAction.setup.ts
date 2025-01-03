@@ -1,4 +1,5 @@
-import { MissionSelectScreen } from "./../../missionSelectScene/missionSelectScreen"
+import { SkyboxSystems } from "./../../../world/systems/visualsSystems/skyboxSystems"
+import { MotionHands } from "./../../../world/systems/input/vr/motionHands"
 import { IDisposable } from "@babylonjs/core"
 import { GameScene } from "../../gameScene"
 import { ShipSelectionScreen } from "../../shipCustomizer/shipSelection/shipSelectionScreen"
@@ -9,10 +10,11 @@ import { AppContainer } from "../../../app.container"
 import { MeshedSystem } from "../../../world/systems/renderSystems/meshedSystem"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { InstantActionScene } from "./instantAction.singlePlayer"
-import { SkyboxSystems } from "../../../world/systems/visualsSystems/skyboxSystems"
 import { MissionSelectRetroScreen } from "../../missionSelectScene/missionSelectRetroScreen"
 import { Mission } from "../../../data/missions/missionData"
 import { ShipCustomizerRetroScreen } from "../../shipCustomizer/shipCustomizerRetroScreen"
+import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
+import { debugLog } from "../../../utils/debuglog"
 
 export class InstantActionSetupScene implements GameScene, IDisposable {
   missionSelectScreen: MissionSelectRetroScreen
@@ -25,9 +27,17 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
 
   meshedSystem: MeshedSystem
   skyboxSystems: SkyboxSystems
+  motionHands: MotionHands
+
+  currentLoop: (delta: number) => void
 
   constructor(skyboxSystems: SkyboxSystems) {
     this.skyboxSystems = skyboxSystems
+    if (MotionHands.instance) {
+      this.motionHands = MotionHands.instance
+    } else {
+      this.motionHands = new MotionHands()
+    }
     this.setupMissionSelect()
   }
 
@@ -47,7 +57,18 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
     if (this.skyboxSystems) {
       this.skyboxSystems.dispose()
     }
+    if (this.motionHands) {
+      this.motionHands.dispose()
+    }
     this.clearShipModels()
+  }
+
+  runLoop = (delta: number) => {
+    this.skyboxSystems.update(delta)
+    this.motionHands.update(delta)
+    this.currentLoop(delta)
+    const scene = AppContainer.instance.scene
+    scene.render()
   }
 
   clearShipModels() {
@@ -99,7 +120,7 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
       },
     })
     queries.campaign.onEntityRemoved.subscribe((entity) => {
-      console.log("removing", entity)
+      debugLog("removing", entity)
       debugger
     })
     this.missionSelectScreen = new MissionSelectRetroScreen([
@@ -108,25 +129,29 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
       generateMission(60),
     ])
     this.missionSelectScreen.onDone = (mission) => this.missionSelected(mission)
-    this.runLoop = this.missionSelectLoop
+    this.missionSelectScreen.onBack = () => this.missionBackSelected()
+    this.currentLoop = this.missionSelectLoop
+  }
+
+  missionBackSelected() {
+    this.dispose()
+    AppContainer.instance.gameScene = new MainMenuScene()
   }
 
   missionSelected(mission: Mission) {
-    console.log("mission selected")
+    debugLog("mission selected")
     if (mission) {
       this.missionSelectScreen.dispose()
       this.campaignEntity.campaign.currentMission = mission
-      console.log("[Instance Action Setup] selected mission: ", this.campaignEntity.campaign.currentMission)
+      debugLog("[Instance Action Setup] selected mission: ", this.campaignEntity.campaign.currentMission)
 
       this.setupShipSelect()
-
-      queueMicrotask(() => {
-        this.runLoop = this.shipSelectLoop
-      })
     }
   }
 
   setupShipSelect() {
+    this.setupShipCustomization(structuredClone(Rapier))
+    return
     this.shipSelectScreen = new ShipSelectionScreen()
     for (const shipData of this.campaignEntity.campaign.ships) {
       const ship = shipData.class
@@ -140,6 +165,9 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
     queueMicrotask(() => {
       this.shipSelectScreen.setModels(this.shipModels)
     })
+    queueMicrotask(() => {
+      this.currentLoop = this.shipSelectLoop
+    })
   }
 
   shipSelected(ship: ShipTemplate) {
@@ -151,7 +179,7 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
 
     this.clearShipModels()
 
-    this.runLoop = this.shipCustomizerLoop
+    this.currentLoop = this.shipCustomizerLoop
   }
 
   setupShipCustomization(ship: ShipTemplate) {
@@ -167,34 +195,17 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
     AppContainer.instance.gameScene = nextScene
   }
 
-  runLoop = (_delta: number) => {
-    const appContainer = AppContainer.instance
-    const engine = AppContainer.instance.engine
-    const scene = AppContainer.instance.scene
-    scene.render()
-  }
+  /// LOOPS
 
   missionSelectLoop = (delta: number) => {
-    const appContainer = AppContainer.instance
-    const engine = AppContainer.instance.engine
-    const scene = AppContainer.instance.scene
     this.missionSelectScreen.updateScreen(delta)
-    scene.render()
   }
 
   shipSelectLoop = (delta: number) => {
-    const appContainer = AppContainer.instance
-    const engine = AppContainer.instance.engine
-    const scene = AppContainer.instance.scene
     this.shipSelectScreen.updateScreen(delta)
-    scene.render()
   }
 
   shipCustomizerLoop = (delta: number) => {
-    const appContainer = AppContainer.instance
-    const engine = AppContainer.instance.engine
-    const scene = AppContainer.instance.scene
     this.shipCustomizationScreen.updateScreen(delta)
-    scene.render()
   }
 }

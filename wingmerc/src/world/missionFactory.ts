@@ -328,7 +328,7 @@ export function generateMissionTitle(mission: Mission, titles: string[]): string
   const template = titles[Math.floor(Math.random() * titles.length)]
 
   const replacedTitle = template.replace(/\[(\w+)\]/g, (match, tag) => {
-    console.log("match, tag", match, tag)
+    // console.log("match, tag", match, tag)
     if (match in tags) {
       return tags[match](mission)
     }
@@ -583,6 +583,6 @@ export function generateMissionScreen(mission: Mission, width: number = 500, hei
     }
   })
 
-  console.log(points, encounters)
+  // console.log(points, encounters)
   return canvas
 }

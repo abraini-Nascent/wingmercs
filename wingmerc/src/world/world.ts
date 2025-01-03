@@ -23,6 +23,7 @@ import { generateUUIDv4 } from "../utils/random"
 import { Mission, MissionDetails, Objective } from "../data/missions/missionData"
 import { Vector3FromObj } from "../utils/math"
 import { MercParticleSystem } from "../utils/particles/mercParticleSystem"
+import { debugLog } from "../utils/debuglog"
 
 export type Disposables = Set<IDisposable>
 export type EntityUUID = string
@@ -661,7 +662,7 @@ export class GFrame {
       }
       // todo we should have a better way to manage what is sent over the wire
       if (entity.relinquish) {
-        console.log("[net frame] handing over entity", entity)
+        debugLog("[net frame] handing over entity", entity)
       }
       let framePayload = serialize("GFrame", entity)
       framePayload["_id"] = id

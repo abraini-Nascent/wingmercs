@@ -13,6 +13,7 @@ import { queries, world } from "../../world"
 import { AppContainer } from "../../../app.container"
 import { registerHit } from "../../damage"
 import { Query } from "miniplex"
+import { debugLog } from "../../../utils/debuglog"
 
 const DEBUG = true
 const shapeLocalResult = new ShapeCastResult()
@@ -24,13 +25,13 @@ export class ObstacleDamageSystem implements IDisposable {
   constructor() {
     this.subscriptions.add(
       queries.obstaclesWithPhysics.onEntityAdded.subscribe((entity) => {
-        DEBUG && console.log(`[ObstacleDamageSystem] collision registered ${entity.id}`)
+        DEBUG && debugLog(`[ObstacleDamageSystem] collision registered ${entity.id}`)
         entity.body.setCollisionCallbackEnabled(true)
         this.observers.add(
           entity.body.getCollisionObservable().add((event) => {
             if (event.type == PhysicsEventType.COLLISION_STARTED) {
               DEBUG &&
-                console.log(
+                debugLog(
                   `[ObstacleDamageSystem] collision started ${event.collider.entityId} against ${event.collidedAgainst.entityId}`
                 )
               const hitEntity = EntityForId(event.collidedAgainst.entityId)
@@ -63,7 +64,7 @@ export function ObstacleDamage() {
       continue
     }
     if (world.has(entity) == false) {
-      console.log("[Particle System] dead particle found and removed")
+      debugLog("[Particle System] dead particle found and removed")
       queries.particle.remove(entity)
       // skipping dead particle
       continue
@@ -119,11 +120,11 @@ export function ObstacleDamage() {
       }
       if (entity.originatorId == hitEntity.originatorId) {
         // we were shot out by the same thing!
-        console.log("[ParticleSystem] we were shot out by the same thing and hit each other!")
+        debugLog("[ParticleSystem] we were shot out by the same thing and hit each other!")
         continue
       }
-      console.log(`[ParticleSystem] contact: ${entity.id}`)
-      // console.log("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
+      debugLog(`[ParticleSystem] contact: ${entity.id}`)
+      // debugLog("Collision at ", raycastResult.hitPointWorld, "to: ", raycastResult.body.entityId)
       registerHit(hitEntity, entity, hitWorldResult.hitPoint, entity.damage ?? 1)
       const shooter = EntityForId(entity.originatorId)
       if (shooter?.nerdStats) {
@@ -141,7 +142,7 @@ export function ObstacleDamage() {
     particleRange.lastPosition = { x: position.x, y: position.y, z: position.z }
     if (particleRange.total >= particleRange.max) {
       // end of the line
-      // console.log("[ParticleSystem] end of line")
+      // debugLog("[ParticleSystem] end of line")
       const shooter = EntityForId(entity.originatorId)
       if (shooter?.nerdStats) {
         shooter.nerdStats.roundsMissed += 1

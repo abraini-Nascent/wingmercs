@@ -161,6 +161,7 @@ function field(
       physicsRadius: radius,
       bodyType: "dynamic",
       obstacle: true,
+      disposables: new Set([node]),
     })
   }
 }

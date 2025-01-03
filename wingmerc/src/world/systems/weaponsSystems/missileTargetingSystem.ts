@@ -36,6 +36,7 @@ export function missileTargetingSystem(dt: number) {
     // calculate time to intercept
     const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
     const entityVelocity = Vector3FromObj(entity.velocity, TmpVectors.Vector3[1])
+    const entityDirection = Vector3FromObj(entity.direction, TmpVectors.Vector3[7])
     const targetPosition = Vector3FromObj(targetEntity.position, TmpVectors.Vector3[2])
     const targetVelocity = Vector3FromObj(targetEntity.velocity, TmpVectors.Vector3[3])
     const targetDirection = Vector3FromObj(targetEntity.direction, TmpVectors.Vector3[4])
@@ -109,10 +110,10 @@ export function missileTargetingSystem(dt: number) {
     targeting.targetingTime += dt
     targeting.timeToLock = weaponClass.timeToLock
     if (weaponClass.class == "heatseeking") {
-      const facingDelta = AngleBetweenVectors(directionToTarget, targetDirection)
+      const facingDelta = AngleBetweenVectors(entityDirection, targetDirection)
       if (ToDegree(facingDelta) < 45) {
         // we are behind the target, locking is 3x faster
-        targeting.targetingTime += dt * 2
+        targeting.targetingTime += dt * 3
       }
     }
     const missileLocked = targeting.targetingTime > weaponClass.timeToLock

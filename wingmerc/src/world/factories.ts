@@ -42,6 +42,7 @@ import { QuaternionFromObj, Vector3FromObj } from "../utils/math"
 import { nearestEnemy } from "./systems/ai/shipIntelligence"
 import { SoundEffects } from "../utils/sounds/soundEffects"
 import { Mission } from "../data/missions/missionData"
+import { debugLog } from "../utils/debuglog"
 
 export function applyModifier(value: number, modifier: ComponentModifier): number {
   if (modifier == undefined) {
@@ -70,7 +71,7 @@ export function createCustomShip(
   player?: true,
   overrides: Partial<Entity> = {}
 ): Entity {
-  console.log(`[CreateShip] creating new custom ship ${ship.name} team[${teamId}] group[${groupId}]`)
+  debugLog(`[CreateShip] creating new custom ship ${ship.name} team[${teamId}] group[${groupId}]`)
   let guns: ShipGuns
   const gunMounts: ShipGunsMount[] = Object.values(StructureSections).reduce((allMounts, structureSection) => {
     const structure: ShipStructureSection = ship.structure[structureSection]
@@ -424,7 +425,7 @@ export function createLiveWeapon(
   firingEntity: Entity,
   startPosition: { x: number; y: number; z: number }
 ): Entity {
-  console.log("[Weapons] !!Missile Away!!")
+  debugLog("[Weapons] !!Missile Away!!")
   const { targeting, rotationQuaternion, direction, rotation } = firingEntity
   const forward = new Vector3(0, 0, -1)
   let burn = weaponClass.speed
@@ -439,7 +440,7 @@ export function createLiveWeapon(
   if (target == undefined && weaponClass.weaponType == "friendorfoe") {
     // find nearest enemy
     const nearestTarget = nearestEnemy(firingEntity, weaponClass.range)
-    console.log("[weaponCommandSystem] targeting nearest enemy", target)
+    debugLog("[weaponCommandSystem] targeting nearest enemy", target)
     target = nearestTarget.id
   }
   // create missile
@@ -570,7 +571,7 @@ export function itemSelectionNameParts(part: GunSelection | Weapon): [id: string
 
 export function allAmmos(): UtilityModifierDetails[] {
   let ammos = Object.values(GunData).reduce((allAmmo, gun) => {
-    console.log(gun.name, gun.ammo)
+    debugLog(gun.name, gun.ammo)
     if (gun.ammo == undefined) {
       return allAmmo
     }

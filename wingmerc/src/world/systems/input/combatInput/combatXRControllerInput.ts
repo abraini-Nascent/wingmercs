@@ -13,6 +13,7 @@ import { VRSystem } from "../../renderSystems/vrSystem"
 import { AppContainer } from "../../../../app.container"
 import { ToRadians } from "../../../../utils/math"
 import { DebounceTimedMulti } from "../../../../utils/debounce"
+import { debugLog } from "../../../../utils/debuglog"
 
 const DebounceIds = {
   SpeedDown: 101,
@@ -69,13 +70,13 @@ export class CombatXRControllerInput implements IDisposable {
   checkXR() {
     if (VRSystem.inXR) {
       if (this.inXR == false) {
-        console.log("[xr input] entering xr")
+        debugLog("[xr input] entering xr")
         this.inXR = true
       }
       // handle xr input
       this.handleXrInput()
     } else if (VRSystem.inXR == false && this.inXR) {
-      console.log("[xr input] leaving xr")
+      debugLog("[xr input] leaving xr")
       this.inXR = false
     }
   }
@@ -137,7 +138,7 @@ export class CombatXRControllerInput implements IDisposable {
         // Compute relative orientation by applying the inverse of the initial orientation
         const relativeOrientation = this.initialRightGripOrientation.invert().multiply(orientationQuaternion)
         const axes = getJoystickFromQuaternion(relativeOrientation, ToRadians(35))
-        console.log(`Virtual Joystick Right X: ${axes.x}, Y: ${axes.y}`)
+        debugLog(`Virtual Joystick Right X: ${axes.x}, Y: ${axes.y}`)
         moveCommand.pitch = axes.y * -1
         moveCommand.yaw = axes.x
       }
@@ -198,8 +199,8 @@ export class CombatXRControllerInput implements IDisposable {
         const relativeOrientation = this.initialLeftGripOrientation.invert().multiply(orientationQuaternion)
         const throttle = getJoystickFromQuaternion(relativeOrientation, Math.PI / 2)
         const roll = getJoystickFromQuaternion(relativeOrientation, ToRadians(35))
-        console.log(`Virtual Joystick Left Throttle X: ${throttle.x}, Y: ${throttle.y}`)
-        console.log(`Virtual Joystick Left Roll X: ${throttle.x}, Y: ${throttle.y}`)
+        debugLog(`Virtual Joystick Left Throttle X: ${throttle.x}, Y: ${throttle.y}`)
+        debugLog(`Virtual Joystick Left Roll X: ${throttle.x}, Y: ${throttle.y}`)
         // range is 90 degrees to we can add some dead zone and extreme limits
         if (Math.abs(throttle.y) > (1 / 90) * 10) {
           // over the dead zone

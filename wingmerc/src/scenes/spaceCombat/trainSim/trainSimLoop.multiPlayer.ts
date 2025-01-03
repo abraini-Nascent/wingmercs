@@ -47,6 +47,7 @@ import { MissionType } from "../../../data/missions/missionData"
 import { SpaceDebrisSystem } from "../../../world/systems/visualsSystems/spaceDebrisSystem"
 import { weaponCommandSystem } from "../../../world/systems/controlSystems/weaponCommandSystem"
 import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
+import { debugLog } from "../../../utils/debuglog"
 
 /**
  * If a player dies they should follow cam another player untill
@@ -96,7 +97,7 @@ export class TrainSimSceneMultiplayer implements GameScene, IDisposable {
   disposibles = new Set<IDisposable>()
 
   constructor(private playerShip?: ShipTemplate) {
-    console.log("[SpaceCombatLoop.multiplayer] created")
+    debugLog("[SpaceCombatLoop.multiplayer] created")
     const appContainer = AppContainer.instance
     this.spaceDebris = new SpaceDebrisSystem(appContainer.scene)
     world.onEntityAdded.subscribe(this.onCombatEntityAdded)
@@ -158,7 +159,7 @@ export class TrainSimSceneMultiplayer implements GameScene, IDisposable {
   }
 
   deinit() {
-    console.log("[SpaceCombatLoop] deinit")
+    debugLog("[SpaceCombatLoop] deinit")
   }
 
   onCombatEntityAdded = (entity: Entity) => {
@@ -288,10 +289,10 @@ export class TrainSimSceneMultiplayer implements GameScene, IDisposable {
         MusicPlayer.instance.playStinger("fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
         this.onDeath = undefined
-        console.log("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)
+        debugLog("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)
         // for some reason unsubscribe isn't letting go
         // queries.deathComes.onEntityAdded.clear()
-        console.log("subscribers size after clear", queries.deathComes.onEntityAdded.subscribers.size)
+        debugLog("subscribers size after clear", queries.deathComes.onEntityAdded.subscribers.size)
         appContainer.gameScene = new StatsScene(this.score, this.stats)
         this.dispose()
       }

@@ -4,28 +4,26 @@ import { IDisposable } from "@babylonjs/core"
 import * as GUI from "@babylonjs/gui"
 import { MercScreen } from "../screen"
 import { Engine, Observer } from "@babylonjs/core"
-import {
-  MainMenuButton,
-  TextBlock,
-  TextItem,
-  clearSection,
-} from "../components"
-import {
-  Align,
-  Edge,
-  FlexContainer,
-  FlexDirection,
-  FlexItem,
-  Gutter,
-  Justify,
-} from "../../utils/guiHelpers"
+import { MainMenuButton, TextBlock, TextItem, clearSection } from "../components"
+import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers"
 import { PlayerAgent } from "../../agents/playerAgent"
 import { net } from "../../world/systems/netSystems/net"
 import { ReadyMessage } from "../../world/systems/netSystems/messages/readyMessage"
 import { MissionMessage } from "../../world/systems/netSystems/messages/missionMessage"
 import { TrainSimSceneMultiplayer } from "../spaceCombat/trainSim/trainSimLoop.multiPlayer"
 import { MercStorage } from "../../utils/storage"
-import { DisposeBag, fg, FluentContainer, FluentInputText, FluentScrollViewer, FluentSimpleButton, FluentStackPanel, FluentTextBlock, Ref } from "../../utils/fluentGui"
+import {
+  DisposeBag,
+  fg,
+  FluentContainer,
+  FluentInputText,
+  FluentScrollViewer,
+  FluentSimpleButton,
+  FluentStackPanel,
+  FluentTextBlock,
+  Ref,
+} from "../../utils/fluentGui"
+import { debugLog } from "../../utils/debuglog"
 
 class GameRoom implements IDisposable {
   connected = false
@@ -53,7 +51,7 @@ class GameRoom implements IDisposable {
   private onData = (peer: string, data: unknown) => {
     const readyMessage = data as ReadyMessage
     if (readyMessage.type == "ready") {
-      console.log(
+      debugLog(
         "[net multiplayer] ready message",
         readyMessage.data.peerId,
         readyMessage.data.name,
@@ -94,12 +92,9 @@ class GameRoom implements IDisposable {
     })
     if (this.host) {
       // send the ready states to everyone when user connects
-      console.log(
-        "[net multiplayer] sending states because peer connected",
-        peer
-      )
+      debugLog("[net multiplayer] sending states because peer connected", peer)
       for (let [peerId, state] of this.others.entries()) {
-        console.log("[net multiplayer] sending state for", peerId, state)
+        debugLog("[net multiplayer] sending state for", peerId, state)
         net.send({
           type: "ready",
           data: {
@@ -144,17 +139,11 @@ class GameRoom implements IDisposable {
     }
   }
 
-  joinRoom(
-    roomId: string,
-    cb: (success: boolean, connectedId: string) => void
-  ) {
+  joinRoom(roomId: string, cb: (success: boolean, connectedId: string) => void) {
     net.connect(roomId, PlayerAgent.playerName, (success, peerId) => {
       if (success) {
         this.joined = true
-        console.log(
-          '[net multiplayer] net.metadata.get(peerId)?.name ?? "Host"',
-          net.metadata.get(peerId).name
-        )
+        debugLog('[net multiplayer] net.metadata.get(peerId)?.name ?? "Host"', net.metadata.get(peerId).name)
         // me
         this.others.set(net.peer.id, {
           name: PlayerAgent.playerName,
@@ -236,8 +225,7 @@ export class MultiplayerMenuScreen extends MercScreen {
   constructor() {
     super("MultiplayerMenuScreen")
     if (MercStorage.instance.isLocalStorageAvailable()) {
-      this.roomName =
-        MercStorage.instance.getValue(LAST_ROOM_NAME_KEY) ?? "boosh"
+      this.roomName = MercStorage.instance.getValue(LAST_ROOM_NAME_KEY) ?? "boosh"
     }
     this.setupMainFluent()
   }
@@ -275,7 +263,7 @@ export class MultiplayerMenuScreen extends MercScreen {
       return tb
     }
     this.gameroom.onEvent = () => {
-      console.log("[net multiplayer] onEvent")
+      debugLog("[net multiplayer] onEvent")
       if (playersSectionRef.isValid()) {
         new FluentStackPanel(playersSectionRef.get()).updateControls([
           new FluentTextBlock(`players-heading`, `[${this.roomName}] Players List:`)
@@ -283,25 +271,21 @@ export class MultiplayerMenuScreen extends MercScreen {
             .modifyControl(styleText)
             .fontSize(20)
             .boxPadding(15),
-          ...Array.from(this.gameroom.others.values()).map(
-            ({ name, ready }) => {
-              return new fg.StackPanel(`players-${name}-row`,
-                new FluentTextBlock(`players-${name}-name`, name)
-                  .resizeToFit(true)
-                  .modifyControl(styleText)
-                  .boxPadding(15),
-                new FluentTextBlock(
-                  `players-${name}-ready`,
-                  ready ? "Ready" : "Waiting"
-                )
-                  .resizeToFit(true)
-                  .modifyControl(styleText)
-                  .boxPadding(15)
-              )
-                .height(40)
-                .setHorizontal()
-            }
-          ),
+          ...Array.from(this.gameroom.others.values()).map(({ name, ready }) => {
+            return new fg.StackPanel(
+              `players-${name}-row`,
+              new FluentTextBlock(`players-${name}-name`, name)
+                .resizeToFit(true)
+                .modifyControl(styleText)
+                .boxPadding(15),
+              new FluentTextBlock(`players-${name}-ready`, ready ? "Ready" : "Waiting")
+                .resizeToFit(true)
+                .modifyControl(styleText)
+                .boxPadding(15)
+            )
+              .height(40)
+              .setHorizontal()
+          }),
         ])
       }
 
@@ -340,156 +324,154 @@ export class MultiplayerMenuScreen extends MercScreen {
       .horizontalAlignment("center")
       .modifyControl(styleText)
       .addControl(
-        new FluentScrollViewer("main-scroller",
-          fg.VStack("main-stack",
-            new FluentTextBlock("multiplayer-menue", "-=Multiplayer=-")
-              .fontFamily("Regular5")
-              .fontSize(25)
-              .color("gold")
-              .horizontalAlignment("center")
-              .resizeToFit()
-              .padding(24, 0, 0, 0),
-            // player row
-            fg.HStack("player-row",
-              new FluentTextBlock("player-label", "Player Name: ")
+        new FluentScrollViewer(
+          "main-scroller",
+          fg
+            .VStack(
+              "main-stack",
+              new FluentTextBlock("multiplayer-menue", "-=Multiplayer=-")
+                .fontFamily("Regular5")
+                .fontSize(25)
+                .color("gold")
+                .horizontalAlignment("center")
                 .resizeToFit()
-                .boxPadding(0, 30, 0, 0),
-              new FluentInputText("player-input", PlayerAgent.playerName)
-                .width(255)
-                .height(40)
-                .fontFamily("Regular5")
-                .color("gold")
-                .onTextChanged(
-                  (event) => (PlayerAgent.playerName = event.text), // Handling text change
-                  this.disposeBag
+                .padding(24, 0, 0, 0),
+              // player row
+              fg
+                .HStack(
+                  "player-row",
+                  new FluentTextBlock("player-label", "Player Name: ").resizeToFit().boxPadding(0, 30, 0, 0),
+                  new FluentInputText("player-input", PlayerAgent.playerName)
+                    .width(255)
+                    .height(40)
+                    .fontFamily("Regular5")
+                    .color("gold")
+                    .onTextChanged(
+                      (event) => (PlayerAgent.playerName = event.text), // Handling text change
+                      this.disposeBag
+                    )
                 )
-              )
-              .boxPadding(15, 0, 15, 0)
-              .storeIn(nameInput),
-            // room row
-            fg.HStack(
-              "room-row",
-              new FluentTextBlock("room-label", "Room Name: ")
-                .resizeToFit(true)
-                .boxPadding(0, 30, 0, 0),
-              new FluentInputText("room-input", this.roomName)
-                .width(255)
-                .height(40)
-                .fontFamily("Regular5")
-                .color("gold")
-                .onTextChanged((event) => {
-                  this.roomName = event.text
-                  MercStorage.instance.setValue(LAST_ROOM_NAME_KEY, event.text)
-                }, this.disposeBag) // Handling text change
-              )
-              .boxPadding(15, 0, 15, 0)
-              .storeIn(roomInput),
-            fg.VStack("players-list-container")
-              .adaptHeightToChildren()
-              .adaptWidthToChildren()
-              .storeIn(playersSectionRef),
-            // buttons container
-            fg.VStack("buttons-container",
-              new FluentSimpleButton("host-button", "Host")
-                .modifyControl(styleButton)
-                .onClick(() => {
-                  hostBtnRef.get().isEnabled = false
-                  joinBtnRef.get().isEnabled = false
-                  if (this.gameroom.host) {
-                    this.gameroom.leaveRoom()
-                    readyBtnRef.get().isVisible = false
-                    joinBtnRef.get().isVisible = true
-                    hostBtnRef.get().textBlock.text = "Host"
-                    hostBtnRef.get().isEnabled = true
-                    joinBtnRef.get().isEnabled = true
-                    showInputs()
-                  } else {
-                    this.gameroom.hostRoom(this.roomName, (success) => {
-                      hostBtnRef.get().isEnabled = true
-                      joinBtnRef.get().isEnabled = true
-                      if (success) {
-                        joinBtnRef.get().isVisible = false
-                        hostBtnRef.get().textBlock.text = "Leave"
-                        readyBtnRef.get().isVisible = true
-                        hideInputs()
-                      } else {
-                        joinBtnRef.get().isVisible = true
-                        readyBtnRef.get().isVisible = false
-                        hostBtnRef.get().textBlock.text = "Host"
-                      }
-                    })
-                  }
-                }, this.disposeBag)
-                .storeIn(hostBtnRef),
-              new FluentSimpleButton("join-button", "Join")
-                .modifyControl(styleButton)
-                .onClick(() => {
-                  setTimeout(() => {
-                    if (
-                      this.gameroom.host == false &&
-                      this.gameroom.joined == false
-                    ) {
+                .boxPadding(15, 0, 15, 0)
+                .storeIn(nameInput),
+              // room row
+              fg
+                .HStack(
+                  "room-row",
+                  new FluentTextBlock("room-label", "Room Name: ").resizeToFit(true).boxPadding(0, 30, 0, 0),
+                  new FluentInputText("room-input", this.roomName)
+                    .width(255)
+                    .height(40)
+                    .fontFamily("Regular5")
+                    .color("gold")
+                    .onTextChanged((event) => {
+                      this.roomName = event.text
+                      MercStorage.instance.setValue(LAST_ROOM_NAME_KEY, event.text)
+                    }, this.disposeBag) // Handling text change
+                )
+                .boxPadding(15, 0, 15, 0)
+                .storeIn(roomInput),
+              fg
+                .VStack("players-list-container")
+                .adaptHeightToChildren()
+                .adaptWidthToChildren()
+                .storeIn(playersSectionRef),
+              // buttons container
+              fg
+                .VStack(
+                  "buttons-container",
+                  new FluentSimpleButton("host-button", "Host")
+                    .modifyControl(styleButton)
+                    .onClick(() => {
                       hostBtnRef.get().isEnabled = false
                       joinBtnRef.get().isEnabled = false
-                      this.gameroom.joinRoom(this.roomName, (success) => {
+                      if (this.gameroom.host) {
+                        this.gameroom.leaveRoom()
+                        readyBtnRef.get().isVisible = false
+                        joinBtnRef.get().isVisible = true
+                        hostBtnRef.get().textBlock.text = "Host"
                         hostBtnRef.get().isEnabled = true
                         joinBtnRef.get().isEnabled = true
-                        if (success) {
-                          hostBtnRef.get().isVisible = false
-                          readyBtnRef.get().isVisible = true
-                          joinBtnRef.get().textBlock.text = "Leave"
-                          hideInputs()
-                        } else {
-                          hostBtnRef.get().isVisible = true
-                          readyBtnRef.get().isVisible = false
-                          joinBtnRef.get().textBlock.text = "Join"
+                        showInputs()
+                      } else {
+                        this.gameroom.hostRoom(this.roomName, (success) => {
+                          hostBtnRef.get().isEnabled = true
+                          joinBtnRef.get().isEnabled = true
+                          if (success) {
+                            joinBtnRef.get().isVisible = false
+                            hostBtnRef.get().textBlock.text = "Leave"
+                            readyBtnRef.get().isVisible = true
+                            hideInputs()
+                          } else {
+                            joinBtnRef.get().isVisible = true
+                            readyBtnRef.get().isVisible = false
+                            hostBtnRef.get().textBlock.text = "Host"
+                          }
+                        })
+                      }
+                    }, this.disposeBag)
+                    .storeIn(hostBtnRef),
+                  new FluentSimpleButton("join-button", "Join")
+                    .modifyControl(styleButton)
+                    .onClick(() => {
+                      setTimeout(() => {
+                        if (this.gameroom.host == false && this.gameroom.joined == false) {
+                          hostBtnRef.get().isEnabled = false
+                          joinBtnRef.get().isEnabled = false
+                          this.gameroom.joinRoom(this.roomName, (success) => {
+                            hostBtnRef.get().isEnabled = true
+                            joinBtnRef.get().isEnabled = true
+                            if (success) {
+                              hostBtnRef.get().isVisible = false
+                              readyBtnRef.get().isVisible = true
+                              joinBtnRef.get().textBlock.text = "Leave"
+                              hideInputs()
+                            } else {
+                              hostBtnRef.get().isVisible = true
+                              readyBtnRef.get().isVisible = false
+                              joinBtnRef.get().textBlock.text = "Join"
+                            }
+                          })
+                          return
                         }
-                      })
-                      return
-                    }
-                    if (this.gameroom.host) {
-                      this.gameroom.leaveRoom()
-                      readyBtnRef.get().isVisible = false
-                      hostBtnRef.get().isVisible = true
-                      joinBtnRef.get().textBlock.text = "Join"
-                      showInputs()
-                    }
-                  }, 333)
-                }, this.disposeBag)
-                .storeIn(joinBtnRef),
-              new FluentSimpleButton("ready-button", "Ready")
-                .modifyControl(styleButton)
-                .onClick(() => {
-                  this.ready = !this.ready
-                  readyBtnRef.get().textBlock.text = this.ready
-                    ? "Unready"
-                    : "Ready"
-                  this.gameroom.readyUp(PlayerAgent.playerName, this.ready)
-                }, this.disposeBag)
-                .hide()
-                .storeIn(readyBtnRef),
-              new FluentSimpleButton("start-button", "Start")
-                .modifyControl(styleButton)
-                .onClick(() => {
-                  this.gameroom.start()
-                }, this.disposeBag)
-                .hide()
-                .storeIn(startBtnRef),
-              new FluentSimpleButton("exit-button", "Exit")
-                .modifyControl(styleButton)
-                .onClick(() => {
-                  const appContainer = AppContainer.instance
-                  appContainer.gameScene.dispose()
-                  appContainer.gameScene = new MainMenuScene()
-                  this.dispose()
-                }, this.disposeBag)
-              )
-              .horizontalAlignment("center")
-          )
-          .verticalAlignment("top")
+                        if (this.gameroom.host) {
+                          this.gameroom.leaveRoom()
+                          readyBtnRef.get().isVisible = false
+                          hostBtnRef.get().isVisible = true
+                          joinBtnRef.get().textBlock.text = "Join"
+                          showInputs()
+                        }
+                      }, 333)
+                    }, this.disposeBag)
+                    .storeIn(joinBtnRef),
+                  new FluentSimpleButton("ready-button", "Ready")
+                    .modifyControl(styleButton)
+                    .onClick(() => {
+                      this.ready = !this.ready
+                      readyBtnRef.get().textBlock.text = this.ready ? "Unready" : "Ready"
+                      this.gameroom.readyUp(PlayerAgent.playerName, this.ready)
+                    }, this.disposeBag)
+                    .hide()
+                    .storeIn(readyBtnRef),
+                  new FluentSimpleButton("start-button", "Start")
+                    .modifyControl(styleButton)
+                    .onClick(() => {
+                      this.gameroom.start()
+                    }, this.disposeBag)
+                    .hide()
+                    .storeIn(startBtnRef),
+                  new FluentSimpleButton("exit-button", "Exit").modifyControl(styleButton).onClick(() => {
+                    const appContainer = AppContainer.instance
+                    appContainer.gameScene.dispose()
+                    appContainer.gameScene = new MainMenuScene()
+                    this.dispose()
+                  }, this.disposeBag)
+                )
+                .horizontalAlignment("center")
+            )
+            .verticalAlignment("top")
         )
-        .verticalAlignment("top")
-        .horizontalAlignment("center")
+          .verticalAlignment("top")
+          .horizontalAlignment("center")
       )
   }
 
@@ -497,10 +479,7 @@ export class MultiplayerMenuScreen extends MercScreen {
     const mainPanel = new FlexContainer("main panel", this.gui)
     mainPanel.style.setFlex(1)
     mainPanel.style.setFlexDirection(FlexDirection.Column)
-    const mainScrollView = FlexContainer.CreateScrollView(
-      "Multiplayer Menu",
-      mainPanel
-    )
+    const mainScrollView = FlexContainer.CreateScrollView("Multiplayer Menu", mainPanel)
     mainScrollView.style.setJustifyContent(Justify.Center)
     mainScrollView.style.setAlignContent(Align.Center)
 
@@ -524,7 +503,7 @@ export class MultiplayerMenuScreen extends MercScreen {
     input.fontFamily = "Regular5"
     input.color = "gold"
     input.onTextChangedObservable.add((event) => {
-      console.log("[multiplayer] name event change", event.text)
+      debugLog("[multiplayer] name event change", event.text)
       PlayerAgent.playerName = event.text
     })
     const nameRow = this.createCenteredRow("player name", label, input)
@@ -538,7 +517,7 @@ export class MultiplayerMenuScreen extends MercScreen {
     roomInput.fontFamily = "Regular5"
     roomInput.color = "gold"
     roomInput.onTextChangedObservable.add((event) => {
-      console.log("[multiplayer] room event change", event.text)
+      debugLog("[multiplayer] room event change", event.text)
       this.roomName = event.text
       if (MercStorage.instance.isLocalStorageAvailable()) {
         MercStorage.instance.setValue(LAST_ROOM_NAME_KEY, event.text)
@@ -641,26 +620,14 @@ export class MultiplayerMenuScreen extends MercScreen {
     buttonContainer.addControl(backButton)
 
     this.gameroom.onEvent = () => {
-      console.log("[net multiplayer] onEvent")
+      debugLog("[net multiplayer] onEvent")
       clearSection(mainScrollView)
 
       for (let [id, other] of this.gameroom.others.entries()) {
-        console.log(
-          "[net multiplayer] player:",
-          other.name,
-          "ready:",
-          other.ready
-        )
+        debugLog("[net multiplayer] player:", other.name, "ready:", other.ready)
         let nameLabel = this.createLabel(`other-${other.name}`, other.name)
-        let readyLabel = this.createLabel(
-          `other-${other.name}-ready`,
-          other.ready ? "Ready" : "Waiting"
-        )
-        let row = this.createRow(
-          `other-${other.name}-row`,
-          nameLabel,
-          readyLabel
-        )
+        let readyLabel = this.createLabel(`other-${other.name}-ready`, other.ready ? "Ready" : "Waiting")
+        let row = this.createRow(`other-${other.name}-row`, nameLabel, readyLabel)
         mainScrollView.addControl(row)
       }
 
@@ -708,11 +675,7 @@ export class MultiplayerMenuScreen extends MercScreen {
     return row
   }
 
-  private createRow(
-    name: string,
-    label: GUI.Control | FlexItem,
-    item: GUI.Control | FlexItem
-  ): FlexContainer {
+  private createRow(name: string, label: GUI.Control | FlexItem, item: GUI.Control | FlexItem): FlexContainer {
     const row = new FlexContainer(name)
     row.style.setFlexDirection(FlexDirection.Row)
     // row.style.setFlex(1)

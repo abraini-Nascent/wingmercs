@@ -1,11 +1,12 @@
-import { PowerPlantModifierDetails, StructureSections } from './../../../data/ships/shipTemplate';
-import { SalvageClaims } from './../../world';
-import { IDisposable } from "@babylonjs/core";
-import { Entity, queries } from "../../world";
-import { AppContainer } from "../../../app.container";
+import { PowerPlantModifierDetails, StructureSections } from "./../../../data/ships/shipTemplate"
+import { SalvageClaims } from "./../../world"
+import { IDisposable } from "@babylonjs/core"
+import { Entity, queries } from "../../world"
+import { AppContainer } from "../../../app.container"
+import { debugLog } from "../../../utils/debuglog"
+import { debugDir } from "../../../utils/debugDir"
 
-
-export class MissionSalvageSystem implements IDisposable{
+export class MissionSalvageSystem implements IDisposable {
   unsubscribeDeathComesSubsction: () => void
 
   constructor() {
@@ -74,19 +75,19 @@ export class MissionSalvageSystem implements IDisposable{
         case "Thruster": {
           location = entity.thrusters.location
           health = entity.systems.state.thrusters
-          break;
+          break
         }
         case "PowerPlant": {
           location = entity.powerPlant.location
           health = entity.systems.state.power
-          break;
+          break
         }
         case "Shields": {
           location = entity.shields.location
           health = entity.systems.state.shield
         }
       }
-      if (health > 0 && (location == 'core' || (entity.armor[location] != undefined && entity.armor[location] > 0))) {
+      if (health > 0 && (location == "core" || (entity.armor[location] != undefined && entity.armor[location] > 0))) {
         salvageClaims.shipParts.push({ health, modifier })
       }
     }
@@ -98,13 +99,12 @@ export class MissionSalvageSystem implements IDisposable{
         front: entity.armor.front > 0,
         back: entity.armor.back > 0,
         left: entity.armor.left > 0,
-        right: entity.armor.right > 0
+        right: entity.armor.right > 0,
       }
       salvageClaims.hulls.push(hull)
     }
-    
 
-    console.log("[mission salvage] new salvage")
-    console.dir(salvageClaims)
+    debugLog("[mission salvage] new salvage")
+    debugDir(salvageClaims)
   }
 }

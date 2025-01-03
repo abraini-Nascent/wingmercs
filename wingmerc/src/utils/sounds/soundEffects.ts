@@ -189,7 +189,7 @@ export namespace SoundEffects {
     resetSound(dequeued.sound, position)
   }
   export function Explosion(position?: Vector3 | undefined) {
-    const dequeued = pool.dequeue("ExplosionFiles", rand(0, SoundData.ExplosionFiles.length), true)
+    const dequeued = pool.dequeue("ExplosionFiles", rand(0, SoundData.ExplosionFiles.length - 1), true)
     resetSound(dequeued.sound, position)
   }
   export function Select(position?: Vector3 | undefined) {

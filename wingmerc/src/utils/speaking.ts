@@ -3,6 +3,7 @@ import { Engine, Sound } from "@babylonjs/core"
 import { translateIPA } from "../data/IAP"
 import { AppContainer } from "../app.container"
 import { Entity, world } from "../world/world"
+import { debugLog } from "./debuglog"
 const worker = new Worker(new URL("./voiceWorker.js", import.meta.url), { type: "module" })
 /**
  * Test if a bit is set.
@@ -66,7 +67,7 @@ export type Voice = {
 }
 export async function VoiceSoundLocal(phoneticSentence: string, voice: Voice): Promise<Sound | undefined> {
   const samSentence = translateIPA(phoneticSentence, AppContainer.instance.debug)
-  // console.log(`${bark.english}: \\${samSentence}\\`)
+  // debugLog(`${bark.english}: \\${samSentence}\\`)
   const sam = new SamJs({
     debug: AppContainer.instance.debug,
     phonetic: true,
@@ -85,7 +86,7 @@ export async function VoiceSoundLocal(phoneticSentence: string, voice: Voice): P
 }
 let messagesCount = 0
 export async function VoiceSoundWorker(phoneticSentence: string, voice: Voice): Promise<Sound | undefined> {
-  console.log("[Speaking] creating", phoneticSentence)
+  debugLog("[Speaking] creating", phoneticSentence)
   return new Promise((resolve, reject) => {
     const thisMessageId = messagesCount++
     const listener = (event) => {
@@ -116,7 +117,7 @@ export async function VoiceSoundWorker(phoneticSentence: string, voice: Voice): 
     worker.postMessage({
       samSentence,
       voice,
-      samDebug: AppContainer.instance.debug,
+      samDebug: false, //AppContainer.instance.debug,
       messageId: thisMessageId,
     })
   })
@@ -130,7 +131,7 @@ function CreateSoundFromAudioBuffer(audioBuffer: AudioBuffer): Sound {
 }
 export function PlayVoiceSound(sound: Sound | undefined, entity: Entity) {
   if (sound) {
-    console.log("[Speaking]", entity.id)
+    debugLog("[Speaking]", entity.id)
     sound.maxDistance = 10000
     sound.spatialSound = true
     sound.attachToMesh(entity.node)

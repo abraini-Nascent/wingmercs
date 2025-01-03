@@ -23,6 +23,7 @@ import { AppContainer } from "../../../app.container"
 import { totalVelocityFrom } from "../../helpers"
 import { GunStats } from "../../../data/guns/gun"
 import { randFloat } from "../../../utils/random"
+import { debugLog } from "../../../utils/debuglog"
 
 const PlanarUp = Vector3.Up()
 /** the steering error (-180 to 180 degrees) is clamped to -90 to 90 and normalized to -1 to 1, an error of < 1 degree is clamped to 0 */
@@ -247,6 +248,35 @@ export namespace SteeringBehaviours {
     result.firePosition = firePosition
     return result
   }
+  /** returns the radians between the entitie's direction and the gun intercept position to determine the ships firing position or undefined if the shot is not possible */
+  export function firingPosition(entity: Entity, targetEntity: Entity): number | undefined {
+    const currentPosition = Vector3FromObj(entity.position)
+    const currentDirection = Vector3FromObj(entity.direction)
+    const gunGroup = entity.guns.groups[entity.guns.selected]
+    if (gunGroup == undefined) {
+      return undefined
+    }
+    let gunsSpeed = 0
+    for (let mountIdx of gunGroup) {
+      const gun = entity.guns.mounts[mountIdx].stats as GunStats
+      gunsSpeed += gun.speed / gunGroup.length
+    }
+    gunsSpeed = Math.round(gunsSpeed)
+    const targetInterceptPosition =
+      firstOrderIntercept(
+        currentPosition,
+        Vector3FromObj(entity.velocity),
+        Vector3FromObj(targetEntity.position),
+        Vector3FromObj(targetEntity.velocity),
+        gunsSpeed
+      ) ?? Vector3FromObj(targetEntity.position)
+    const directionToIntercept = targetInterceptPosition
+      .subtractToRef(currentPosition, TmpVectors.Vector3[0])
+      .normalizeToRef(TmpVectors.Vector3[0])
+    const angleToIntercept = AngleBetweenVectors(currentDirection, directionToIntercept)
+    // console.log(`[SteeringBehaviours] Ship ${entity.id} angle to intercept`, ToDegree(angleToIntercept))
+    return angleToIntercept
+  }
   /** analogous to pursuit, except that flee is used to steer away from the predicted future position of the target character */
   export function evasion(
     dt: number,
@@ -281,7 +311,7 @@ export namespace SteeringBehaviours {
         Vector3FromObj(targetEntity.velocity),
         Vector3FromObj(entity.velocity).length()
       ) ?? Vector3FromObj(targetEntity.position) // is this right?
-    if (AppContainer.instance.debug) {
+    if (false && AppContainer.instance.debug) {
       let mesh = firstOrderInterceptDebugBoxes[entity.id]
       if (mesh == undefined) {
         mesh = MeshBuilder.CreateBox("firstOrderInterceptPosition", { size: 1 })
@@ -291,7 +321,7 @@ export namespace SteeringBehaviours {
     }
 
     const offsetPosition = calculateOffsetTargetPosition(targetInterceptPosition, targetRotation, offset)
-    if (AppContainer.instance.debug) {
+    if (false && AppContainer.instance.debug) {
       let mesh = offsetPursuitDebugBoxes[entity.id]
       if (mesh == undefined) {
         mesh = MeshBuilder.CreateBox("offsetPursuitOffsetPosition", { size: 1 })
@@ -461,7 +491,7 @@ export namespace SteeringBehaviours {
       const avoidanceForce = avoidanceDirection.scale(entityVelocity.length())
 
       // If we are going to run into something in two seconds, turn
-      console.log("[SteeringBehaviours] !!! Avoid Avoid Avoid !!!", entity.id, closestCollisionTime)
+      debugLog("[SteeringBehaviours] !!! Avoid Avoid Avoid !!!", entity.id, closestCollisionTime)
       return {
         pitch: 1,
         yaw: 1,

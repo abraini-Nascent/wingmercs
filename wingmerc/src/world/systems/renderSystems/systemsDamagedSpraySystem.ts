@@ -5,6 +5,7 @@ import { queries, world } from "../../world"
 import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
 import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
 import { MercParticleCustomEmitter } from "../../../utils/particles/mercParticleEmitters"
+import { debugLog } from "../../../utils/debuglog"
 
 export class SystemsDamagedSpraySystem implements IDisposable {
   entityMpcMap = new Map<Entity, MercParticleSystem>()
@@ -50,7 +51,7 @@ export class SystemsDamagedSpraySystem implements IDisposable {
       }
     )
     let entityId = entity.id
-    console.log(`[SystemsDamaged] \\${entityId}\\ added damaged systems spray`)
+    debugLog(`[SystemsDamaged] \\${entityId}\\ added damaged systems spray`)
     let system = damagedSystemsSprayParticlePool.value.acquireSystem(emitter, false)
     this.entityMpcMap.set(entity, system)
     system.begin()
@@ -73,7 +74,7 @@ export class SystemsDamagedSpraySystem implements IDisposable {
   }
 
   systemsDamagedOnEntityRemoved = (entity: Entity) => {
-    console.log(`[SystemsDamaged] \\${entity.id}\\ removed damaged systems spray`)
+    debugLog(`[SystemsDamaged] \\${entity.id}\\ removed damaged systems spray`)
     const system = this.entityMpcMap.get(entity)
     if (system) {
       damagedSystemsSprayParticlePool.value.release(system)

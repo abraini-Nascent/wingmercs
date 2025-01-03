@@ -38,6 +38,7 @@ import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems"
 import { VRSystem } from "../../world/systems/renderSystems/vrSystem"
 import { MotionHands } from "../../world/systems/input/vr/motionHands"
 import { weaponCommandSystem } from "../../world/systems/controlSystems/weaponCommandSystem"
+import { debugLog } from "../../utils/debuglog"
 
 const ShipClasses = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps")
@@ -73,13 +74,16 @@ export class MainMenuScene implements IDisposable {
 
   constructor() {
     this.screen = new MainMenuScreen()
+
+    for (const camera of queries.cameras) {
+      world.remove(camera)
+    }
     const appContainer = AppContainer.instance
     appContainer.camera.detachControl()
     appContainer.scene.removeCamera(appContainer.camera)
     appContainer.camera.dispose()
     appContainer.camera = new TargetCamera("MainMenuCamera", Vector3.Zero(), appContainer.scene)
     this.camera = appContainer.camera as FreeCamera
-
     appContainer.camera.attachControl()
     appContainer.camera.maxZ = 50000
     appContainer.camera.minZ = 0.1
@@ -87,7 +91,9 @@ export class MainMenuScene implements IDisposable {
       targetName: "debug camera",
       camera: "debug",
     })
-
+    setTimeout(() => {
+      appContainer.scene.activeCamera = this.camera
+    }, 1)
     world.onEntityAdded.subscribe(this.onScreenEntityAdded)
     world.onEntityRemoved.subscribe(this.onScreenEntityRemoved)
 
@@ -121,7 +127,7 @@ export class MainMenuScene implements IDisposable {
     this.teamB.clear()
     this.teamC.clear()
     for (const entity of this.screenEntities) {
-      console.log("[MainMenu] removing entity", entity)
+      debugLog("[MainMenu] removing entity", entity)
       world.remove(entity)
     }
     this.screenEntities.clear()
@@ -230,12 +236,10 @@ export class MainMenuScene implements IDisposable {
     // Calculate the center point between the two nodes
     if (VRSystem.inXR) {
       VRSystem.xrCameraParent.position.setAll(0)
-      // console.log(VRSystem.xr.baseExperience.camera.position)
       return
     }
     this.cameraAgg += delta
-    if (this.cameraAgg / 1000 / 60 > 1) {
-      // one minute
+    if (this.cameraAgg / 1000 / 15 > 1 || world.has(this.cameraShip) == false) {
       this.cameraAgg = 0
       this.cameraShip = randomItem(Array.from(this.teamA.keys())) // this is heavy handed...
     }

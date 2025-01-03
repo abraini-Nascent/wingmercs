@@ -2,6 +2,7 @@ import { IDisposable, Sound } from "@babylonjs/core"
 import { Entity, queries } from "../../world"
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { Vector3FromObj } from "../../../utils/math"
+import { debugLog } from "../../../utils/debuglog"
 
 export class DriftSoundSystem implements IDisposable {
   driftSounds = new Map<Entity, Sound>()
@@ -17,7 +18,7 @@ export class DriftSoundSystem implements IDisposable {
   }
 
   driftOnEntityAdded = (entity) => {
-    console.log("drift on")
+    debugLog("[Drift sounds] drift on")
     if (this.driftSounds.has(entity)) {
       let sound = this.driftSounds.get(entity)
       SoundEffects.Silience(sound)
@@ -32,7 +33,7 @@ export class DriftSoundSystem implements IDisposable {
     this.driftSounds.set(entity, sound)
   }
   driftOnEntityRemoved = (entity) => {
-    console.log("drift off")
+    debugLog("[Drift sounds] drift off")
     if (this.driftSounds.has(entity)) {
       let sound = this.driftSounds.get(entity)
       sound.detachFromMesh()

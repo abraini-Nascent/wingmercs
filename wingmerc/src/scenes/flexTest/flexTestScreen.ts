@@ -1,6 +1,6 @@
-import { Color3 } from "@babylonjs/core";
-import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers";
-import { MercScreen } from "../screen";
+import { Color3 } from "@babylonjs/core"
+import { Align, Edge, FlexContainer, FlexDirection, FlexItem, Gutter, Justify } from "../../utils/guiHelpers"
+import { MercScreen } from "../screen"
 import * as GUI from "@babylonjs/gui"
 
 export class FlexTestScreen extends MercScreen {
@@ -10,8 +10,7 @@ export class FlexTestScreen extends MercScreen {
     this.setupMain()
   }
   setupMain(): void {
-
-/**
+    /**
 <Layout config={{useWebDefaults: false}}>
   <Node style={{width: 250, height: 475, padding: 10}}>
     <Node style={{flex: 1, rowGap: 10}}>
@@ -104,10 +103,10 @@ export class FlexTestScreen extends MercScreen {
     // })
     // // child4.addControl(child5)
     // child4.style.setFlex(1)
-    
+
     let directOffset = 0
     for (let i = 0; i < 20; i += 1) {
-      const text = new GUI.TextBlock(`text-${i+1}`, `I am item number: ${i + 1} !`)
+      const text = new GUI.TextBlock(`text-${i + 1}`, `I am item number: ${i + 1} !`)
       text.resizeToFit = true
       text.textWrapping = GUI.TextWrapping.WordWrap
       text.textHorizontalAlignment = GUI.TextBlock.HORIZONTAL_ALIGNMENT_LEFT
@@ -117,8 +116,8 @@ export class FlexTestScreen extends MercScreen {
       // directOffset += 50
       // direct.addControl(text)
       // continue;
-      const textFlexItem = new FlexItem(`text-${i+1}-flex`, text)
-      textFlexItem.getMeasure = (width, _widthMode, _height, _heightMode): {width: number, height: number} => {
+      const textFlexItem = new FlexItem(`text-${i + 1}-flex`, text)
+      textFlexItem.getMeasure = (width, _widthMode, _height, _heightMode): { width: number; height: number } => {
         text.widthInPixels = width
         text.heightInPixels = text.computeExpectedHeight()
         const result = { width: text.widthInPixels, height: text.heightInPixels }
@@ -126,9 +125,6 @@ export class FlexTestScreen extends MercScreen {
       }
       child5.addControl(textFlexItem)
     }
-    // direct.heightInPixels = offset
-    // console.log("direct heightinpixels", direct.heightInPixels)
-    // child5.style.setHeight(direct.heightInPixels)
 
     const bottomBar = new FlexContainer("bottomBar")
     bottomBar.style.setPosition(Edge.Bottom, 0)
@@ -144,13 +140,13 @@ export class FlexTestScreen extends MercScreen {
     icon1.heightInPixels = 40
     icon1.background = Color3.Red().toHexString()
     bottomBar.addControl(icon1)
-    
+
     const icon2 = new GUI.Rectangle("icon2")
     icon2.widthInPixels = 40
     icon2.heightInPixels = 40
     icon2.background = Color3.Green().toHexString()
     bottomBar.addControl(icon2)
-    
+
     const icon3 = new GUI.Rectangle("icon3")
     icon3.widthInPixels = 40
     icon3.heightInPixels = 40

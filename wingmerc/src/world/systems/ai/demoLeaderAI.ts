@@ -3,6 +3,7 @@ import { Entity, FireCommand, MovementCommand, SetComponent } from "../../world"
 import { aiTimer } from "./aiTimer"
 import { SteeringHardTurnClamp } from "./basicSteering"
 import { SteeringBehaviours } from "./steeringBehaviours"
+import { debugLog } from "../../../utils/debuglog"
 
 export function demoLeaderAI(entity: Entity, dt: number) {
   const { ai } = entity
@@ -66,7 +67,7 @@ export function demoLeaderAI(entity: Entity, dt: number) {
       //     headingIndex: 0
       //   } as SteeringBehaviours.HeadingHoldState
       // }
-      console.log(`[AI wingleader] steering:`, input)
+      debugLog(`[AI wingleader] steering:`, input)
       movementCommand.pitch = input.pitch
       movementCommand.yaw = input.yaw
       movementCommand.roll = input.roll

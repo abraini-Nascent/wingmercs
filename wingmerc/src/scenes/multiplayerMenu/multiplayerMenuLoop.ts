@@ -1,8 +1,9 @@
-import { IDisposable } from "@babylonjs/core";
-import { AppContainer } from "../../app.container";
-import { MultiplayerMenuScreen } from "./multiplayerMenuScreen";
-import { Entity, world } from "../../world/world";
-import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems";
+import { IDisposable } from "@babylonjs/core"
+import { AppContainer } from "../../app.container"
+import { MultiplayerMenuScreen } from "./multiplayerMenuScreen"
+import { Entity, world } from "../../world/world"
+import { SkyboxSystems } from "../../world/systems/visualsSystems/skyboxSystems"
+import { debugLog } from "../../utils/debuglog"
 
 export class MultiplayerMenuScene implements IDisposable {
   screen: MultiplayerMenuScreen
@@ -27,7 +28,7 @@ export class MultiplayerMenuScene implements IDisposable {
     this.screen.dispose()
     this.screen = undefined
     for (const entity of this.screenEntities) {
-      console.log("[MultiplayerMenu] removing entity", entity)
+      debugLog("[MultiplayerMenu] removing entity", entity)
       world.remove(entity)
     }
     this.screenEntities.clear()
@@ -49,7 +50,6 @@ export class MultiplayerMenuScene implements IDisposable {
     this.skyboxSystems.update(delta)
 
     scene.render()
-    return;
+    return
   }
 }
-

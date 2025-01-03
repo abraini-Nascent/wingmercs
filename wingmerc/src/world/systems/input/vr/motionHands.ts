@@ -13,6 +13,7 @@ import {
 } from "@babylonjs/core"
 import { VRSystem } from "../../renderSystems/vrSystem"
 import { setSpriteBackUVs, setSpriteUVs } from "../../../../utils/sprites"
+import { debugLog } from "../../../../utils/debuglog"
 
 const HandThumbDownOffset = 3
 const HandClosed = 129
@@ -139,14 +140,14 @@ export class MotionHands implements IDisposable {
   checkXR() {
     if (VRSystem.inXR) {
       if (this.inXR == false) {
-        console.log("[xr input] entering xr")
+        debugLog("[xr input] entering xr")
         this.beginXrInput()
         this.inXR = true
       }
       // handle xr input
       this.handleXrInput()
     } else if (VRSystem.inXR == false && this.inXR) {
-      console.log("[xr input] leaving xr")
+      debugLog("[xr input] leaving xr")
       this.inXR = false
     }
   }
@@ -203,7 +204,7 @@ export class MotionHands implements IDisposable {
 
   handleXrInput() {
     const input = VRSystem.xr.input
-    // console.log("[xr input] XR Input ", input)
+    // debugLog("[xr input] XR Input ", input)
     for (const controller of input.controllers) {
       const motion = controller.motionController
       if (motion == undefined) {

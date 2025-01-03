@@ -1,5 +1,6 @@
 import { IDisposable, TrailMesh, Vector3 } from "@babylonjs/core"
 import { Entity, queries } from "../../world"
+import { debugLog } from "../../../utils/debuglog"
 
 export class DriftTrailSystem implements IDisposable {
   constructor() {
@@ -12,7 +13,7 @@ export class DriftTrailSystem implements IDisposable {
   }
 
   driftOnEntityAdded = (entity: Entity) => {
-    console.log("drift on / trail off")
+    debugLog("drift on / trail off")
     if (entity.trailMeshs != undefined) {
       const { particleSystems } = entity.trailMeshs
       particleSystems.forEach((sps) => {
@@ -21,7 +22,7 @@ export class DriftTrailSystem implements IDisposable {
     }
   }
   driftOnEntityRemoved = (entity: Entity) => {
-    console.log("drift off / trail on")
+    debugLog("drift off / trail on")
     if (entity.trailMeshs != undefined) {
       const { particleSystems } = entity.trailMeshs
       particleSystems.forEach((sps) => {

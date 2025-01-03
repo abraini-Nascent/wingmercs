@@ -5,6 +5,7 @@ import { QuaternionFromObj, Vector3FromObj } from "../../../utils/math"
 import { MercParticlePointEmitter } from "../../../utils/particles/mercParticleEmitters"
 import { MercParticles } from "../../../utils/particles/mercParticles"
 import { MercParticleSystem } from "../../../utils/particles/mercParticleSystem"
+import { debugLog } from "../../../utils/debuglog"
 
 let i = 0
 /**
@@ -27,7 +28,7 @@ export class TrailersSystem implements IDisposable {
     this.entitySps.clear()
   }
   trailersOnEntityAdded = (entity: Entity) => {
-    console.log("[TrailersSystem] entity added", entity.id)
+    debugLog("[TrailersSystem] entity added", entity.id)
     const scene = AppContainer.instance.scene
     const trailMeshs: {
       particleSystems: MercParticleSystem[]
@@ -83,7 +84,7 @@ export class TrailersSystem implements IDisposable {
     SetComponent(entity, "trailMeshs", trailMeshs)
   }
   trailersOnEntityRemoved = (entity) => {
-    console.log("[TrailersSystem] entity removed", entity.id)
+    debugLog("[TrailersSystem] entity removed", entity.id)
     const sps = this.entitySps.get(entity.id)
     if (sps) {
       sps.dispose()

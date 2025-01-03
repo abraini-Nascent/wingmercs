@@ -1,14 +1,14 @@
-import { DebounceTimedMulti } from '../../utils/debounce';
-import { GameScene } from '../gameScene';
-import { AppContainer } from "../../app.container";
-import { ShipCustomizerScreen } from './shipCustomizerScreen';
-import { IDisposable} from '@babylonjs/core';
-import { ShipTemplate } from '../../data/ships/shipTemplate';
-import { Entity, world } from '../../world/world';
-import { MeshedSystem } from '../../world/systems/renderSystems/meshedSystem';
+import { DebounceTimedMulti } from "../../utils/debounce"
+import { GameScene } from "../gameScene"
+import { AppContainer } from "../../app.container"
+import { ShipCustomizerScreen } from "./shipCustomizerScreen"
+import { IDisposable } from "@babylonjs/core"
+import { ShipTemplate } from "../../data/ships/shipTemplate"
+import { Entity, world } from "../../world/world"
+import { MeshedSystem } from "../../world/systems/renderSystems/meshedSystem"
+import { debugLog } from "../../utils/debuglog"
 
 export class ShipCustomizerScene implements GameScene, IDisposable {
-
   screen: ShipCustomizerScreen
   debouncer = new DebounceTimedMulti()
   ship: ShipTemplate
@@ -42,15 +42,14 @@ export class ShipCustomizerScene implements GameScene, IDisposable {
 
   onScreenEntityAdded = (entity: Entity) => {
     this.screenEntities.add(entity)
-    console.log("[task] ship entity added")
+    debugLog("[shipCustomizerLoop] ship entity added")
   }
 
   onScreenEntityRemoved = (entity: Entity) => {
     this.screenEntities.delete(entity)
   }
 
-  setup() {
-  }
+  setup() {}
 
   runLoop = (delta: number) => {
     const appContainer = AppContainer.instance
@@ -58,5 +57,5 @@ export class ShipCustomizerScene implements GameScene, IDisposable {
     const scene = AppContainer.instance.scene
     this.screen.updateScreen(delta)
     scene.render()
-  };
+  }
 }

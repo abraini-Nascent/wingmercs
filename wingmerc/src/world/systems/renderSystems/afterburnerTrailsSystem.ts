@@ -1,6 +1,7 @@
 import { Color3, IDisposable, Scalar, StandardMaterial, TmpColors } from "@babylonjs/core"
 import { AppContainer } from "../../../app.container"
 import { Entity, queries } from "../../world"
+import { debugLog } from "../../../utils/debuglog"
 
 export class AfterburnerTrailsSystem implements IDisposable {
   constructor() {
@@ -14,7 +15,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
   }
 
   afterburnerTrailsOnEntityAdded = (entity: Entity) => {
-    console.log("[AfterburnerTrails], on")
+    debugLog("[AfterburnerTrails] on")
     const { trailMeshs, trailOptions } = entity
     let entityHidden = entity as any
     if (entityHidden.afterburnerAnimation) {
@@ -61,7 +62,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
   }
 
   afterburnerTrailsOnEntityRemoved = (entity: Entity) => {
-    console.log("[AfterburnerTrails], off")
+    debugLog("[AfterburnerTrails] off")
     const { trailMeshs, trailOptions } = entity
     let entityHidden = entity as any
     if (entityHidden.afterburnerAnimation) {

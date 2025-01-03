@@ -54,12 +54,12 @@ export class Planetoids implements IDisposable {
   }
 
   dispose(): void {
-    this.planet.dispose()
+    this.planet.dispose(false, true)
     if (this.atmo) {
-      this.atmo.dispose()
+      this.atmo.dispose(false, true)
     }
     if (this.ocean) {
-      this.ocean.dispose()
+      this.ocean.dispose(false, true)
     }
   }
 

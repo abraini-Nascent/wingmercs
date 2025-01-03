@@ -1,3 +1,4 @@
+import { Weapons } from "./../../../data/weapons/index"
 import { EntityForId, SetComponent } from "./../../world"
 import {
   BreakLeftData,
@@ -36,6 +37,8 @@ import { MissionType } from "../../../data/missions/missionData"
 import { AppContainer } from "../../../app.container"
 import { barks } from "../../../data/barks"
 import { PlayVoiceSound, VoiceSound } from "../../../utils/speaking"
+import { GunStats } from "../../../data/guns/gun"
+import { debugLog } from "../../../utils/debuglog"
 
 const DEBUG = false
 
@@ -63,7 +66,7 @@ export function shipIntelligence(entity: Entity) {
   const intelligence = blackboard.intelligence
 
   if (avoidObstaclesManeuver(entity, blackboard)) {
-    console.log("[Ship Intelegence] skipping mission ai, avoiding obstacle")
+    debugLog("[Ship Intelegence] skipping mission ai, avoiding obstacle")
     return
   }
   switch (intelligence.mission) {
@@ -123,7 +126,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
           // takeover main mission
           blackboard.intelligence.objective = undefined
           blackboard.intelligence.mission = entity.missionDetails.mission
-          DEBUG && console.log(`[ShipIntelligence][Wingman] Ship ${entity.id} taking leadership role!`)
+          debugLog(`[ShipIntelligence][Wingman] Ship ${entity.id} taking leadership role!`)
           return
         } else {
           for (let shipId of leader.wingleader.wingmen) {
@@ -146,7 +149,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
           }
           // [l, fr, fl, ffr, ffl, fffr, fffl]
           DEBUG &&
-            console.log(
+            debugLog(
               `[ShipIntelligence][Wingman] Ship ${entity.id} forming up on ${followEntity.id}, team ${followEntity.teamId}, group ${followEntity.groupId}`
             )
           blackboard.holdFormation = {
@@ -182,7 +185,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
       if (leaderEntity.ai.blackboard.intelligence.objective == ObjectiveType.Engage) {
         blackboard.targeting.target = leaderEntity.ai.blackboard.targeting.target
         DEBUG &&
-          console.log(
+          debugLog(
             `[ShipIntelligence][Wingman] Ship ${entity.id} leader is engaged with ${blackboard.targeting.target}, backup coming!`
           )
         blackboard.intelligence.objective = ObjectiveType.BreakFormation
@@ -201,7 +204,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
         const ourPosition = leaderEntity.wingleader.wingmen.indexOf(entity.id)
         const remainder = (ourPosition - 1) % BreakFormationPattern.length
         const veeringData = BreakFormationPattern[remainder]
-        DEBUG && console.log(`[ShipIntelligence][Wingman] Ship ${entity.id} breaking formation!`)
+        DEBUG && debugLog(`[ShipIntelligence][Wingman] Ship ${entity.id} breaking formation!`)
         blackboard.breakFormation = {
           holdState: {
             finished: false,
@@ -221,7 +224,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
         maneuverBlackboard.holdState,
         SteeringHardTurnClamp
       )
-      // DEBUG && console.log(`[AI wingleader] steering:`, input)
+      // DEBUG && debugLog(`[AI wingleader] steering:`, input)
       let movementCommand: MovementCommand = {
         pitch: input.pitch,
         yaw: input.yaw,
@@ -233,7 +236,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
       }
       SetComponent(entity, "movementCommand", movementCommand)
       if (blackboard.breakFormation.holdState.finished == true) {
-        DEBUG && console.log(`[ShipIntelligence][Wingman] Ship ${entity.id} break off complete!`)
+        DEBUG && debugLog(`[ShipIntelligence][Wingman] Ship ${entity.id} break off complete!`)
         blackboard.breakFormation = undefined
         entity.ai.blackboard.intelligence.maneuver = undefined
         blackboard.intelligence.objective = ObjectiveType.Engage
@@ -261,13 +264,13 @@ const DestroyMission = (entity: Entity, blackboard: intelligenceBlackboard) => {
     case "ApproachTarget": {
       if (entity.ai.blackboard.targeting?.target == undefined) {
         entity.ai.blackboard.targeting.target = entity.missionDetails.destroy
-        DEBUG && console.log("[ShipIntelligence][Destroy] engaging target!", entity.missionDetails.destroy)
+        DEBUG && debugLog("[ShipIntelligence][Destroy] engaging target!", entity.missionDetails.destroy)
       }
       if (
         EntityForId(entity.ai.blackboard.targeting.target) == undefined ||
         EntityForId(entity.ai.blackboard.targeting.target).deathRattle
       ) {
-        DEBUG && console.log("[ShipIntelligence][Destroy] target dead or missing, disengaging")
+        DEBUG && debugLog("[ShipIntelligence][Destroy] target dead or missing, disengaging")
         blackboard.intelligence.objective = "Disengage"
         blackboard.intelligence.tactic = undefined
         blackboard.intelligence.maneuver = undefined
@@ -333,7 +336,7 @@ const Caravan = (entity: Entity, blackboard: AIBlackboard) => {
       greeted: false,
     }
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence][Caravan] Ship ${entity.id} Approaching Nav ${mission.missionLocations[0].name}`,
         mission.missionLocations[0].position
       )
@@ -352,7 +355,7 @@ const Caravan = (entity: Entity, blackboard: AIBlackboard) => {
       VoiceSound(greeting.ipa, entity.voice).then((greetingSound) => {
         PlayVoiceSound(greetingSound, entity)
       })
-      DEBUG && console.log(`[ShipIntelligence][Caravan] greetings: ${greeting.english}`)
+      DEBUG && debugLog(`[ShipIntelligence][Caravan] greetings: ${greeting.english}`)
     }
   }
   if (distance < 150) {
@@ -368,7 +371,7 @@ const Caravan = (entity: Entity, blackboard: AIBlackboard) => {
         world.addComponent(entity, "setSpeed", 0)
       }
       DEBUG &&
-        console.log(
+        debugLog(
           `[ShipIntelligence][Caravan] Ship ${entity.id} Sitting at final Nav ${
             entity.missionDetails.missionLocations[blackboard.caravan.currentNavIndex].name
           }`
@@ -383,7 +386,7 @@ const Caravan = (entity: Entity, blackboard: AIBlackboard) => {
       blackboard.caravan.currentNavPosition.z = nextPosition.z
       blackboard.caravan.currentNavIndex = nextIndex
       DEBUG &&
-        console.log(
+        debugLog(
           `[ShipIntelligence][Caravan] Ship ${entity.id} Heading to next Nav ${
             entity.missionDetails.missionLocations[blackboard.caravan.currentNavIndex].name
           }`,
@@ -476,9 +479,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         blackboard.intelligence.tactic = PatrolTactics.ApproachTarget
         blackboard.lookout = undefined
         DEBUG &&
-          console.log(
-            `[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`
-          )
+          debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
         break
       }
       const missionDetails = entity.missionDetails
@@ -489,7 +490,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
       if (distance > PATROL_HEADHOME_DISTANCE) {
         blackboard.lookout = undefined
         blackboard.intelligence.tactic = PatrolTactics.HeadHome
-        DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Heading Home`)
+        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Heading Home`)
         break
       }
       if (avoidObstaclesManeuver(entity, blackboard)) {
@@ -525,7 +526,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
       const distance = entityPosition.subtractToRef(missionNextPosition, TmpVectors.Vector3[1]).length()
       if (distance < PATROL_WANDER_DISTANCE) {
         blackboard.intelligence.tactic = PatrolTactics.LookOut
-        DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} looking out`)
+        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} looking out`)
         break
       }
       // head back to patrol point
@@ -567,7 +568,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
       if (distanceToTarget < 2000) {
         blackboard.intelligence.objective = "Engage"
         blackboard.intelligence.tactic = undefined
-        DEBUG && console.log(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Engaging!`)
+        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Engaging!`)
       }
       break
     }
@@ -641,7 +642,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   if (armor.right == 0) {
     missingArmorCount += 1
   }
-  if (missingArmorCount > 1 || healthPercent < 0.7) {
+  if (missingArmorCount > 1 || healthPercent < 0.5) {
     stateOfHealth = "HeavyDamage"
   } else if (shields.currentAft <= 1 || shields.currentFore <= 1 || missingArmorCount == 1) {
     stateOfHealth = "MediumDamage"
@@ -652,7 +653,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
 
   /// Avoid Obstacles
   if (avoidObstaclesManeuver(entity, blackboard)) {
-    console.log(`[ShipIntelligence] Ship ${entity.id} avoiding obstacle`)
+    debugLog(`[ShipIntelligence] Ship ${entity.id} avoiding obstacle`)
     return
   }
 
@@ -664,7 +665,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   ) {
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.EnemyDestroyed
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence] Ship ${entity.id} veering off, enemy destroyed ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
       )
     execute(entity, blackboard, shipPilot(entity).EnemyDestroyed[stateOfHealth])
@@ -694,7 +695,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
       // act like enemy destroyed
       blackboard.targeting.target == undefined
       DEBUG &&
-        console.log(
+        debugLog(
           `[ShipIntelligence] Ship ${entity.id} veering off, enemy fleed ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
         )
       return
@@ -706,7 +707,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.LaserHit
     blackboard.targeting.target = entity.hitsTaken.hits[entity.hitsTaken.hits.length - 1].shooter
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence] Ship ${entity.id} laser hit ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
       )
     execute(entity, blackboard, shipPilot(entity).LaserHit[stateOfHealth])
@@ -721,7 +722,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
     // missile is live and targeting us
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.LaserHit
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence] Ship ${entity.id} missile incoming ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
       )
     execute(entity, blackboard, shipPilot(entity).MissileIncoming[stateOfHealth])
@@ -734,11 +735,11 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   const targetInfront = isPointBehind(entityPosition, entityDirection, targetPosition) == false
   if (targetInfront) {
     const directionsAngle = AngleBetweenVectors(targetDirection, entityDirection)
-    // DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} on enemy tail angle ${ToDegree(directionsAngle)}!`)
+    // DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} on enemy tail angle ${ToDegree(directionsAngle)}!`)
     if (directionsAngle <= ToRadians(TRAILING / 2)) {
       blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.OnEnemyTail
       DEBUG &&
-        console.log(
+        debugLog(
           `[ShipIntelligence] Ship ${entity.id} on enemy tail ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
         )
       execute(entity, blackboard, shipPilot(entity).OnEnemyTail[stateOfHealth])
@@ -748,11 +749,11 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   /// HeadToHead
   if (targetInfront) {
     const directionsAngle = AngleBetweenVectors(targetDirection, entityDirection)
-    // DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} head to head angle ${ToDegree(directionsAngle)}!`)
+    // DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} head to head angle ${ToDegree(directionsAngle)}!`)
     if (directionsAngle <= ToRadians(TRAILING / 2)) {
       blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.HeadToHead
       DEBUG &&
-        console.log(
+        debugLog(
           `[ShipIntelligence] Ship ${entity.id} head to head ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
         )
       execute(entity, blackboard, shipPilot(entity).HeadToHead[stateOfHealth])
@@ -777,14 +778,14 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
       continue
     }
     const directionsAngle = AngleBetweenVectors(entityDirection, enemyDirection)
-    // DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} enemy tailing angle ${ToDegree(directionsAngle)} > ${TRAILING/2} : ${directionsAngle > ToRadians(TRAILING/2)}!`)
+    // DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} enemy tailing angle ${ToDegree(directionsAngle)} > ${TRAILING/2} : ${directionsAngle > ToRadians(TRAILING/2)}!`)
     if (directionsAngle > ToRadians(TRAILING / 2)) {
       continue
     }
     blackboard.enemyTailing = otherEntity.id
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.EnemyTailing
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence] Ship ${entity.id} enemy tailing me ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
       )
     execute(entity, blackboard, shipPilot(entity).EnemyTailing[stateOfHealth])
@@ -797,7 +798,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
   if (enemySpeed < SLOW) {
     blackboard.intelligence.stateOfConfrontation = StateOfConfrontation.EnemySlow
     DEBUG &&
-      console.log(
+      debugLog(
         `[ShipIntelligence] Ship ${entity.id} enemy slow ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`
       )
     execute(entity, blackboard, shipPilot(entity).EnemySlow[stateOfHealth])
@@ -825,15 +826,118 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
 
   const possibleManeuvers = shipPilot(entity)[distanceManeuver][stateOfHealth]
   DEBUG &&
-    console.log(
+    debugLog(
       `[ShipIntelligence] Ship ${entity.id} picked based on ${distanceManeuver} ${stateOfHealth} from: `,
       possibleManeuvers
     )
   const maneuverName = pickManeuverType(possibleManeuvers)
-  DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} picked ${maneuverName}`)
+  DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} picked ${maneuverName}`)
   blackboard.intelligence.maneuver = maneuverName
   const maneuver = AIManeuvers[maneuverName] as AIManeuvers.AIManeuver
   maneuver(entity, blackboard)
+
+  // check fire decision
+  FireDecision(entity, blackboard)
+}
+
+function FireDecision(entity: Entity, blackboard: AIBlackboard) {
+  const targetEntity = EntityForId(blackboard.targeting?.target)
+  if (targetEntity == undefined) {
+    return
+  }
+  let fireCommand = entity.fireCommand
+  if (fireCommand == undefined) {
+    fireCommand = {}
+    world.addComponent(entity, "fireCommand", fireCommand)
+  }
+  const distanceToTarget = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
+    .subtractInPlace(Vector3FromObj(targetEntity.position, TmpVectors.Vector3[1]))
+    .length()
+  const firingAngle = SteeringBehaviours.firingPosition(entity, targetEntity)
+  // is there an enemy fighter in your gunsights?
+  if (firingAngle < ToRadians(2.5)) {
+    /// yes: is it within optimum range of your primary weapon
+    const gunGroup = entity.guns.groups[entity.guns.selected]
+    if (gunGroup == undefined) {
+      return undefined
+    }
+    let gunsRange = 0
+    for (let mountIdx of gunGroup) {
+      const gun = entity.guns.mounts[mountIdx].stats as GunStats
+      gunsRange += gun.range / gunGroup.length
+    }
+    gunsRange = Math.round(gunsRange)
+    if (distanceToTarget <= gunsRange) {
+      //// yes: fire primary weapon, done
+      fireCommand.gun = 1
+      return
+    } else {
+      //// no: is it within range of your secondary weapon
+      let canFire = false
+      let weaponRange = 0
+      entity.weapons.mounts.forEach((weaponMount, index) => {
+        if ((weaponMount.type == "dumbfire" || weaponMount.type == "enemyDumbfire") && weaponMount.count > 0) {
+          entity.weapons.selected = index
+          weaponRange = Weapons[weaponMount.type].range
+          canFire = true
+        }
+      })
+      if (canFire && distanceToTarget <= weaponRange) {
+        fireCommand.weapon = 1
+        return
+      }
+    }
+  }
+  // is there an enemy fighter less than 1500 units in front of you?
+  if (firingAngle < ToRadians(45) && distanceToTarget < 1500) {
+    const entityDirection = Vector3FromObj(entity.direction, TmpVectors.Vector3[2])
+    const targetDirection = Vector3FromObj(targetEntity.direction, TmpVectors.Vector3[3])
+    const facingDelta = Vector3.Dot(entityDirection, targetDirection)
+    /// yes: is he facing away from you?
+    if (facingDelta > 0) {
+      //// yes: fire heat seeking
+      let canFire = false
+      entity.weapons.mounts.forEach((weaponMount, index) => {
+        if (weaponMount.type == "heatseeking" && weaponMount.count > 0) {
+          entity.weapons.selected = index
+          canFire = true
+        }
+      })
+      if (canFire) {
+        fireCommand.weapon = 1
+        return
+      }
+    } else {
+      //// no: fire IR
+      let canFire = false
+      entity.weapons.mounts.forEach((weaponMount, index) => {
+        if (weaponMount.type == "imagerecognition" && weaponMount.count > 0) {
+          entity.weapons.selected = index
+          canFire = true
+        }
+      })
+      if (canFire) {
+        fireCommand.weapon = 1
+        return
+      }
+    }
+    /// no: continue
+  }
+  // is your target within 1000 units?
+  if (distanceToTarget < 1000) {
+    /// fire IFF
+    let canFire = false
+    entity.weapons.mounts.forEach((weaponMount, index) => {
+      if (weaponMount.type == "friendorfoe" && weaponMount.count > 0) {
+        entity.weapons.selected = index
+        canFire = true
+      }
+    })
+    if (canFire) {
+      fireCommand.weapon = 1
+      return
+    }
+  }
 }
 
 function execute(
@@ -902,7 +1006,7 @@ namespace AIManeuvers {
   const BURNOUT_LIMIT = 5000
   export const Burnout = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.burnout == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting burnout maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting burnout maneuver!`)
       blackboard.burnout = {
         burnoutTime: 0,
       }
@@ -913,11 +1017,11 @@ namespace AIManeuvers {
     if (burnoutBlackboard.burnoutTime > BURNOUT_LIMIT) {
       blackboard.burnout = undefined
       entity.ai.blackboard.intelligence.maneuver = "Thinking"
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} burnout maneuver complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} burnout maneuver complete!`)
       return
     }
     burnoutBlackboard.burnoutTime += blackboard.dt
-    // DEBUG && console.log(`[AI wingleader] steering:`, input)
+    // DEBUG && debugLog(`[AI wingleader] steering:`, input)
     let movementCommand: MovementCommand = {
       pitch: 0,
       yaw: 0,
@@ -933,7 +1037,7 @@ namespace AIManeuvers {
   const CORKSCREW_LIMIT = 5000
   export const Corkscrew = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.burnout == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting corkscrew maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting corkscrew maneuver!`)
       blackboard.corkscrew = {
         corkscrewTime: 0,
       }
@@ -945,11 +1049,11 @@ namespace AIManeuvers {
       blackboard.corkscrew = undefined
       entity.setSpeed = shipCruiseSpeed(entity)
       entity.ai.blackboard.intelligence.maneuver = "Thinking"
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} corkscrew maneuver complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} corkscrew maneuver complete!`)
       return
     }
     corkscrewBlackboard.corkscrewTime += blackboard.dt
-    // DEBUG && console.log(`[AI wingleader] steering:`, input)
+    // DEBUG && debugLog(`[AI wingleader] steering:`, input)
     let movementCommand: MovementCommand = {
       pitch: 0.5,
       yaw: 0,
@@ -970,7 +1074,7 @@ namespace AIManeuvers {
   export const Flee = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.flee == undefined) {
       blackboard.flee = {}
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} fleeing!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} fleeing!`)
     }
     let nearestEntity = nearestEnemy(entity, FLEE_DESPAWN_RANGE)
     if (nearestEntity == undefined) {
@@ -998,7 +1102,7 @@ namespace AIManeuvers {
   const HARD_BRAKE_LIMIT = 1500
   export const HardBrake = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.hardBrake == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting hardBrake maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting hardBrake maneuver!`)
       blackboard.hardBrake = {
         brakeTime: 0,
       }
@@ -1007,7 +1111,7 @@ namespace AIManeuvers {
       brakeTime: number
     }
     if (brakeBlackboard.brakeTime > HARD_BRAKE_LIMIT) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} hardBrake maneuver complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} hardBrake maneuver complete!`)
       blackboard.hardBrake = undefined
       entity.ai.blackboard.intelligence.maneuver = "Thinking"
       return
@@ -1050,7 +1154,7 @@ namespace AIManeuvers {
 
   export const Kickstop = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.kickstop == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting kickstop maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting kickstop maneuver!`)
       const breakDirection = randomItem([BreakLeftData, BreakRightData])
       blackboard.kickstop = {
         holdState: {
@@ -1072,7 +1176,7 @@ namespace AIManeuvers {
       blackboard.kickstop.holdState,
       SteeringHardTurnClamp
     )
-    // DEBUG && console.log(`[AI wingleader] steering:`, input)
+    // DEBUG && debugLog(`[AI wingleader] steering:`, input)
     let movementCommand: MovementCommand = {
       pitch: input.pitch,
       yaw: input.yaw,
@@ -1095,7 +1199,7 @@ namespace AIManeuvers {
         blackboard.kickstop.timings = FlipData.timings
       } else {
         // TODO reset to top of decision tree
-        DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} kickstop maneuver complete!`)
+        DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} kickstop maneuver complete!`)
         blackboard.kickstop = undefined
         entity.ai.blackboard.intelligence.maneuver = "Thinking"
       }
@@ -1105,7 +1209,7 @@ namespace AIManeuvers {
   const ROLL_COUNT = 1500
   export const Roll = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.roll == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting Roll maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting Roll maneuver!`)
       blackboard.roll = {
         rollTime: 0,
       }
@@ -1114,7 +1218,7 @@ namespace AIManeuvers {
     if (blackboard.roll.rollTime > ROLL_COUNT) {
       blackboard.roll = undefined
       entity.ai.blackboard.intelligence.maneuver = undefined
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} Roll maneuver complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} Roll maneuver complete!`)
     }
     let movementCommand: MovementCommand = {
       pitch: 0,
@@ -1156,7 +1260,7 @@ namespace AIManeuvers {
   // Sit-'n'-Kick is a flight maneuver in which a fighter makes a random 90º turn, shuts off its engines and spins to fire on a target. After firing it makes another random 90º turn afterburns ahead.
   export const SitAndKick = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.SitAndKick == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting SitAndKick maneuver!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting SitAndKick maneuver!`)
       const breakDirections = [BreakLeftData, BreakRightData]
       const firstBreakDirection = randomItem(breakDirections)
       const secondBreakDirection = randomItem(breakDirections)
@@ -1229,10 +1333,10 @@ namespace AIManeuvers {
     } else {
       blackboard.SitAndKick = undefined
       entity.ai.blackboard.intelligence.maneuver = "Thinking"
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} SitAndKick maneuver complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} SitAndKick maneuver complete!`)
       return
     }
-    // DEBUG && console.log(`[AI wingleader] steering:`, input)
+    // DEBUG && debugLog(`[AI wingleader] steering:`, input)
     let movementCommand: MovementCommand = {
       pitch: input.pitch,
       yaw: input.yaw,
@@ -1250,7 +1354,7 @@ namespace AIManeuvers {
   const STRAFE_BREAKOFF = 250
   export const Strafe = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.strafe == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting strafing run!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting strafing run!`)
       blackboard.strafe = {
         flyPast: false,
         flyPastCount: 0,
@@ -1279,7 +1383,7 @@ namespace AIManeuvers {
       if (blackboard.strafe.flyPastCount > STRAFE_FIRE_COUNT) {
         blackboard.strafe = undefined
         entity.ai.blackboard.intelligence.maneuver = randomItem([ManeuverType.BreakLeft, ManeuverType.BreakRight])
-        DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} strafing run complete!`)
+        DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} strafing run complete!`)
         return
       }
       let movementCommand: MovementCommand = {
@@ -1327,7 +1431,7 @@ namespace AIManeuvers {
     const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[1])
     const distanceToTarget = targetPosition.subtractToRef(entityPosition, TmpVectors.Vector3[2]).length()
     if (blackboard.tail == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} tailing!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} tailing!`)
       blackboard.tail = {
         count: 0,
         offset: new Vector3(0, 0, -1).multiplyByFloats(TAIL_DISTANCE, TAIL_DISTANCE, TAIL_DISTANCE),
@@ -1342,7 +1446,7 @@ namespace AIManeuvers {
         blackboard.intelligence.maneuver = undefined
       }
       entity.setSpeed = shipCruiseSpeed(entity)
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} tail complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} tail complete!`)
       return
     }
     let input = SteeringBehaviours.offsetPursuit(
@@ -1379,7 +1483,7 @@ namespace AIManeuvers {
   const THINK_LIMIT = 3000
   export const Thinking = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.thinking == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} thinking!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} thinking!`)
       blackboard.thinking = {
         count: 0,
       }
@@ -1388,7 +1492,7 @@ namespace AIManeuvers {
     if (blackboard.thinking.count > TAIL_TIMEOUT) {
       blackboard.thinking = undefined
       blackboard.intelligence.maneuver = undefined
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} thinking complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} thinking complete!`)
       return
     }
     const movementCommand: MovementCommand = {
@@ -1418,7 +1522,7 @@ namespace AIManeuvers {
   const SIT_AND_FIRE_TIMEOUT = 5000
   export const SitAndFire = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.sitAnfFire == undefined) {
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} sit and fire!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} sit and fire!`)
       blackboard.sitAnfFire = {
         count: 0,
       }
@@ -1429,7 +1533,7 @@ namespace AIManeuvers {
       blackboard.sitAnfFire = undefined
       blackboard.intelligence.maneuver = undefined
       entity.setSpeed = shipCruiseSpeed(entity)
-      DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} site and fire complete!`)
+      DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} site and fire complete!`)
       return
     }
     const input = SteeringBehaviours.gunPursuit(blackboard.dt, entity, targetEntity, SteeringHardTurnClamp)
@@ -1476,7 +1580,7 @@ const avoidObstaclesManeuver = (entity: Entity, blackboard: AIBlackboard): boole
       deltaSpeed: avoidance.throttle ?? 0,
     }
     SetComponent(entity, "movementCommand", movementCommand)
-    console.log(`[ShipIntelligence] Ship ${entity.id} avoiding obstacle`, movementCommand)
+    debugLog(`[ShipIntelligence] Ship ${entity.id} avoiding obstacle`, movementCommand)
     return true
   }
   return false
@@ -1489,7 +1593,7 @@ const headingManeuver = (
   maneuver: HeadingManeuverData
 ) => {
   if (blackboard[stateName] == undefined || blackboard[stateName]?.finished) {
-    DEBUG && console.log(`[ShipIntelligence] Ship ${entity.id} starting ${stateName} maneuver!`)
+    DEBUG && debugLog(`[ShipIntelligence] Ship ${entity.id} starting ${stateName} maneuver!`)
     blackboard[stateName] = {
       holdState: {
         finished: false,

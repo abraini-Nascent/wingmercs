@@ -43,7 +43,7 @@ const DebounceIds = {
 function lockPointer() {
   // Pointer lock
   const canvas = AppContainer.instance.engine.getRenderingCanvas()
-  console.log("locking pointer")
+  // console.log("locking pointer")
   canvas.requestPointerLock =
     canvas.requestPointerLock ||
     canvas.msRequestPointerLock ||

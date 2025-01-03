@@ -3,6 +3,7 @@ import Voronoi from "voronoi"
 import earcut from "earcut"
 import { geoVoronoi } from "d3-geo-voronoi"
 import { randFloat, random } from "./random"
+import { debugLog } from "./debuglog"
 
 export class VoronoiNebula {
   private scene: Scene
@@ -22,7 +23,7 @@ export class VoronoiNebula {
     this.scene = scene
     this.voronoi = new Voronoi()
     this.sites = this.generateSites(numCells, siteMap)
-    console.log("sites", this.sites)
+    debugLog("sites", this.sites)
     this.cells = this.createVoronoiMesh(densityMap)
     this.luminanceMap = new Map()
     this.animationProgress = 0
@@ -57,7 +58,7 @@ export class VoronoiNebula {
       const points = cell.halfedges.map((edge) => {
         return new Vector3(edge.getStartpoint().x - cell.site.x, 0, edge.getStartpoint().y - cell.site.y)
       })
-      console.log(points)
+      debugLog(points)
 
       const mesh = MeshBuilder.CreatePolygon("voronoiCell", { shape: points }, this.scene)
       mesh.scaling.setAll(100)
@@ -448,7 +449,7 @@ export class VoronoiSphereNebula implements IDisposable {
     this.baseColor = new Color3(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5)
     this.scene = scene
     this.sites = this.generateSites(numCells)
-    console.log("sites", this.sites)
+    debugLog("sites", this.sites)
     this.cells = this.createVoronoiMesh(densityMap)
     this.luminanceMap = new Map()
     this.animationProgress = 0
@@ -460,7 +461,7 @@ export class VoronoiSphereNebula implements IDisposable {
 
   dispose(): void {
     for (const mesh of this.cells) {
-      mesh.dispose()
+      mesh.dispose(false, true)
     }
   }
 

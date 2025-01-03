@@ -22,6 +22,7 @@ import { MissionOverScreen } from "../../missionOverScene/missionOverScreen"
 import { MainMenuScene } from "../../mainMenu/mainMenuLoop"
 import { shieldSprayParticlePool } from "../../../visuals/shieldSprayParticles"
 import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
+import { debugLog } from "../../../utils/debuglog"
 
 const divFps = document.getElementById("fps")
 export class InstantActionScene implements GameScene, IDisposable {
@@ -44,13 +45,13 @@ export class InstantActionScene implements GameScene, IDisposable {
   combatSystems: CombatSystems = new CombatSystems()
 
   missionTracker = new MissionTracker()
-  MissionSalvageSystem = new MissionSalvageSystem()
+  missionSalvageSystem = new MissionSalvageSystem()
 
   combatEntities = new Set<Entity>()
   disposibles = new Set<IDisposable>()
 
   constructor(private playerShip?: ShipTemplate, campaignEntity?: Entity) {
-    console.log("[InstantAction.singleplayer] created")
+    debugLog("[InstantAction.singleplayer] created")
     const appContainer = AppContainer.instance
     this.skyboxSystems = new SkyboxSystems(appContainer.scene)
     this.spaceDebrisSystem = new SpaceDebrisSystem(appContainer.scene)
@@ -78,11 +79,11 @@ export class InstantActionScene implements GameScene, IDisposable {
 
   /** call to clean up */
   dispose(): void {
+    debugLog("[InstanctAction] disposed")
     world.onEntityAdded.unsubscribe(this.onCombatEntityAdded)
     world.onEntityRemoved.unsubscribe(this.onCombatEntityRemoved)
     // queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
     this.hud.dispose()
-    this.skyboxSystems.dispose()
     for (const entity of this.combatEntities) {
       world.remove(entity)
     }
@@ -90,9 +91,11 @@ export class InstantActionScene implements GameScene, IDisposable {
 
     // systems
     // dispose systems last since they help with cleanup
+    this.skyboxSystems.dispose()
+    this.combatSystems.dispose()
     this.spaceDebrisSystem.dispose()
     this.missionTracker.dispose()
-    this.MissionSalvageSystem.dispose()
+    this.missionSalvageSystem.dispose()
 
     // reset cursor
     document.body.style.cursor = "auto"
@@ -104,7 +107,7 @@ export class InstantActionScene implements GameScene, IDisposable {
   }
 
   deinit() {
-    console.log("[InstantAction] deinit")
+    debugLog("[InstantAction] deinit")
   }
 
   onCombatEntityAdded = (entity: Entity) => {
@@ -209,6 +212,7 @@ export class InstantActionScene implements GameScene, IDisposable {
       this.statsScreen.updateScreen(delta)
     } else if (this.missionOverScreen) {
       // this.missionOverScreen.updateScreen(delta)
+      this.missionOverScreen.dispose()
       AppContainer.instance.gameScene.dispose()
       AppContainer.instance.gameScene = new MainMenuScene()
     }

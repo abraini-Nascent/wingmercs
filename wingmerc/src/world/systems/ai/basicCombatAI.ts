@@ -5,6 +5,7 @@ import { Entity, FireCommand, queries, SetComponent, world } from "../../world"
 import { SteeringHardTurnClamp, calculateSteering } from "./basicSteering"
 import { AppContainer } from "../../../app.container"
 import * as Ships from "../../../data/ships"
+import { debugLog } from "../../../utils/debuglog"
 
 export function basicCombatAI(entity: Entity, dt: number) {
   const { ai, position, rotationQuaternion } = entity
@@ -40,7 +41,7 @@ export function basicCombatAI(entity: Entity, dt: number) {
   const distanceToTarget = vectorToTarget.length()
   if (distanceToTarget < 250 && !blackboard["backoff"]) {
     blackboard["backoff"] = true
-    console.log("[AI] Backing Off")
+    debugLog("[AI] Backing Off")
   }
   // TODO: this should be where the enemy would intercept the player with guns, not where the player is currently
   let targetPosition = Vector3FromObj(targetEntity.position)
@@ -50,7 +51,7 @@ export function basicCombatAI(entity: Entity, dt: number) {
     if (distanceToBackoff < 200 || distanceToTarget > 1500) {
       blackboard["backoff"] = false
       blackboard["backoffTarget"] = undefined
-      console.log("[AI] Making attack run")
+      debugLog("[AI] Making attack run")
     } else {
       targetPosition = backoffTarget
     }
@@ -74,7 +75,7 @@ export function basicCombatAI(entity: Entity, dt: number) {
     targetPosition,
     SteeringHardTurnClamp
   ) //SteeringHardNormalizeClamp)
-  // console.log(`[AI] steering`, input)
+  // debugLog(`[AI] steering`, input)
   let cinamaticRoll = 0
   if (blackboard["backoff"] == false && Math.abs(input.pitch) < 0.1 && Math.abs(input.yaw) < 0.1) {
     let gun = 0

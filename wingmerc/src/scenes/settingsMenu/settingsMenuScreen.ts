@@ -1,10 +1,11 @@
-import { MainMenuScene } from './../mainMenu/mainMenuLoop';
-import * as GUI from '@babylonjs/gui';
+import { MainMenuScene } from "./../mainMenu/mainMenuLoop"
+import * as GUI from "@babylonjs/gui"
 import { MercScreen } from "../screen"
-import { AppContainer } from '../../app.container';
-import { Engine, Observer } from '@babylonjs/core';
-import { MusicPlayer } from '../../utils/music/musicPlayer';
-import { ControlsMenuScene } from '../controlsMenu/controlsMenuLoop';
+import { AppContainer } from "../../app.container"
+import { Engine, Observer } from "@babylonjs/core"
+import { MusicPlayer } from "../../utils/music/musicPlayer"
+import { ControlsMenuScene } from "../controlsMenu/controlsMenuLoop"
+import { debugLog } from "../../utils/debuglog"
 
 export class SettingsMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
@@ -36,7 +37,7 @@ export class SettingsMenuScreen extends MercScreen {
     mainPanel.spacing = 24
     mainPanel.topInPixels = 124
     this.gui.addControl(mainPanel)
-    
+
     const title = new GUI.TextBlock()
     title.name = "title"
     title.fontFamily = "monospace"
@@ -54,12 +55,14 @@ export class SettingsMenuScreen extends MercScreen {
     const soundLabel = this.createLabel("Sound Label", "Global Sound Volume")
     mainPanel.addControl(soundLabel)
     //
-    let wholePercent = (volume) => { return Math.round(volume * 100) }
+    let wholePercent = (volume) => {
+      return Math.round(volume * 100)
+    }
     const globalSlider = this.createSlider("Sound", "Sound", wholePercent(Engine.audioEngine.getGlobalVolume()))
     let soundSliderOnValueChangedObserver = globalSlider.onValueChangedObservable.add((value, event) => {
       const newVolume = value / 100
-      console.log("[Settings] new sound volume", newVolume)
-      Engine.audioEngine.setGlobalVolume(newVolume);
+      debugLog("[Settings] new sound volume", newVolume)
+      Engine.audioEngine.setGlobalVolume(newVolume)
     })
     this.soundSliderOnValueChangedObserver = soundSliderOnValueChangedObserver
     mainPanel.addControl(globalSlider)
@@ -70,7 +73,7 @@ export class SettingsMenuScreen extends MercScreen {
     const effectsSlider = this.createSlider("Effects", "Effects", wholePercent(volumes.sound))
     let effectsSliderOnValueChangedObserver = effectsSlider.onValueChangedObservable.add((value, event) => {
       const newVolume = value / 100
-      console.log("[Settings] new effects volume", newVolume)
+      debugLog("[Settings] new effects volume", newVolume)
       volumes.sound = newVolume
     })
     this.effectsSliderOnValueChangedObserver = effectsSliderOnValueChangedObserver
@@ -82,7 +85,7 @@ export class SettingsMenuScreen extends MercScreen {
     let musicSliderOnValueChangedObserver = musicSlider.onValueChangedObservable.add((value, event) => {
       AppContainer.instance.volumes.music
       const newVolume = value / 100
-      console.log("[Settings] new music volume", newVolume)
+      debugLog("[Settings] new music volume", newVolume)
       volumes.music = newVolume
       MusicPlayer.instance.updateVolume(newVolume)
     })
@@ -95,7 +98,7 @@ export class SettingsMenuScreen extends MercScreen {
     let voiceSliderOnValueChangedObserver = voiceSlider.onValueChangedObservable.add((value, event) => {
       AppContainer.instance.volumes.music
       const newVolume = value / 100
-      console.log("[Settings] new volume", newVolume)
+      debugLog("[Settings] new volume", newVolume)
       volumes.voice = value
     })
     this.voiceSliderOnValueChangedObserver = voiceSliderOnValueChangedObserver
@@ -106,7 +109,7 @@ export class SettingsMenuScreen extends MercScreen {
     })
     mainPanel.addControl(musicStackPanel)
 
-    const fullscreenButton = this.createMainMenuButton("fullscreen", "Fullscreen");
+    const fullscreenButton = this.createMainMenuButton("fullscreen", "Fullscreen")
     let observer = fullscreenButton.onPointerClickObservable.add(() => {
       setTimeout(() => {
         window.document.body.requestFullscreen()
@@ -115,7 +118,7 @@ export class SettingsMenuScreen extends MercScreen {
     this.fullscreen = observer
     mainPanel.addControl(fullscreenButton)
 
-    const backButton = this.createMainMenuButton("back", "Back");
+    const backButton = this.createMainMenuButton("back", "Back")
     backButton.onPointerClickObservable.addOnce(() => {
       setTimeout(() => {
         AppContainer.instance.gameScene.dispose()
@@ -136,7 +139,7 @@ export class SettingsMenuScreen extends MercScreen {
     return slider
   }
   private createMainMenuButton(name: string, text: string): GUI.Button {
-    let button = GUI.Button.CreateSimpleButton(name, text);
+    let button = GUI.Button.CreateSimpleButton(name, text)
     button.textBlock.fontFamily = "monospace"
     button.textBlock.color = "gold"
     button.textBlock.fontSizeInPixels = 28
@@ -177,5 +180,5 @@ export class SettingsMenuScreen extends MercScreen {
     header.widthInPixels = 120
     panel.addControl(header)
     return panel
-}
+  }
 }

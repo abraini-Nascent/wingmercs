@@ -24,11 +24,12 @@ import { LoadAsteroidField } from "../../../world/systems/missionSystems/mission
 import { deathExplosionParticlePool } from "../../../visuals/deathExplosionParticles"
 import { shieldSprayParticlePool } from "../../../visuals/shieldSprayParticles"
 import { damageSprayParticlePool } from "../../../visuals/damageSprayParticles"
+import { debugLog } from "../../../utils/debuglog"
 
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps")
 const pointsPerSecond = 10
-const START_TIME = 90
+const START_TIME = 10 //90
 export class TrainSimScene implements GameScene, IDisposable {
   totalKillCount: number = 0
   waveCount: number = 0
@@ -53,7 +54,7 @@ export class TrainSimScene implements GameScene, IDisposable {
   disposibles = new Set<IDisposable>()
 
   constructor(private playerShip?: ShipTemplate) {
-    console.log("[SpaceCombatLoop.singleplayer] created")
+    debugLog("[SpaceCombatLoop.singleplayer] created")
     const appContainer = AppContainer.instance
     this.skyboxSystems = new SkyboxSystems(appContainer.scene)
     this.spaceDebrisSystem = new SpaceDebrisSystem(appContainer.scene)
@@ -84,8 +85,8 @@ export class TrainSimScene implements GameScene, IDisposable {
     })
 
     this.hud = new CombinedCombatHud()
-    // braini
-    // document.body.style.cursor = "none"
+
+    document.body.style.cursor = "none"
     LoadAsteroidField(Vector3.Zero())
   }
 
@@ -98,7 +99,7 @@ export class TrainSimScene implements GameScene, IDisposable {
       this.hud.dispose()
       this.hud = undefined
     }
-    this.skyboxSystems.dispose()
+
     for (const entity of this.combatEntities) {
       world.remove(entity)
     }
@@ -107,6 +108,8 @@ export class TrainSimScene implements GameScene, IDisposable {
     // systems
     // dispose systems last since they help with cleanup
     this.spaceDebrisSystem.dispose()
+    this.combatSystems.dispose()
+    this.skyboxSystems.dispose()
 
     // reset cursor
     document.body.style.cursor = "auto"
@@ -118,7 +121,7 @@ export class TrainSimScene implements GameScene, IDisposable {
   }
 
   deinit() {
-    console.log("[SpaceCombatLoop] deinit")
+    debugLog("[SpaceCombatLoop] deinit")
   }
 
   onCombatEntityAdded = (entity: Entity) => {
@@ -248,10 +251,10 @@ export class TrainSimScene implements GameScene, IDisposable {
         MusicPlayer.instance.playStinger("fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
         this.onDeath = undefined
-        console.log("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)
+        debugLog("subscribers size after unsubscribe", queries.deathComes.onEntityAdded.subscribers.size)
         // for some reason unsubscribe isn't letting go
         // queries.deathComes.onEntityAdded.clear()
-        console.log("subscribers size after clear", queries.deathComes.onEntityAdded.subscribers.size)
+        debugLog("subscribers size after clear", queries.deathComes.onEntityAdded.subscribers.size)
         appContainer.gameScene = new StatsScene(this.score, this.stats)
         this.dispose()
       }

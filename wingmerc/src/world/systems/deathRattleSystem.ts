@@ -9,6 +9,7 @@ import { randomItem } from "../../utils/random"
 import { PlayVoiceSound, SAM, VoiceSound } from "../../utils/speaking"
 import { SoundEffects } from "../../utils/sounds/soundEffects"
 import { deathExplosionFrom } from "../../visuals/deathExplosionParticles"
+import { debugLog } from "../../utils/debuglog"
 
 /**
  * makes a ship do the death rattle
@@ -26,7 +27,7 @@ export class DeathRattleSystem implements IDisposable {
   }
 
   onEntityAdded = (entity: Entity) => {
-    console.log("[DeathRattle] entity died", entity)
+    debugLog("[DeathRattle] entity died", entity)
 
     // simulating a spiral
     if (entity.ai != undefined) {

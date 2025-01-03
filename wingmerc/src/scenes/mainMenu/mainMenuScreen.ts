@@ -109,7 +109,6 @@ export class MainMenuScreen extends MercScreen {
     // this.gui.useSmallestIdeal = true
     const renderWidth = AppContainer.instance.engine.getRenderWidth()
     const renderHeight = AppContainer.instance.engine.getRenderHeight()
-    console.log("renderHeight", renderHeight)
     RetroGui.Grid.initialize(25, 40, renderWidth, renderHeight)
     const title = new FluentTextBlock("title")
       .setText("-=Squadron: Mercenaries=-")

@@ -2,40 +2,26 @@ import { AudioEngine, Engine, Sound } from "@babylonjs/core"
 import { randomItem } from "../random"
 import { MercStorage } from "../storage"
 import { AppContainer } from "../../app.container"
+import { debugLog } from "../debuglog"
 
-
-const MainThemeSongFile = [
-  "assets/music/GalacticDreams.mp3"
-]
+const MainThemeSongFile = ["assets/music/GalacticDreams.mp3"]
 const ActionSongFile = [
   "assets/music/GlitchyGroove.mp3",
   "assets/music/HaircutsAndPixels.mp3",
   "assets/music/GlitchInTheMachine.mp3",
 ]
 
-const HappySongFile = [
-  "assets/music/NebulaDreams.mp3",
-]
+const HappySongFile = ["assets/music/NebulaDreams.mp3"]
 
-const WinStingerFile = [
-  "assets/music/WinStinger_1.wav",
-  "assets/music/WinStinger_2.wav",
-]
+const WinStingerFile = ["assets/music/WinStinger_1.wav", "assets/music/WinStinger_2.wav"]
 
-const FailStingerFile = [
-  "assets/music/FailStinger_1.wav",
-  "assets/music/FailStinger_2.wav",
-]
+const FailStingerFile = ["assets/music/FailStinger_1.wav", "assets/music/FailStinger_2.wav"]
 
-const EncounterStingerFile = [
-  "assets/music/EncounterStinger_1.wav",
-  "assets/music/EncounterStinger_2.wav",
-]
+const EncounterStingerFile = ["assets/music/EncounterStinger_1.wav", "assets/music/EncounterStinger_2.wav"]
 
 const BaseVolume = 0.5
 
 export class MusicPlayer {
-
   static instance = new MusicPlayer()
 
   currentSong: Sound
@@ -76,24 +62,24 @@ export class MusicPlayer {
       this.currentSong.setVolume(0, 1)
       this.currentSong.loop = false
     }
-    let song: String 
+    let song: String
     switch (type) {
       case "happy":
         song = HappySongFile[0]
-        break;
+        break
       case "action":
         song = ActionSongFile[0]
-        break;
+        break
       case "theme":
         song = MainThemeSongFile[0]
-        break;
+        break
     }
     this.currentSong = new Sound(type, song, undefined, undefined, {
       autoplay: true,
       loop: true,
-      volume: AppContainer.instance.volumes.music * BaseVolume
+      volume: AppContainer.instance.volumes.music * BaseVolume,
     })
-    console.log("[Music Player] playing song", type)
+    debugLog("[Music Player] playing song", type)
   }
   playStinger(type: "win" | "fail" | "encounter") {
     if (this.musicEnabled == false) {
@@ -106,15 +92,15 @@ export class MusicPlayer {
     switch (type) {
       case "win": {
         song = randomItem(WinStingerFile)
-        break;
+        break
       }
       case "fail": {
         song = randomItem(FailStingerFile)
-        break;
+        break
       }
       case "encounter": {
         song = randomItem(EncounterStingerFile)
-        break;
+        break
       }
     }
     let stinger = new Sound(type, song, undefined, undefined, {
@@ -127,6 +113,6 @@ export class MusicPlayer {
         this.currentSong.setVolume(AppContainer.instance.volumes.music * BaseVolume, 1)
       }
     })
-    console.log("[Music Player] playing stinger", type)
+    debugLog("[Music Player] playing stinger", type)
   }
 }

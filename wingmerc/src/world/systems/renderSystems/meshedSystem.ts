@@ -2,6 +2,7 @@ import { Color3, IDisposable, Mesh, StandardMaterial, TransformNode } from "@bab
 import { Entity, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { GreasedLineModel } from "../../../utils/greasedLineModel"
+import { debugLog } from "../../../utils/debuglog"
 
 const DEBUG = false
 let i = 0
@@ -37,7 +38,7 @@ export class MeshedSystem implements IDisposable {
   }
 
   meshedOnEntityRemoved = (entity: Entity) => {
-    DEBUG && console.log("[meshed] disposing entity", entity)
+    DEBUG && debugLog("[meshed] disposing entity", entity)
     const oldNode = entity.node
     if (oldNode == undefined) {
       return
@@ -48,7 +49,7 @@ export class MeshedSystem implements IDisposable {
       mesh.isVisible = false
       // in the past i've seen stutters when too many meshes are disposed at once
       // it might be a good idea to add these to a queue and dispose a set limit per frame
-      DEBUG && console.log("[meshed] disposing mesh", mesh)
+      DEBUG && debugLog("[meshed] disposing mesh", mesh)
       mesh.dispose()
     }
     if (entity.engineMesh) {
@@ -98,6 +99,7 @@ export class MeshedSystem implements IDisposable {
       const instanceMesh = (mesh as Mesh).clone(`${meshName}-mesh-${i}-${mi}`, node)
       instanceMesh.isPickable = false
       instanceMesh.isNearPickable = false
+      instanceMesh.setEnabled(true)
       if (mat != undefined) {
         instanceMesh.material = mat
       }

@@ -3,11 +3,11 @@ import { AppContainer } from "../../../app.container"
 import { Entity, queries, world } from "../../world"
 import { PlayerAgent } from "../../../agents/playerAgent"
 import { Vector3FromObj } from "../../../utils/math"
+import { debugLog } from "../../../utils/debuglog"
 
 let i = 0
 const referenceDistance = 10 // e.g., 10 units
 const referenceSize = 1 // e.g., 1 unit
-const DEBUG = true
 /**
  * creates the meshes and transform nodes for target box planes for an entity based on it's "targetable" component
  */
@@ -41,13 +41,13 @@ export class TargetBoxesSystem implements IDisposable {
   targetableOnEntityAdded = (entity: Entity) => {
     if (entity.currentPlayer || (AppContainer.instance.player && entity.playerId == PlayerAgent.playerId)) {
       // no target box on player
-      DEBUG && console.log("[TargetBoxesSystem] no target box around the player's ship")
+      debugLog("[TargetBoxesSystem] no target box around the player's ship")
       return
     }
     let node = entity.node
     const scene = AppContainer.instance.scene
     // create the plane
-    DEBUG && console.log("[TargetBoxesSystem] creating target box for entity", entity)
+    debugLog("[TargetBoxesSystem] creating target box for entity", entity)
     if (this.targetBoxTexture == undefined) {
       const targetBoxTexture = new Texture(
         "assets/crosshairs/crosshairs_63.png",
@@ -167,7 +167,7 @@ export class TargetBoxesSystem implements IDisposable {
         let alpha = 1000 / distance
         let offset = directionToEntity.multiplyByFloats(alpha, alpha, alpha)
         newLocation = TmpVectors.Vector3[2].copyFrom(origin).addInPlace(offset)
-        // console.log("[TargetBoxesSystem] new position and distance", newLocation, distance * alpha, alpha)
+        // debugLog("[TargetBoxesSystem] new position and distance", newLocation, distance * alpha, alpha)
         distance = distance * alpha
       }
 
@@ -237,10 +237,10 @@ export class TargetBoxesSystem implements IDisposable {
     node.onDisposeObservable.addOnce(() => {
       observer.remove()
       observer = undefined
-      targetBoxPlane.dispose()
-      interceptBoxPlane.dispose()
-      talkBoxPlane.dispose()
-      DEBUG && console.log("[TargetBoxesSystem] removing target box for entity", entity)
+      targetBoxPlane.dispose(false, true)
+      interceptBoxPlane.dispose(false, true)
+      talkBoxPlane.dispose(false, true)
+      debugLog("[TargetBoxesSystem] removing target box for entity", entity)
     })
   }
 

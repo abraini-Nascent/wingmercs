@@ -4,6 +4,8 @@ import { Models } from "./models"
 import { AppContainer } from "../app.container"
 import { ObjModels } from "./objModels"
 import { SoundData, SoundFiles, SoundPool } from "../utils/sounds/soundEffects"
+import { debugLog } from "../utils/debuglog"
+import { debugDir } from "../utils/debugDir"
 
 export function loadAssets(onFinishedLoading: () => void) {
   // load the assets and physics engine
@@ -18,13 +20,14 @@ export function loadAssets(onFinishedLoading: () => void) {
       if (task.loadedTransformNodes[0] != undefined) {
         task.loadedTransformNodes[0].getChildMeshes().forEach((m: Mesh) => {
           m.isVisible = false
+          m.setEnabled(false)
           if (scale != undefined) {
             m.scaling.setAll(scale)
             m.bakeCurrentTransformIntoVertices()
           }
         })
         ObjModels[modelName] = task.loadedTransformNodes[0] as TransformNode
-        console.log(`[Assets] loaded transform for: ${modelName}`)
+        debugLog(`[Assets] loaded transform for: ${modelName}`)
       } else {
         let node = new TransformNode(modelName, scene)
         for (const mesh of task.loadedMeshes) {
@@ -39,14 +42,14 @@ export function loadAssets(onFinishedLoading: () => void) {
             ;(mesh as Mesh).bakeCurrentTransformIntoVertices()
           }
         }
-        console.log(`[Assets] loaded meshes for: ${modelName}`)
+        debugLog(`[Assets] loaded meshes for: ${modelName}`)
         ObjModels[modelName] = node
       }
       // this.objModels[modelName].isVisible = false
-      console.log(`[Assets] loaded model: ${modelName}`)
+      debugLog(`[Assets] loaded model: ${modelName}`)
     }
     objMeshTask.onError = (task, message, exception) => {
-      console.log(`[Assets] failed ${task.name}: msg ${message}, error: ${exception}`)
+      debugLog(`[Assets] failed ${task.name}: msg ${message}, error: ${exception}`)
     }
   }
   /// Load fonts
@@ -57,7 +60,7 @@ export function loadAssets(onFinishedLoading: () => void) {
       loadedFonts.forEach((loadedFont) => {
         const fonts = document.fonts as any
         fonts.add(loadedFont)
-        console.log("[Assets] Font loaded:", loadedFont)
+        debugLog("[Assets] Font loaded:", loadedFont)
       })
     })
     .catch(function (error) {
@@ -72,11 +75,11 @@ export function loadAssets(onFinishedLoading: () => void) {
       let index = idx
       const task = assetsManager.addBinaryFileTask(`${name}-${idx}`, file)
       task.onSuccess = (task) => {
-        console.log("[Assets] Sound Loaded:", file)
+        debugLog("[Assets] Sound Loaded:", file)
         SoundData[name][index] = task.data
       }
       task.onError = (_task, message) => {
-        console.log("[Assets] Sound Failed:", file, message)
+        debugLog("[Assets] Sound Failed:", file, message)
       }
       idx += 1
     }
@@ -86,7 +89,7 @@ export function loadAssets(onFinishedLoading: () => void) {
   Promise.all([
     new Promise((resolve) => {
       assetsManager.onFinish = (tasks) => {
-        console.dir(tasks)
+        debugDir(tasks)
         SoundPool.prime()
         resolve({})
       }

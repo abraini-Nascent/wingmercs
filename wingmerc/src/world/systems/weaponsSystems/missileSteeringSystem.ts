@@ -6,6 +6,7 @@ import { QuaternionFromObj, Vector3FromObj, calculateSteering, firstOrderInterce
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { registerHit } from "../../damage"
 import { missileExplosionFrom } from "../../../visuals/missileExplosionParticles"
+import { debugLog } from "../../../utils/debuglog"
 
 export function missileSteeringSystem(dt: number) {
   missiles: for (const entity of queries.missiles) {
@@ -16,7 +17,7 @@ export function missileSteeringSystem(dt: number) {
       continue
     }
     if (world.has(entity) == false) {
-      console.log("[MissileSystem] dead missile found and removed")
+      debugLog("[MissileSystem] dead missile found and removed")
       queries.missiles.remove(entity)
       // skipping dead particle
       continue
@@ -46,7 +47,7 @@ export function missileSteeringSystem(dt: number) {
               shooter.nerdStats.missilesHit += 1
             }
             registerHit(possibleTarget, entity, end, weaponClass.damage)
-            console.log("[MissileSystem] BOOM")
+            debugLog("[MissileSystem] BOOM")
             SoundEffects.Explosion(Vector3FromObj(position))
             missileExplosionFrom(end)
             world.remove(entity)
@@ -61,7 +62,7 @@ export function missileSteeringSystem(dt: number) {
       const target = EntityForId(missileRange.target)
       if (target == undefined) {
         // maybe the target deaded?
-        console.log("[MissileSystem] exploded")
+        debugLog("[MissileSystem] exploded")
         missileExplosionFrom(end)
         world.remove(entity)
         continue missiles
@@ -105,7 +106,7 @@ export function missileSteeringSystem(dt: number) {
         dodger.nerdStats.missilesDodged += 1
       }
       // end of the line
-      // console.log("[MissileSystem] end of line")
+      // debugLog("[MissileSystem] end of line")
 
       missileExplosionFrom(end)
       SoundEffects.Explosion(Vector3FromObj(position))

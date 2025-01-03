@@ -4,6 +4,7 @@ import { Vector3FromObj } from "../../../utils/math"
 import { LandingDetails, LandingDetailsForEntity, queries, world } from "../../world"
 import { PlayVoiceSound, VoiceSound } from "../../../utils/speaking"
 import { barks } from "../../../data/barks"
+import { debugLog } from "../../../utils/debuglog"
 
 export function shipLandingSystem(dt: number) {
   const player = AppContainer.instance.player?.playerEntity
@@ -20,7 +21,7 @@ export function shipLandingSystem(dt: number) {
       if (player.landing[hanger.id].lastWarned > 20000) {
         player.landing[hanger.id].lastWarned = 0
         player.landing[hanger.id].warned = false
-        console.log("[ShipLandingSystem]: Now leaving automated landing zone")
+        debugLog("[ShipLandingSystem]: Now leaving automated landing zone")
       }
     } else if (distance < 2000) {
       // warning
@@ -41,7 +42,7 @@ export function shipLandingSystem(dt: number) {
         VoiceSound(barks.hangerLandingWarning.ipa, hanger.voice).then((greetingSound) => {
           PlayVoiceSound(greetingSound, hanger)
         })
-        console.log("[ShipLandingSystem]: Now entering automated landing zone")
+        debugLog("[ShipLandingSystem]: Now entering automated landing zone")
       }
     }
     if (
@@ -55,10 +56,10 @@ export function shipLandingSystem(dt: number) {
       VoiceSound(barks.hangerLanding.ipa, hanger.voice).then((greetingSound) => {
         PlayVoiceSound(greetingSound, hanger)
       })
-      console.log("[ShipLandingSystem]: Landing")
+      debugLog("[ShipLandingSystem]: Landing")
       setTimeout(() => {
         player.landing[hanger.id].landed = true
-        console.log("[ShipLandingSystem]: Landed")
+        debugLog("[ShipLandingSystem]: Landed")
       }, 1000)
     }
   }

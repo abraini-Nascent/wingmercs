@@ -7,6 +7,7 @@ import { ShipTemplate } from "../data/ships/shipTemplate"
 import { generateUUIDv4 } from "../utils/random"
 import { Vector3 } from "@babylonjs/core"
 import { MercStorage } from "../utils/storage"
+import { debugLog } from "../utils/debuglog"
 
 export const Player_Name_Key = "merc_playerName"
 export class PlayerAgent {
@@ -139,5 +140,5 @@ export class PlayerAgent {
 
 if (MercStorage.instance.isLocalStorageAvailable()) {
   PlayerAgent._playerName = MercStorage.instance.getValue(Player_Name_Key)
-  console.log("[Player Agent] player name", PlayerAgent._playerName)
+  debugLog("[Player Agent] player name", PlayerAgent._playerName)
 }

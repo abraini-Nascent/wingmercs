@@ -1,3 +1,4 @@
+import { debugLog } from "./../../utils/debugLog"
 import { MissionHazardSystem } from "./missionSystems/missionHazards"
 import { IDisposable } from "@babylonjs/core"
 import { MissileEngineSoundSystem } from "./soundSystems/missileEngineSoundSystem"
@@ -54,9 +55,12 @@ export class CombatSystems implements IDisposable {
   hitTrackerSystem = new HitTrackerSystem()
   targetBoxesSystem = new TargetBoxesSystem()
 
-  constructor() {}
+  constructor() {
+    debugLog("[CombatSystem] constructed")
+  }
 
   dispose(): void {
+    debugLog("[CombatSystem] disposed")
     this.missionHazardSystem.dispose()
     this.missileEngineSoundSystem.dispose()
     this.deathRattleSystem.dispose()

@@ -9,6 +9,8 @@ import {
   WebXRState,
 } from "@babylonjs/core"
 import { AppContainer } from "../../../app.container"
+import { debugLog } from "../../../utils/debuglog"
+import { debugDir } from "../../../utils/debugDir"
 
 const TURN = Quaternion.FromEulerAngles(0, Math.PI, 0)
 export class VRSystem {
@@ -21,7 +23,7 @@ export class VRSystem {
   /** will try to enable vr support, returns true if vr support is enabled */
   static async tryVR(): Promise<boolean> {
     const canMultiview = AppContainer.instance.scene.getEngine().getCaps().multiview
-    console.log("[XR] Can Multiview", canMultiview)
+    debugLog("[XR] Can Multiview", canMultiview)
     return AppContainer.instance.scene
       .createDefaultXRExperienceAsync({
         disableTeleportation: true,
@@ -33,7 +35,7 @@ export class VRSystem {
       })
       .then((xr) => {
         if (xr.baseExperience == undefined) {
-          console.log("[XR] NO SUPPORTED")
+          debugLog("[XR] NO SUPPORTED")
           this.xr = undefined
           return false
         }
@@ -48,13 +50,13 @@ export class VRSystem {
             false
           )
         }
-        console.log("[XR] READY")
-        console.dir(xr)
+        debugLog("[XR] READY")
+        debugDir(xr)
         this.xr = xr
 
         xr.input.onControllerAddedObservable.addOnce((controller: WebXRInputSource) => {
-          console.log("[XR] controller connected", controller.motionController?.handedness)
-          console.log(
+          debugLog("[XR] controller connected", controller.motionController?.handedness)
+          debugLog(
             `[XR] ${controller.motionController?.handedness}] controller`,
             controller.motionController?.getComponentIds()
           )
@@ -70,7 +72,7 @@ export class VRSystem {
         // xr.teleportation.detach();
         xr.baseExperience.onStateChangedObservable.add((state) => {
           let states = ["ENTERING_XR", "EXITING_XR", "IN_XR", "NOT_IN_XR"]
-          console.log("[XR] STATE", states[state])
+          debugLog("[XR] STATE", states[state])
           switch (state) {
             case WebXRState.ENTERING_XR:
               // unlock audio
@@ -112,8 +114,8 @@ export class VRSystem {
         return true
       })
       .catch((error) => {
-        console.log("[XR] ERROR!!", error)
-        console.log(error)
+        debugLog("[XR] ERROR!!", error)
+        debugLog(error)
         return false
       })
   }

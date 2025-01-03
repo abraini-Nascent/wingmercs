@@ -39,6 +39,7 @@ import { RetroGui } from "../../../utils/retroGui"
 import { TextBlockExtra } from "../../../utils/TextBlockExtra"
 import { MotionHandCollision, MotionHands } from "../../../world/systems/input/vr/motionHands"
 import { VDU } from "./SpaceCombatHUD.VDU"
+import { debugLog } from "../../../utils/debuglog"
 
 const LeftDisplays: Display[] = ["damage", "guns", "weapons", "debugAi", "debugInput"]
 const RightDisplays: Display[] = ["target", "destination", "objectives", "debugAi"]
@@ -238,7 +239,7 @@ export class CombatHud {
     this.hud.dispose()
     if (!this.inWorld) {
       if (this.gameoverScreen != undefined) {
-        console.log("[spaceCombatHud] removing gameover textblock")
+        debugLog("[spaceCombatHud] removing gameover textblock")
         if (this.gameOverText) {
           this.gameoverScreen.removeControl(this.gameOverText.textblock)
           this.gameOverText.dispose()
@@ -258,7 +259,7 @@ export class CombatHud {
   }
 
   deinit() {
-    console.log("[SpaceCombatHud] deinit")
+    debugLog("[SpaceCombatHud] deinit")
   }
 
   fontSize = 15
@@ -289,15 +290,18 @@ export class CombatHud {
     }
 
     this.targetingHUD = new TargetingHUD()
+    this.disposableBag.add(this.targetingHUD)
     if (!this.inWorld) {
       this.hud.addControl(this.targetingHUD.mainComponent)
     }
 
     this.speedHUD = new SpeedHUD()
+    this.disposableBag.add(this.speedHUD)
     if (!this.inWorld) {
       this.hud.addControl(this.speedHUD.mainComponent)
     }
     this.autoHUD = new AutoHUD()
+    this.disposableBag.add(this.autoHUD)
     if (!this.inWorld) {
       this.hud.addControl(this.autoHUD.mainComponent)
     }
@@ -550,7 +554,7 @@ export class CombatHud {
           MotionHands.instance.addCollisionCheck(button, 0.025 / 2, (hit, state) => {
             if (state == MotionHandCollision.State.entering) {
               SoundEffects.Select()
-              console.log("[vdu button] entering", i)
+              debugLog("[vdu button] entering", i)
               // buttonRef.get().background = getRandomHexColor()
               if (i < 10) {
                 this.vdu1.vduButtonPressed(i)
@@ -558,13 +562,13 @@ export class CombatHud {
               let displayIdx = LeftDisplays.findIndex((d) => {
                 return d == playerEntity.vduState.left
               })
-              console.log("[vdu button] current display", LeftDisplays[displayIdx])
+              debugLog("[vdu button] current display", LeftDisplays[displayIdx])
               if (i == 10) {
                 displayIdx = displayIdx - 1
                 if (displayIdx < 0) {
                   displayIdx = LeftDisplays.length - 1
                 }
-                console.log("[vdu button] new display", LeftDisplays[displayIdx])
+                debugLog("[vdu button] new display", LeftDisplays[displayIdx])
                 playerEntity.vduState.left = LeftDisplays[displayIdx]
               }
               if (i == 11) {
@@ -589,7 +593,7 @@ export class CombatHud {
                 if (displayIdx >= LeftDisplays.length) {
                   displayIdx = 0
                 }
-                console.log("[vdu button] new display", LeftDisplays[displayIdx])
+                debugLog("[vdu button] new display", LeftDisplays[displayIdx])
                 playerEntity.vduState.left = LeftDisplays[displayIdx]
               }
             }
@@ -692,7 +696,7 @@ export class CombatHud {
           MotionHands.instance.addCollisionCheck(button, 0.025 / 2, (hit, state) => {
             if (state == MotionHandCollision.State.entering) {
               SoundEffects.Select()
-              console.log("[vdu button] entering", i)
+              debugLog("[vdu button] entering", i)
               // buttonRef.get().background = getRandomHexColor()
               if (i < 10) {
                 this.vdu2.vduButtonPressed(i)
@@ -700,13 +704,13 @@ export class CombatHud {
               let displayIdx = RightDisplays.findIndex((d) => {
                 return d == playerEntity.vduState.right
               })
-              console.log("[vdu button] current display", RightDisplays[displayIdx])
+              debugLog("[vdu button] current display", RightDisplays[displayIdx])
               if (i == 10) {
                 displayIdx = displayIdx - 1
                 if (displayIdx < 0) {
                   displayIdx = RightDisplays.length - 1
                 }
-                console.log("[vdu button] new display", RightDisplays[displayIdx])
+                debugLog("[vdu button] new display", RightDisplays[displayIdx])
                 playerEntity.vduState.right = RightDisplays[displayIdx]
               }
               if (i == 11) {
@@ -726,7 +730,7 @@ export class CombatHud {
                 if (displayIdx >= LeftDisplays.length) {
                   displayIdx = 0
                 }
-                console.log("[vdu button] new display", LeftDisplays[displayIdx])
+                debugLog("[vdu button] new display", LeftDisplays[displayIdx])
                 playerEntity.vduState.left = LeftDisplays[displayIdx]
               }
             }

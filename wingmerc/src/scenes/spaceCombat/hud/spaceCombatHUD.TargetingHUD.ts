@@ -5,6 +5,7 @@ import { Axis, Color3, Color4, Mesh, MeshBuilder, Sound, StandardMaterial, Textu
 import { Entity, EntityForId, EntityUUID, queries } from "../../../world/world"
 import { SoundEffects } from "../../../utils/sounds/soundEffects"
 import { ToRadians, Vector3FromObj } from "../../../utils/math"
+import { debugLog } from "../../../utils/debuglog"
 
 const referenceDistance = 10 // e.g., 10 units
 const referenceSize = 1 // e.g., 1 unit
@@ -105,7 +106,7 @@ export class TargetingHUD {
       this.crosshairPlaneFar.parent = playerEntity.node
     }
     if (playerEntity.node && this.missileLockTargetPlane == undefined) {
-      console.log("[locking] plane created")
+      debugLog("[locking] plane created")
       const missileLockingTexture = new Texture(
         "assets/crosshairs/crosshairs_15.png",
         undefined,
@@ -142,7 +143,7 @@ export class TargetingHUD {
       //   }
       // })
       this.missileLockTargetPlane.onDisposeObservable.addOnce(() => {
-        console.log("[locking] plane disposed")
+        debugLog("[locking] plane disposed")
         this.missileLockTargetPlane = undefined
       })
     }

@@ -2,34 +2,21 @@ import "@babylonjs/core/Debug/debugLayer"
 import "@babylonjs/inspector"
 import "@babylonjs/loaders/glTF"
 import "@babylonjs/gui/2D"
-import {
-  AssetsManager,
-  Engine,
-  Scene,
-  Vector3,
-  HemisphericLight,
-  TargetCamera,
-  FreeCamera,
-  ScenePerformancePriority,
-} from "@babylonjs/core"
+import { AssetsManager, Engine, Scene, Vector3, HemisphericLight, TargetCamera, FreeCamera } from "@babylonjs/core"
 import "./world/systems/controlSystems/weaponCommandSystem"
 import { AppContainer } from "./app.container"
 import "./world/systems/renderSystems/updatePhysicsSystem"
 import "./world/systems/deathRattleSystem"
 import { loadAssets } from "./assetLoader/assetLoader"
 import { MainMenuScene } from "./scenes/mainMenu/mainMenuLoop"
-import { FlexTestScene } from "./scenes/flexTest/flexTest"
 import earcut from "earcut"
 import { KeyboardMap } from "./utils/keyboard"
 import { VRSystem } from "./world/systems/renderSystems/vrSystem"
-import { MissionOverScene } from "./scenes/missionOverScene/missionOverLoop"
-import { generateMission } from "./world/missionFactory"
-import { MissionSelectScene } from "./scenes/missionSelectScene/missionSelectLoop"
 import { StatsScene } from "./scenes/statsScene/statsLoop"
-import { ShipCustomizerRetroScreen } from "./scenes/shipCustomizer/shipCustomizerRetroScreen"
 import { Dirk } from "./data/ships"
 import { ShipCustomizerRetroScene } from "./scenes/shipCustomizer/shipCustomizerRetroLoop"
 import { MissionSelectRetroScene } from "./scenes/missionSelectScene/missionSelectRetroLoop"
+import { debugLog } from "./utils/debuglog"
 
 class App {
   assetsManager: AssetsManager
@@ -62,6 +49,7 @@ class App {
     // scene.performancePriority = ScenePerformancePriority.Intermediate
     scene.skipPointerMovePicking = true
     scene.autoClear = false
+    scene.clearColor.set(0, 0, 0, 1)
     // let camera = new TargetCamera("Camera", new Vector3(0, 0, 0))
     const camera = new FreeCamera("sceneCamera", new Vector3(0, 0, 0), scene)
     camera.inputs.clear()
@@ -87,8 +75,8 @@ class App {
       const scale = window.devicePixelRatio
       canvas.height = window.innerHeight * Math.round(scale)
       canvas.width = window.innerWidth * Math.round(scale)
-      console.log(`[APP] resize window resize: ${window.innerHeight}, ${window.innerWidth}`)
-      console.log(`[APP] resize canvas resize: ${canvas.width}, ${canvas.height}`)
+      debugLog(`[APP] resize window resize: ${window.innerHeight}, ${window.innerWidth}`)
+      debugLog(`[APP] resize canvas resize: ${canvas.width}, ${canvas.height}`)
       engine.resize()
     })
     // handle orientation change
@@ -166,7 +154,7 @@ class App {
     document.addEventListener("click", function () {
       if (Engine.audioEngine && Engine.audioEngine.canUseWebAudio && Engine.audioEngine.unlocked == false) {
         Engine.audioEngine.audioContext.resume().then(function () {
-          console.log("[APP] Audio context is now unlocked")
+          debugLog("[APP] Audio context is now unlocked")
           queueMicrotask(() => {
             Engine.audioEngine.setGlobalVolume(0.5)
           })

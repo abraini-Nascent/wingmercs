@@ -15,6 +15,7 @@ import { Entity, EntityUUID, queries, world } from "../../world"
 import { ObjModels } from "../../../assetLoader/objModels"
 import { AppContainer } from "../../../app.container"
 import { ToRadians } from "../../../utils/math"
+import { debugLog } from "../../../utils/debuglog"
 
 const DEBUG = false
 declare module "@babylonjs/core" {
@@ -22,25 +23,27 @@ declare module "@babylonjs/core" {
     entityId: EntityUUID
   }
 }
-let i = 0
+let count = 0
 
 /**
  * creates the physics body for an entity based on it's "bodyType" component
  */
 export class UpdatePhysicsSystem implements IDisposable {
   constructor() {
+    debugLog(`[PhysicsSystem] constructed`)
     queries.physics.onEntityAdded.subscribe(this.physicsOnEntityAdded)
     queries.physics.onEntityRemoved.subscribe(this.physicsOnEntityRemoved)
   }
 
   dispose(): void {
+    debugLog(`[PhysicsSystem] disposed`)
     queries.physics.onEntityAdded.unsubscribe(this.physicsOnEntityAdded)
     queries.physics.onEntityRemoved.unsubscribe(this.physicsOnEntityRemoved)
   }
 
   private physicsOnEntityAdded = (entity: Entity) => {
     const { node, bodyType } = entity
-    DEBUG && console.log(`[PhysicsSystem] creating body for [${entity.id}]"${entity.targetName}"`)
+    DEBUG && debugLog(`[PhysicsSystem] creating body for [${entity.id}]"${entity.targetName}"`)
     // create the body
     let physicsType = PhysicsMotionType.DYNAMIC
     if (bodyType == "static") {
@@ -81,12 +84,13 @@ export class UpdatePhysicsSystem implements IDisposable {
         groupMesh.dispose()
       }
     }
-    DEBUG && console.log(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
+    DEBUG && debugLog(`[PhysicsSystem] shape ${hullShape} type ${bodyType}/${physicsType}`)
     body.shape = hullShape
     body.entityId = entity.id
     body.setCollisionCallbackEnabled(true)
+    count += 1
     // body.getCollisionObservable().add((event) => {
-    //   console.log(`[PhysicsSystem] collision`, event)
+    //   debugLog(`[PhysicsSystem] collision`, event)
     // })
 
     world.addComponent(entity, "body", body)
@@ -94,11 +98,16 @@ export class UpdatePhysicsSystem implements IDisposable {
   }
 
   private physicsOnEntityRemoved = (entity: Entity) => {
+    DEBUG && debugLog(`[PhysicsSystem] entity removed [${entity.id}]"${entity.targetName}"`)
     if (entity.body) {
       if (entity.body.shape) {
+        DEBUG && debugLog(`[PhysicsSystem] removing shape for [${entity.id}]"${entity.targetName}"`)
         entity.body.shape.dispose()
       }
+      DEBUG && debugLog(`[PhysicsSystem] removing body for [${entity.id}]"${entity.targetName}"`)
       entity.body.dispose()
     }
+    count -= 1
+    DEBUG && debugLog(`[PhysicsSystem] count [${count}]`)
   }
 }

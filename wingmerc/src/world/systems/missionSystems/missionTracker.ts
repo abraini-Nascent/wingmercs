@@ -21,6 +21,7 @@ import * as Ships from "../../../data/ships"
 import { LoadAsteroidField } from "./missionHazards"
 import { powerPlantRecharge } from "../shipSystems/engineRechargeSystem"
 import { shieldRecharge } from "../shipSystems/shieldRechargeSystem"
+import { debugLog } from "../../../utils/debuglog"
 
 /** TODOS:
  * [] when an entity is defeated, find it's active encounter and move it from active to defeated set
@@ -110,8 +111,8 @@ export class MissionTracker implements IDisposable {
       } as ActiveObjective
       return missionObjective
     })
-    console.log("[MissionTracker] set encounters", this.encounters)
-    console.log("[MissionTracker] set objectives", this.objectives)
+    debugLog("[MissionTracker] set encounters", this.encounters)
+    debugLog("[MissionTracker] set objectives", this.objectives)
 
     // create the player to the entry point
     const appContainer = AppContainer.instance
@@ -185,9 +186,9 @@ export class MissionTracker implements IDisposable {
             // encounter over, all waves complete
             this.completedEncounters.push(encounter)
             this.encounters.splice(group - 1, 1)
-            console.log("[MissionTracker] encounter completed", encounter)
+            debugLog("[MissionTracker] encounter completed", encounter)
           } else {
-            console.log("[MissionTracker] spawning encounter", encounter, "wave", encounterWave)
+            debugLog("[MissionTracker] spawning encounter", encounter, "wave", encounterWave)
             // spawn the encounter
             let team = encounterWave.teamId == "Friendly" ? 1 : 3
             let leader: Entity = undefined
@@ -223,7 +224,7 @@ export class MissionTracker implements IDisposable {
               ship.position.y = curPos.y
               ship.position.z = curPos.z
               world.addComponent(ship, "missionDetails", structuredClone(encounterWave.missionDetails))
-              console.log("[MissionTracker] spawned ship", ship)
+              debugLog("[MissionTracker] spawned ship", ship)
               this.enemiesEncounters.set(ship.id, encounter.id)
               encounter.activeEntities.add(ship.id)
               break
@@ -386,17 +387,17 @@ export class MissionTracker implements IDisposable {
         const hazardPosition = new Vector3(hazard.location.position.x, 0, hazard.location.position.y)
         const distance = autopilotStartPosition.subtract(hazardPosition).length()
         if (distance < 5000) {
-          console.log("[Autopilot] inside hazzard", hazard)
+          debugLog("[Autopilot] inside hazzard", hazard)
           currentHazzard = hazard
         }
       }
       if (currentHazzard) {
-        console.log("[Autopilot] can't start autopilot in a hazzard")
+        debugLog("[Autopilot] can't start autopilot in a hazzard")
         this.clearAutopilot(player)
         return
       }
 
-      console.log(`[Autopilot] begining autopilot checks to {${targetEntity.targetName}}`, autopilotEndPosition)
+      debugLog(`[Autopilot] begining autopilot checks to {${targetEntity.targetName}}`, autopilotEndPosition)
       // Look for wingmen nearby or nearby enemies
       // Wingmen must have escort mission or wingman mission
       const NEAR_BY_FRIENDLY = 5000
@@ -438,7 +439,7 @@ export class MissionTracker implements IDisposable {
       }
       if (enemies.length > 0) {
         // TODO: notify user they can't autopilot
-        console.log("[Autopilot] cannot start, enemies nearby", enemies)
+        debugLog("[Autopilot] cannot start, enemies nearby", enemies)
         this.clearAutopilot(player)
         return
       }
@@ -501,7 +502,7 @@ export class MissionTracker implements IDisposable {
       )
       if (collisionPoint && encounter != currentEncounter) {
         this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-        console.log(
+        debugLog(
           `[Autopilot] interrupted by encounter at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`
         )
         this.clearAutopilot(player)
@@ -520,9 +521,7 @@ export class MissionTracker implements IDisposable {
       )
       if (collisionPoint) {
         this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-        console.log(
-          `[Autopilot] interrupted by hazard at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`
-        )
+        debugLog(`[Autopilot] interrupted by hazard at (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`)
         this.clearAutopilot(player)
         return
       }
@@ -537,7 +536,7 @@ export class MissionTracker implements IDisposable {
       5000
     )
     this.exitAutopilot(player, collisionPoint, autopilotCommand.wingmen)
-    console.log(`[Autopilot] completed to (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`)
+    debugLog(`[Autopilot] completed to (${collisionPoint.x}, ${collisionPoint.y}, ${collisionPoint.z})`)
     this.clearAutopilot(player)
   }
 
@@ -589,12 +588,12 @@ export class MissionTracker implements IDisposable {
       const hazardPosition = new Vector3(hazard.location.position.x, 0, hazard.location.position.y)
       const distance = autopilotStartPosition.subtract(hazardPosition).length()
       if (distance < 5000) {
-        console.log("[Autopilot] inside hazzard", hazard)
+        debugLog("[Autopilot] inside hazzard", hazard)
         currentHazzard = hazard
       }
     }
     if (currentHazzard) {
-      console.log("[Autopilot] can't start autopilot in a hazzard")
+      debugLog("[Autopilot] can't start autopilot in a hazzard")
       return false
     }
     return true

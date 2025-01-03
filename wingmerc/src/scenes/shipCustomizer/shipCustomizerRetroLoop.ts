@@ -6,6 +6,7 @@ import { ShipTemplate } from "../../data/ships/shipTemplate"
 import { Entity, world } from "../../world/world"
 import { MeshedSystem } from "../../world/systems/renderSystems/meshedSystem"
 import { ShipCustomizerRetroScreen } from "./shipCustomizerRetroScreen"
+import { debugLog } from "../../utils/debuglog"
 
 export class ShipCustomizerRetroScene implements GameScene, IDisposable {
   screen: ShipCustomizerRetroScreen
@@ -41,7 +42,7 @@ export class ShipCustomizerRetroScene implements GameScene, IDisposable {
 
   onScreenEntityAdded = (entity: Entity) => {
     this.screenEntities.add(entity)
-    console.log("[task] ship entity added")
+    debugLog("[ship customizer] ship entity added")
   }
 
   onScreenEntityRemoved = (entity: Entity) => {
