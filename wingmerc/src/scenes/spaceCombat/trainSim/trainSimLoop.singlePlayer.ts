@@ -7,7 +7,7 @@ import { netSyncClientSystem } from "../../../world/systems/netSystems/netClient
 import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem"
 import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
 import { CreateEntity, Entity, NerdStats, Score, queries, world } from "../../../world/world"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { random } from "../../../utils/random"
 import { CombinedCombatHud } from "../hud/spaceCombatHUD"
 import { StatsScene } from "../../statsScene/statsLoop"
@@ -29,7 +29,7 @@ import { debugLog } from "../../../utils/debuglog"
 const ShipProgression: string[] = ["EnemyLight01", "EnemyMedium01", "EnemyMedium02", "EnemyHeavy01"]
 const divFps = document.getElementById("fps")
 const pointsPerSecond = 10
-const START_TIME = 10 //90
+const START_TIME = 90
 export class TrainSimScene implements GameScene, IDisposable {
   totalKillCount: number = 0
   waveCount: number = 0

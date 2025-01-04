@@ -4,6 +4,8 @@ import { Entity, EntityForId, LandingDetails, LandingDetailsForEntity, queries, 
 import { PlayVoiceSound, VoiceSound } from "../../../utils/speaking"
 import { barks } from "../../../data/barks"
 import { debugLog } from "../../../utils/debuglog"
+import { random } from "../../../utils/random"
+import { shipIntelligence } from "./shipIntelligence"
 
 const MAX_HANGER_DISTANCE = 5000
 
@@ -94,6 +96,7 @@ function requestLanding(ship: Entity, hanger: Entity) {
 
 function tauntEnemy(ship: Entity, enemy: Entity) {
   debugLog(`[Comms] ship ${ship.targetName} taunting enemy ${enemy.targetName}`)
+  shipIntelligence.taunt(ship, enemy)
   closeComms(ship)
 }
 

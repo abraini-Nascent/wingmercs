@@ -449,7 +449,6 @@ export class VoronoiSphereNebula implements IDisposable {
     this.baseColor = new Color3(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5)
     this.scene = scene
     this.sites = this.generateSites(numCells)
-    debugLog("sites", this.sites)
     this.cells = this.createVoronoiMesh(densityMap)
     this.luminanceMap = new Map()
     this.animationProgress = 0

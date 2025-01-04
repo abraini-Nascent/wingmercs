@@ -387,7 +387,7 @@ export class MercParticleSystem {
 
   /** determins how many particles to emit to "animate" the particle system */
   private animate = () => {
-    this.duration += this.scene.getEngine().getDeltaTime() / 1000
+    this.duration += Math.min(1000, this.scene.getEngine().getDeltaTime()) / 1000
     if (this.targetStopDuration != 0 && this.duration >= this.targetStopDuration) {
       // DEBUG && console.log("[MercParticleSystem] targetStopDuration complete ", this.targetStopDuration, this.duration)
       this.stopped = true
@@ -399,7 +399,7 @@ export class MercParticleSystem {
       return
     }
     // let scaledUpdateSpeed = this.updateSpeed * this.scene?.getAnimationRatio() || 1;
-    let scaledUpdateSpeed = this.scene?.getEngine().getDeltaTime() / 1000
+    let scaledUpdateSpeed = Math.min(1000, this.scene?.getEngine().getDeltaTime()) / 1000
 
     // Determine the number of particles we need to make visible
 
@@ -459,7 +459,7 @@ export class MercParticleSystem {
       }
     }
     // scale speed to seconds
-    let scaledUpdateSpeed = this.scene?.getEngine().getDeltaTime() / 1000
+    let scaledUpdateSpeed = Math.min(1000, this.scene?.getEngine().getDeltaTime()) / 1000
     const previousAge = particle.props.age
     particle.props.age += scaledUpdateSpeed
 

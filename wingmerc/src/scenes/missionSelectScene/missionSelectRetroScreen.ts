@@ -9,7 +9,7 @@ import {
   Ref,
 } from "../../utils/fluentGui"
 import { Mission } from "../../data/missions/missionData"
-import { generateMissionScreen } from "../../world/missionFactory"
+import { generateMissionScreen } from "../../world/missionFactory.screen"
 import { Mesh, Observer } from "@babylonjs/core"
 import { MercScreen } from "../screen"
 import { RetroGui } from "../../utils/retroGui"

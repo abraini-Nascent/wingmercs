@@ -11,6 +11,8 @@ export const Models: [string, string, string, number?][] = [
   ["uni_cockpit", "Node_3", "./assets/models/uni_cockpit.glb"],
   ["craftCargoA", "craft_cargoA", "./assets/models/craft_cargoA_scaled.glb"],
   ["craftCargoAHull", "craft_cargoA", "./assets/models/craft_cargoA_hull.glb"],
+  ["craftCargoB", "craft_cargoB", "./assets/models/craft_cargoB_scaled.glb"],
+  ["craftCargoBHull", "craft_cargoB", "./assets/models/craft_cargoB_hull.glb"],
   ["craftMiner", "craft_miner", "./assets/models/craft_miner_scaled.glb"],
   ["craftMinerHull", "craft_miner", "./assets/models/craft_miner_hull.glb"],
   ["craftSpeederA", "craft_speederA", "./assets/models/craft_speederA_scaled.glb"],

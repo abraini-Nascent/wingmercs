@@ -22,6 +22,9 @@ export class DebugAIVDU implements VDU {
   sohState = new FluentSubjectState<string>("")
   socState = new FluentSubjectState<string>("")
   maneuverState = new FluentSubjectState<string>("")
+  targetState = new FluentSubjectState<string>("")
+  teamState = new FluentSubjectState<string>("")
+  groupState = new FluentSubjectState<string>("")
   get mainComponent(): GUI.Control {
     return this.screen
   }
@@ -58,7 +61,12 @@ export class DebugAIVDU implements VDU {
         new FluentTextBlock("soc", "").modifyControl(styleFont).bindState(this.socState, (tb, v) => tb.setText(v)),
         new FluentTextBlock("maneuver", "")
           .modifyControl(styleFont)
-          .bindState(this.maneuverState, (tb, v) => tb.setText(v))
+          .bindState(this.maneuverState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("target", "")
+          .modifyControl(styleFont)
+          .bindState(this.targetState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("team", "").modifyControl(styleFont).bindState(this.teamState, (tb, v) => tb.setText(v)),
+        new FluentTextBlock("group", "").modifyControl(styleFont).bindState(this.groupState, (tb, v) => tb.setText(v))
       )
         .storeIn(this.detailsStack)
         .width(240)
@@ -90,5 +98,9 @@ export class DebugAIVDU implements VDU {
     this.sohState.setValue(`SoH: ${ai.blackboard.intelligence.stateOfHealth}`)
     this.socState.setValue(`SoC: ${ai.blackboard.intelligence.stateOfConfrontation}`)
     this.maneuverState.setValue(`maneuver: ${ai.blackboard.intelligence.maneuver}`)
+    const target = EntityForId(ai.blackboard.intelligence.targeting?.target)
+    this.targetState.setValue(`trgt: ${target?.targetName ?? "[\\]"}`)
+    this.teamState.setValue(`team: ${ship.teamId}`)
+    this.groupState.setValue(`group: ${ship.groupId}`)
   }
 }

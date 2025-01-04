@@ -4,7 +4,7 @@ import { rand, randomItem } from "../../../utils/random"
 import { Entity, FireCommand, queries, SetComponent, world } from "../../world"
 import { SteeringHardTurnClamp, calculateSteering } from "./basicSteering"
 import { AppContainer } from "../../../app.container"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { debugLog } from "../../../utils/debuglog"
 
 export function basicCombatAI(entity: Entity, dt: number) {

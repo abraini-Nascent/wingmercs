@@ -118,7 +118,7 @@ export class ShipCustomizerScreen extends MercScreen {
       camera.setTarget(new Vector3(0, 0, -50))
       let observer = ship.node.getScene().onBeforeRenderObservable.add(() => {
         const rotationPerMs = ToRadians(360) / 10000
-        const dt = ship.node.getEngine().getDeltaTime()
+        const dt = ship.node.getScene().deltaTime
         ship.node.rotate(Axis.Y, rotationPerMs * dt)
       })
       ship.node.onDisposeObservable.addOnce(() => {

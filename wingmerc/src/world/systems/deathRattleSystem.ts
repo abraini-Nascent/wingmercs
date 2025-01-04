@@ -61,7 +61,7 @@ export class DeathRattleSystem implements IDisposable {
     setTimeout(() => {
       let fade = 300
       let observer = scene.onAfterRenderObservable.add(() => {
-        let dt = scene.getEngine().getDeltaTime()
+        let dt = Math.min(1000, scene.getEngine().getDeltaTime())
         fade -= dt
         let st = dt / 1000
 

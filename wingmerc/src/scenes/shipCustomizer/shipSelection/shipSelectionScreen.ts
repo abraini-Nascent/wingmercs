@@ -11,7 +11,7 @@ import {
 } from "../../../utils/guiHelpers"
 import { MercScreen } from "../../screen"
 import * as GUI from "@babylonjs/gui"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { Entity } from "../../../world/world"
 import { AngleBetweenVectors, ToDegree, generatePointsOnCircle } from "../../../utils/math"
 import { AppContainer } from "../../../app.container"

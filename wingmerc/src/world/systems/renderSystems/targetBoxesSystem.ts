@@ -237,9 +237,9 @@ export class TargetBoxesSystem implements IDisposable {
     node.onDisposeObservable.addOnce(() => {
       observer.remove()
       observer = undefined
-      targetBoxPlane.dispose(false, true)
-      interceptBoxPlane.dispose(false, true)
-      talkBoxPlane.dispose(false, true)
+      targetBoxPlane.dispose()
+      interceptBoxPlane.dispose()
+      talkBoxPlane.dispose()
       debugLog("[TargetBoxesSystem] removing target box for entity", entity)
     })
   }

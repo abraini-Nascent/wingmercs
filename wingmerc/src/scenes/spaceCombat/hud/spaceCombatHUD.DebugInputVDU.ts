@@ -44,7 +44,7 @@ export class DebugInputVDU implements VDU {
     }
     this.screen = FluentVerticalStackPanel(
       "stack",
-      new FluentTextBlock("title", "-=[AI Debugging]=-").resizeToFit(true).modifyControl(styleFont),
+      new FluentTextBlock("title", "-=[I Debugging]=-").resizeToFit(true).modifyControl(styleFont),
       FluentVerticalStackPanel(
         "stack-main",
         new FluentTextBlock("pitch", "").modifyControl(styleFont).bindState(this.pitchState, (tb, v) => tb.setText(v)),

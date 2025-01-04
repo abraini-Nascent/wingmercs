@@ -26,7 +26,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
     }
     let duration = 0
     let observer = AppContainer.instance.scene.onAfterRenderObservable.add((scene) => {
-      const dt = scene.getEngine().getDeltaTime()
+      const dt = Math.min(1000, scene.getEngine().getDeltaTime())
       duration += dt
       const scale = duration / 1000
       let target = TmpColors.Color3[0]
@@ -73,7 +73,7 @@ export class AfterburnerTrailsSystem implements IDisposable {
     }
     let duration = 0
     let observer = AppContainer.instance.scene.onAfterRenderObservable.add((scene) => {
-      let dt = scene.getEngine().getDeltaTime()
+      let dt = Math.min(1000, scene.getEngine().getDeltaTime())
       duration += dt
       let start = TmpColors.Color3[0]
       start.set(235 / 255, 113 / 255, 52 / 255)

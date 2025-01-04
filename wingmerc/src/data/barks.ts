@@ -280,6 +280,108 @@ export const barks = {
       sam: "",
     },
   ],
+  taunted: [
+    {
+      english: "Is that the best you've got?",
+      ipa: "/ɪz ðæt ðə bɛst juv ɡɑt?/",
+      sam: "",
+    },
+    {
+      english: "You're gonna have to try harder than that!",
+      ipa: "/jʊr ˈɡʌnə hæv tu traɪ ˈhɑrdər ðæn ðæt!/",
+      sam: "",
+    },
+    {
+      english: "Keep talking while I take you down.",
+      ipa: "/kip ˈtɔkɪŋ waɪl aɪ teɪk ju daʊn./",
+      sam: "",
+    },
+    {
+      english: "I've seen better moves from a cargo drone.",
+      ipa: "/aɪv sin ˈbɛtər muvz frəm ə ˈkɑrɡoʊ droʊn./",
+      sam: "",
+    },
+    {
+      english: "Did your targeting system break?",
+      ipa: "/dɪd jʊr ˈtɑrɡɪtɪŋ ˈsɪstəm breɪk?/",
+      sam: "",
+    },
+    {
+      english: "You call that flying?",
+      ipa: "/ju kɔl ðæt ˈflaɪɪŋ?/",
+      sam: "",
+    },
+    {
+      english: "Come back when you can actually aim.",
+      ipa: "/kʌm bæk wɛn ju kæn ˈækʧuəli eɪm./",
+      sam: "",
+    },
+    {
+      english: "Was that supposed to scare me?",
+      ipa: "/wəz ðæt səˈpoʊzd tu skɛr mi?/",
+      sam: "",
+    },
+    {
+      english: "Too bad your skills don't match your mouth.",
+      ipa: "/tu bæd jʊr skɪlz doʊnt mætʃ jʊr maʊθ./",
+      sam: "",
+    },
+    {
+      english: "Nice try, but you're still going down.",
+      ipa: "/naɪs traɪ, bʌt jʊr stɪl ˈɡoʊɪŋ daʊn./",
+      sam: "",
+    },
+    {
+      english: "You couldn't hit the broad side of a starbase.",
+      ipa: "/ju ˈkʊdənt hɪt ðə brɔd saɪd əv ə ˈstɑrˌbeɪs./",
+      sam: "",
+    },
+    {
+      english: "Is your ship falling apart, or is that your flying?",
+      ipa: "/ɪz jʊr ʃɪp ˈfɔlɪŋ əˈpɑrt, ɔr ɪz ðæt jʊr ˈflaɪɪŋ?/",
+      sam: "",
+    },
+    {
+      english: "You’re making this too easy.",
+      ipa: "/jʊr ˈmeɪkɪŋ ðɪs tu ˈizi./",
+      sam: "",
+    },
+    {
+      english: "I've dodged asteroids tougher than you.",
+      ipa: "/aɪv dɑʤd ˈæstəˌrɔɪdz ˈtʌfər ðæn ju./",
+      sam: "",
+    },
+    {
+      english: "Why don't you just eject already?",
+      ipa: "/waɪ doʊnt ju ʤʌst ɪˈʤɛkt ɔlˈrɛdi?/",
+      sam: "",
+    },
+    {
+      english: "Looks like you're out of your league.",
+      ipa: "/lʊks laɪk jʊr aʊt əv jʊr lig./",
+      sam: "",
+    },
+    {
+      english: "That was pathetic.",
+      ipa: "/ðæt wəz pəˈθɛtɪk./",
+      sam: "",
+    },
+    {
+      english: "Did you forget to turn off autopilot?",
+      ipa: "/dɪd ju fərˈɡɛt tu tɜrn ɔf ˈɔtoʊˌpaɪlət?/",
+      sam: "",
+    },
+    {
+      english: "I could do this all day.",
+      ipa: "/aɪ kʊd du ðɪs ɔl deɪ./",
+      sam: "",
+    },
+    {
+      english: "Better luck next time... if there is one.",
+      ipa: "/ˈbɛtər lʌk nɛkst taɪm... ɪf ðɛr ɪz wʌn./",
+      sam: "",
+    },
+  ],
   hangerLandingRequestGranted: {
     english: "Landing request granted.",
     ipa: "/ˈɔtəˌmeɪtɪd ˈlændɪŋ ˈsɪstəm ɪnˈɡeɪʤd./", // todo this doesnt match english

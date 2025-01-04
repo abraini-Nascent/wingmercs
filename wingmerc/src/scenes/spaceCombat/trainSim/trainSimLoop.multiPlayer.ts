@@ -15,7 +15,7 @@ import { rotationalVelocitySystem } from "../../../world/systems/rotationalVeloc
 import { shieldRechargeSystem } from "../../../world/systems/shipSystems/shieldRechargeSystem"
 import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
 import { Entity, NerdStats, Score, queries, world } from "../../../world/world"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { rand, random } from "../../../utils/random"
 import { CombatHud } from "../hud/spaceCombatHUD"
 import { radarTargetingSystem } from "../../../world/systems/shipSystems/radarTargetingSystem"

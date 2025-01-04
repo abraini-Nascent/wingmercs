@@ -147,7 +147,8 @@ class App {
 
     // run the main render loop
     engine.runRenderLoop(() => {
-      const dt = engine.getDeltaTime()
+      const dt = Math.min(1000, engine.getDeltaTime())
+      // limit dt to a max timestep
       AppContainer.instance.gameScene?.runLoop(dt)
     })
     // Request permission for audio on user interaction

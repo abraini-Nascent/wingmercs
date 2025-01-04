@@ -12,7 +12,7 @@ import {
   Ref,
 } from "../../utils/fluentGui"
 import { Mission } from "../../data/missions/missionData"
-import { generateMissionScreen } from "../../world/missionFactory"
+import { generateMissionScreen } from "../../world/missionFactory.screen"
 import { Color3, Mesh } from "@babylonjs/core"
 import { MercScreen } from "../screen"
 

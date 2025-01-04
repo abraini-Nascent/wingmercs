@@ -25,14 +25,12 @@ import { MovementCommand, AIBlackboard, Entity, world, queries, FireCommand } fr
 import { ManeuverType, ObjectiveType, StateOfConfrontation, StateOfHealth } from "./engagementState"
 import { SteeringBehaviours, SteeringHardTurnClamp, SteeringResult } from "./steeringBehaviours"
 import { TmpVectors, Vector3 } from "@babylonjs/core"
-import { RouletteSelectionStochastic, randFloat, randomItem } from "../../../utils/random"
+import { RouletteSelectionStochastic, randFloat, random, randomItem } from "../../../utils/random"
 import { VeerOffData } from "../../../data/maneuvers/headingManeuvers"
 import { shipDetailsFrom, totalVelocityFrom } from "../../helpers"
 import { SteeringHardNormalizeClamp, SteeringSoftNormalizeClamp } from "./basicSteering"
-import * as Ships from "../../../data/ships"
 import { PilotAIs } from "../../../data/pilotAI/pilotAI"
 import { ExecutionTree } from "../../../data/pilotAI/executionTree"
-import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { MissionType } from "../../../data/missions/missionData"
 import { AppContainer } from "../../../app.container"
 import { barks } from "../../../data/barks"
@@ -40,7 +38,7 @@ import { PlayVoiceSound, VoiceSound } from "../../../utils/speaking"
 import { GunStats } from "../../../data/guns/gun"
 import { debugLog } from "../../../utils/debuglog"
 
-const DEBUG = false
+const DEBUG = true
 
 const PlanarUp = Vector3.Up()
 const BreakFormationPattern = [VeerOffUpRightData, VeerOffUpLeftData, VeerOffDownRightData, VeerOffDownLeftData]
@@ -86,7 +84,18 @@ export function shipIntelligence(entity: Entity) {
       break
   }
 }
-
+export namespace shipIntelligence {
+  export const taunt = (joker: Entity, enemy: Entity): boolean => {
+    if (random() < 0.8) {
+      let targeting = enemy.ai?.blackboard?.targeting
+      if (targeting) {
+        targeting.target = joker.id
+      }
+      VoiceSound(randomItem(barks.taunted).ipa, enemy.voice).then((sound) => PlayVoiceSound(sound, enemy))
+    }
+    return true
+  }
+}
 /****
  * WINGMAN MISSION
  * Follow your wing leader
@@ -481,6 +490,8 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         DEBUG &&
           debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
         break
+      } else {
+        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} no enemy nearby`)
       }
       const missionDetails = entity.missionDetails
       const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
@@ -529,6 +540,17 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} looking out`)
         break
       }
+      const nearbyEnemy = nearestEnemy(entity, PATROL_LOOKOUT_DISTANCE)
+      if (nearbyEnemy) {
+        blackboard.targeting.target = nearbyEnemy.id
+        blackboard.intelligence.tactic = PatrolTactics.ApproachTarget
+        blackboard.lookout = undefined
+        DEBUG &&
+          debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
+        break
+      } else {
+        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} no enemy nearby`)
+      }
       // head back to patrol point
       if (avoidObstaclesManeuver(entity, blackboard)) {
         break
@@ -565,7 +587,7 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         break
       }
       const distanceToTarget = ApproachTarget(entity, blackboard)
-      if (distanceToTarget < 2000) {
+      if (distanceToTarget < 3000) {
         blackboard.intelligence.objective = "Engage"
         blackboard.intelligence.tactic = undefined
         DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Engaging!`)
@@ -674,6 +696,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
       blackboard.intelligence.objective = undefined
       blackboard.intelligence.tactic = undefined
       blackboard.intelligence.maneuver = undefined
+      blackboard.targeting.target = undefined
     }
     return
   }
@@ -693,7 +716,7 @@ const Engage = (entity: Entity, blackboard: AIBlackboard) => {
     if (blackboard.chasing.count > FLEE_CHASE_LIMIT) {
       blackboard.chasing = undefined
       // act like enemy destroyed
-      blackboard.targeting.target == undefined
+      blackboard.targeting.target = undefined
       DEBUG &&
         debugLog(
           `[ShipIntelligence] Ship ${entity.id} veering off, enemy fleed ${blackboard.intelligence.stateOfConfrontation} ${stateOfHealth}`

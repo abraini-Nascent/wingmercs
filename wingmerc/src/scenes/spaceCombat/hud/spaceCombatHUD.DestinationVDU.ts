@@ -131,7 +131,11 @@ export class DestinationVDU implements VDU {
         .subtract(destinationPosition)
         .length()
     )
-    this.destinationDistance.text = `${distance.toString().padStart(5)} m`
+    if (distance < 10000) {
+      this.destinationDistance.text = `${distance.toString().padStart(5)} m`
+    } else {
+      this.destinationDistance.text = `${(distance / 1000).toFixed(0).toString().padStart(5)} k`
+    }
     this.canAuto.isVisible = playerEntity.canAutopilot
   }
 }

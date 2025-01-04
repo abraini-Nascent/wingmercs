@@ -207,21 +207,29 @@ export class StatsHud {
     }
   }
 
+  ejectLimit = false
+  ejecting = false
   ejectWarn() {
     const playerEntity = AppContainer.instance.player.playerEntity
-    if (playerEntity.health.current < playerEntity.health.base / 2) {
-      if (this.ejectWarning == undefined) {
+    if (this.ejectLimit == false && playerEntity.health.current < playerEntity.health.base / 2) {
+      if (this.ejecting == false && this.ejectWarning == undefined) {
+        this.ejecting = true
         VoiceSound("bɑmp bɑmp bɑmp ɪˈdʒɛkt ɪˈdʒɛkt ɪˈdʒɛkt ", undefined).then((sound) => {
           this.ejectWarning = sound
           if (this.ejectWarning) {
             this.ejectWarning.loop = true
             this.ejectWarning.play()
           }
+          setTimeout(() => {
+            this.ejectLimit = true
+          }, 5000)
         })
       }
     } else {
       if (this.ejectWarning != undefined) {
-        SoundEffects.Silience(this.ejectWarning)
+        this.ejectWarning.loop = false
+        this.ejectWarning.stop()
+        this.ejectWarning.dispose()
         this.ejectWarning = undefined
       }
     }

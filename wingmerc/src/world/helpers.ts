@@ -2,7 +2,7 @@ import { Matrix, Quaternion, TmpVectors, Vector3 } from "@babylonjs/core"
 import { Entity } from "./world"
 import { QuaternionFromObj, Vector3FromObj } from "../utils/math"
 import { ShipTemplate } from "../data/ships/shipTemplate"
-import * as Ships from "../data/ships"
+import { Ships } from "../data/ships"
 import * as Guns from "../data/guns"
 import { Weapons } from "../data/weapons"
 

@@ -11,6 +11,11 @@ export const Rapier: ShipTemplate = Object.seal({
     base: "craftSpeederB",
     physics: "craftSpeederBHull",
     shield: "craftSpeederBHull",
+    cockpitOffset: {
+      x: 0,
+      y: -1,
+      z: 5,
+    },
     trails: [
       {
         start: {

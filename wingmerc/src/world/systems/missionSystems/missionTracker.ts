@@ -17,11 +17,12 @@ import { createCustomShip } from "../../factories"
 import { rotateTowardsPoint } from "../../helpers"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { PlayerAgent } from "../../../agents/playerAgent"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { LoadAsteroidField } from "./missionHazards"
 import { powerPlantRecharge } from "../shipSystems/engineRechargeSystem"
 import { shieldRecharge } from "../shipSystems/shieldRechargeSystem"
 import { debugLog } from "../../../utils/debuglog"
+import { random } from "../../../utils/random"
 
 /** TODOS:
  * [] when an entity is defeated, find it's active encounter and move it from active to defeated set
@@ -190,9 +191,15 @@ export class MissionTracker implements IDisposable {
           } else {
             debugLog("[MissionTracker] spawning encounter", encounter, "wave", encounterWave)
             // spawn the encounter
-            let team = encounterWave.teamId == "Friendly" ? 1 : 3
+            const team = encounterWave.teamId == "Friendly" ? 1 : 3
             let leader: Entity = undefined
             let curPos = new Vector3(encounterPosition.x, encounterPosition.y, encounterPosition.z)
+            // offset a random direction 5k
+            let randomOffset = TmpVectors.Vector3[2]
+              .set(random(), random(), random())
+              .normalize()
+              .multiplyInPlace(TmpVectors.Vector3[3].set(5000, 5000, 5000))
+            curPos.addInPlace(randomOffset)
             let shipTemplate = Ships[encounterWave.shipClass]
             if (shipTemplate == undefined) {
               console.error(`Could not find ship of class ${encounterWave.shipClass} for encounter:`, encounterWave)
@@ -207,14 +214,7 @@ export class MissionTracker implements IDisposable {
               } else {
                 offset = new Vector3(50, 0, 0)
               }
-              let ship = createCustomShip(
-                shipTemplate,
-                encounterPosition.x,
-                encounterPosition.y,
-                encounterPosition.z,
-                team,
-                group
-              )
+              let ship = createCustomShip(shipTemplate, curPos.x, curPos.y, curPos.z, team, group)
               if (leader != undefined) {
                 curPos.addInPlace(offset)
               } else {
@@ -224,10 +224,9 @@ export class MissionTracker implements IDisposable {
               ship.position.y = curPos.y
               ship.position.z = curPos.z
               world.addComponent(ship, "missionDetails", structuredClone(encounterWave.missionDetails))
-              debugLog("[MissionTracker] spawned ship", ship)
+              debugLog(`[MissionTracker] spawned ship wave ${encounter.nextWave - 1} ship ${i + 1}`, ship)
               this.enemiesEncounters.set(ship.id, encounter.id)
               encounter.activeEntities.add(ship.id)
-              break
             }
           }
         }

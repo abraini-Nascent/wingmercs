@@ -16,6 +16,7 @@ export class DisposableBag {
 
   public dispose(): void {
     this.disposables.forEach((disposable) => {
+      console.log("[DisposeBag] disposing", disposable)
       disposable.dispose()
       this.disposables.delete(disposable)
     })

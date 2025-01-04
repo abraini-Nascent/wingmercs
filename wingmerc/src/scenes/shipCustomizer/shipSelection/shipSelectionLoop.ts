@@ -5,7 +5,7 @@ import { ShipSelectionScreen } from "./shipSelectionScreen"
 import { IDisposable } from "@babylonjs/core"
 import { MeshedSystem } from "../../../world/systems/renderSystems/meshedSystem"
 import { CreateEntity, Entity, world } from "../../../world/world"
-import * as Ships from "../../../data/ships"
+import { Ships } from "../../../data/ships"
 import { ShipTemplate } from "../../../data/ships/shipTemplate"
 import { debugLog } from "../../../utils/debuglog"
 

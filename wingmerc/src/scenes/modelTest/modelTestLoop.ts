@@ -18,7 +18,7 @@ import {
 } from "@babylonjs/core"
 import { ToRadians } from "../../utils/math"
 import { updateRenderSystem } from "../../world/systems/renderSystems/updateRenderSystem"
-import * as Ships from "../../data/ships"
+import { Ships } from "../../data/ships"
 import { ObjModels } from "../../assetLoader/objModels"
 import { world } from "../../world/world"
 import { UpdatePhysicsSystem } from "../../world/systems/renderSystems/updatePhysicsSystem"

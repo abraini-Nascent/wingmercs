@@ -34,17 +34,19 @@ export type ObjectiveDetails = {
   objectivesComplete?: Objective[]
 }
 
-export type SubObjectiveTypes = "Escort" | "Destroy" | "Defend" | "Navigate" | "Patrol"
+export type ObjectiveType = "Escort" | "Destroy" | "Defend" | "Navigate" | "Patrol"
 export type Targets = "Waypoints" | "Capital Ship" | "Enemy Fighters"
 export interface ObjectiveStep {
   /** A unique id number so we can reference this sub objective */
   id: number
-  /** Sub-objective type (e.g., "Escort", "Repair", "Destroy", "Defend") */
-  type: SubObjectiveTypes
+  /** Objective type (e.g., "Escort", "Repair", "Destroy", "Defend") */
+  type: ObjectiveType
   /** Any encounters that a required to pass to complete the objective */
   encounters?: number[]
   /** Specific location for the sub-objective (e.g., "Nav Point 1") */
   location?: LocationPoint
+  /** Success value, how much will you get paid for this objective step */
+  value?: number
 }
 
 export interface Objective {
@@ -59,23 +61,26 @@ export interface Objective {
 }
 export type EncounterFormation = "V-Formation" | "Line" | "Random"
 export type EncounterTeam = "Friendly" | "Neutral" | "Enemy"
+export type EncounterWave = {
+  /** Type of enemy ship (e.g., "Fighter", "Bomber", "Capital Ship") */
+  shipClass: string
+  /** Number of enemies */
+  quantity: number
+  /** Formation type (e.g., "V-Formation", "Line", "Random") */
+  formation: EncounterFormation
+  /** Team ID to denote friendly, neutral, or enemy (e.g., "Friendly", "Neutral", "Enemy") */
+  teamId: EncounterTeam
+  /** The mission the ships at the encounter should be running */
+  missionDetails: MissionDetails
+}
 export interface Encounter {
   /** unique id for the encounter so we can keep track of it */
   id: number
   /** Location point where the encounter occurs */
   location: LocationPoint
-  waves: {
-    /** Type of enemy ship (e.g., "Fighter", "Bomber", "Capital Ship") */
-    shipClass: string
-    /** Number of enemies */
-    quantity: number
-    /** Formation type (e.g., "V-Formation", "Line", "Random") */
-    formation: EncounterFormation
-    /** Team ID to denote friendly, neutral, or enemy (e.g., "Friendly", "Neutral", "Enemy") */
-    teamId: EncounterTeam
-    /** The mission the ships at the encounter should be running */
-    missionDetails: MissionDetails
-  }[]
+  /** any extra data about the encounter */
+  meta?: any
+  waves: EncounterWave[]
 }
 
 export type EnvironmentHazard = "Asteroids" | "Nebula" | "Radiation"

@@ -121,7 +121,6 @@ export class InstantActionSetupScene implements GameScene, IDisposable {
     })
     queries.campaign.onEntityRemoved.subscribe((entity) => {
       debugLog("removing", entity)
-      debugger
     })
     this.missionSelectScreen = new MissionSelectRetroScreen([
       generateMission(20),
