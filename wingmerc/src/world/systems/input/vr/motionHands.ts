@@ -21,6 +21,7 @@ const HandPointer = 130
 const HandOpen = 131
 
 const GestureDistance = 0.05
+const InteractionDisance = 0.1
 
 const DEBUG = false
 
@@ -55,6 +56,8 @@ export class MotionHands implements IDisposable {
   rightMaterial: StandardMaterial
   leftHandType: number = 2
   rightHandType: number = 2
+  leftHandNearInteraction = false
+  rightHandNearInteraction = false
 
   handsTexture: Texture
 
@@ -92,16 +95,28 @@ export class MotionHands implements IDisposable {
   }
 
   update(dt) {
+    this.checkInteraction()
     this.checkXR()
+  }
+
+  checkInteraction() {
     if (this.inXR) {
       // TODO debouce?
       // TODO separate collision tick vs framerate
       let leftPointerPosition = this.leftPointer.absolutePosition
       let rightPointerPosition = this.rightPointer.absolutePosition
+      this.leftHandNearInteraction = false
+      this.rightHandNearInteraction = false
       for (let collisionCheck of this.collisionChecks) {
         let buttonWorldPosition = collisionCheck.mesh.getAbsolutePosition()
         let leftDistance = leftPointerPosition.subtract(buttonWorldPosition).length()
         let rightDistance = rightPointerPosition.subtract(buttonWorldPosition).length()
+        if (leftDistance < InteractionDisance) {
+          this.leftHandNearInteraction = true
+        }
+        if (rightDistance < InteractionDisance) {
+          this.rightHandNearInteraction = true
+        }
         if (leftDistance - collisionCheck.radius < 0.01 || rightDistance - collisionCheck.radius < 0.01) {
           switch (collisionCheck.state) {
             case MotionHandCollision.State.outside:
@@ -239,6 +254,12 @@ export class MotionHands implements IDisposable {
         spriteIndex = 0 // thumbs up
       } else if (!squeeze && thumbrest && !trigger) {
         spriteIndex = 5 // thumbs down fingers out
+      }
+      if (motion.handedness == "left" && this.leftHandNearInteraction) {
+        spriteIndex = 4 // point
+      }
+      if (motion.handedness == "right" && this.rightHandNearInteraction) {
+        spriteIndex = 4 // point
       }
       if (handType != spriteIndex) {
         if (motion.handedness == "left") {

@@ -21,9 +21,7 @@ export function CommunicationsOptions(ship: Entity): Array<{ label: string; acti
     const targetedShip = EntityForId(ship.targeting?.target)
 
     // Wing members (same team and group as the player)
-    const wingMembers = world.entities.filter(
-      (entity) => entity.teamId === ship.teamId && entity.groupId === ship.groupId && entity.id !== ship.id
-    )
+    const wingMembers = world.entities.filter((entity) => entity.teamId === ship.teamId && entity.id !== ship.id)
 
     // Nearby hangar bay (in range, e.g., within 1000 units)
     const nearbyHangars = queries.carriers.entities.filter(
@@ -58,14 +56,47 @@ export function CommunicationsOptions(ship: Entity): Array<{ label: string; acti
   debugLog("[communications] commShip", commShip)
   if (commShip.hangerBay) {
     debugLog("[communications] commShip has hangerBay", commShip.hangerBay)
-    communicationOptions.push({ label: "Request Landing", action: () => requestLanding(ship, commShip) })
-    communicationOptions.push({ label: "Close Comms", action: () => closeComms(ship) })
+    communicationOptions.push({
+      label: "Request Landing",
+      action: () => {
+        requestLanding(ship, commShip)
+      },
+    })
+    communicationOptions.push({
+      label: "Close Comms",
+      action: () => {
+        closeComms(ship)
+      },
+    })
   } else if (commShip.teamId != ship.teamId) {
     debugLog("[communications] commShip is enemy", commShip.hangerBay)
-    communicationOptions.push({ label: "Taunt", action: () => tauntEnemy(ship, commShip) })
-    communicationOptions.push({ label: "Close Comms", action: () => closeComms(ship) })
+    communicationOptions.push({
+      label: "Taunt",
+      action: () => {
+        tauntEnemy(ship, commShip)
+      },
+    })
+    communicationOptions.push({
+      label: "Close Comms",
+      action: () => {
+        closeComms(ship)
+      },
+    })
   } else if (commShip.teamId == ship.teamId && commShip.groupId == ship.groupId) {
     return openWingCommands(ship, commShip)
+  } else {
+    communicationOptions.push({
+      label: "Join my wing",
+      action: () => {
+        joinMyWing(ship, commShip)
+      },
+    })
+    communicationOptions.push({
+      label: "Close Comms",
+      action: () => {
+        closeComms(ship)
+      },
+    })
   }
   return communicationOptions
 }
@@ -102,13 +133,33 @@ function tauntEnemy(ship: Entity, enemy: Entity) {
 
 function openWingCommands(wingLeader: Entity, wingMember: Entity) {
   const wingCommands = [
-    { label: "Break and Engage", action: () => breakAndEngage(wingMember) },
+    {
+      label: "Break and Engage",
+      action: () => {
+        breakAndEngage(wingLeader, wingMember)
+      },
+    },
     // TODO: if targeted ship is friendly change this to "Guard my target"
-    { label: "Attack My Target", action: () => attackMyTarget(wingLeader, wingMember) },
-    { label: "Help Me Out", action: () => helpMeOut(wingMember) },
-    { label: "Follow My Lead", action: () => followMyLead(wingMember) },
-    { label: "Retreat", action: () => retreat(wingMember) },
-    { label: "Close Comms", action: () => closeComms(wingLeader) },
+    {
+      label: "Attack My Target",
+      action: () => {
+        attackMyTarget(wingLeader, wingMember)
+      },
+    },
+    // { label: "Help Me Out", action: () => helpMeOut(wingLeader, wingMember) },
+    {
+      label: "Follow My Lead",
+      action: () => {
+        followMyLead(wingLeader, wingMember)
+      },
+    },
+    // { label: "Retreat", action: () => retreat(wingLeader, wingMember) },
+    {
+      label: "Close Comms",
+      action: () => {
+        closeComms(wingLeader)
+      },
+    },
   ]
 
   return wingCommands
@@ -119,35 +170,36 @@ function closeAfterAction(ship: Entity, action: () => void) {
   closeComms(ship)
 }
 
-function breakAndEngage(wingMember: Entity) {
-  debugLog(`${wingMember.targetName} breaking and engaging!`)
-  // Clear target, change mission to "Engage"
+function joinMyWing(ship: Entity, enemy: Entity) {
+  debugLog(`[Comms] ship ${ship.targetName} joining group ${enemy.targetName}`)
+  shipIntelligence.joinMyWing(ship, enemy)
+  closeComms(ship)
+}
+
+function breakAndEngage(wingLeader: Entity, wingMember: Entity) {
+  debugLog(`[Comms] ${wingMember.targetName} breaking and engaging!`)
+  shipIntelligence.breakAndEngage(wingLeader, wingMember)
 }
 
 function attackMyTarget(wingLeader: Entity, wingMember: Entity) {
-  debugLog(`${wingMember.targetName} attacking my target!`)
-  // Get the player's target and assign it to the wing member
-  // Change mission to "Engage"
-  const target = wingLeader.targeting?.target
-  if (target) {
-    if (wingMember.targeting) {
-      wingMember.targeting.target = target
-    }
-  }
+  debugLog(`[Comms] ${wingMember.targetName} attacking my target!`)
+  shipIntelligence.attackMyTarget(wingLeader, wingMember)
+  closeComms(wingLeader)
 }
 
-function helpMeOut(wingMember: Entity) {
-  debugLog(`${wingMember.targetName} helping out!`)
-  // Target enemy targeting the wingleader that is the closest to the wingleader
-  // Change mission to "Engage"
+function helpMeOut(wingLeader: Entity, wingMember: Entity) {
+  debugLog(`[Comms] ${wingMember.targetName} helping out!`)
+  shipIntelligence.attackMyTarget(wingLeader, wingMember)
+  closeComms(wingLeader)
 }
 
-function followMyLead(wingMember: Entity) {
-  debugLog(`${wingMember.targetName} following my lead!`)
-  // Clear target, change mission to "Hold Fire"
+function followMyLead(wingLeader: Entity, wingMember: Entity) {
+  debugLog(`[Comms] ${wingMember.targetName} following my lead!`)
+  shipIntelligence.followMyLead(wingLeader, wingMember)
+  closeComms(wingLeader)
 }
 
-function retreat(wingMember: Entity) {
+function retreat(wingLeader: Entity, wingMember: Entity) {
   debugLog(`${wingMember.targetName} retreating!`)
   // Clear target, change mission to "Flee"
 }

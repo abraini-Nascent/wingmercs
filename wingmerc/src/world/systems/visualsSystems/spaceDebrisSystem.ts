@@ -240,7 +240,13 @@ export class SpaceDebrisSystem implements IDisposable {
           5,
           500
         )
-      } else if ((!player || player.inHazard == undefined || player.inHazard.nebula == false) && this.nebula) {
+      } else if (
+        (!player ||
+          player.inHazard == undefined ||
+          player.inHazard.nebula == undefined ||
+          player.inHazard.nebula == false) &&
+        this.nebula
+      ) {
         this.nebula.dispose()
         this.nebula = undefined
       }
@@ -255,7 +261,13 @@ export class SpaceDebrisSystem implements IDisposable {
           5,
           500
         )
-      } else if ((!player || player.inHazard == undefined || player.inHazard.radiation == false) && this.radiation) {
+      } else if (
+        (!player ||
+          player.inHazard == undefined ||
+          player.inHazard.radiation == undefined ||
+          player.inHazard.radiation == false) &&
+        this.radiation
+      ) {
         this.radiation.dispose()
         this.radiation = undefined
       }

@@ -58,7 +58,11 @@ export function missileSteeringSystem(dt: number) {
     }
     // steer the missile
     // TODO: I think this should be a generic "guided" property
-    if (weaponClass.weaponType == "heatseeking") {
+    if (
+      weaponClass.weaponType == "heatseeking" ||
+      weaponClass.weaponType == "friendorfoe" ||
+      weaponClass.weaponType == "imagerecognition"
+    ) {
       const target = EntityForId(missileRange.target)
       if (target == undefined) {
         // maybe the target deaded?

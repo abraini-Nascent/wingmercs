@@ -354,6 +354,10 @@ function generateObjectivesAndEncounters(
   ]
 
   const possibleLocations = [...locations]
+  const locationIndexMap = new Map()
+  possibleLocations.forEach((location, index) => {
+    locationIndexMap.set(location, index)
+  })
   const objectives: Objective[] = []
   const encounters: Encounter[] = []
 
@@ -369,7 +373,7 @@ function generateObjectivesAndEncounters(
 
       const locationIdx = Math.floor(Math.random() * possibleLocations.length)
       const location = possibleLocations.splice(locationIdx, 1)[0]
-      const locationId = location.id
+      const locationId = locationIndexMap.get(location)
       const nextLocation = locations[(locationId + 1) % locations.length]
       const prevLocation = locations.at((locationId - 1) % locations.length)
       const value = Math.ceil(Math.random() * (difficulty / 10)) * 10000
@@ -415,7 +419,7 @@ function generateObjectivesAndEncounters(
 function generateEnvironment(difficulty: DifficultyLevel, locations: LocationPoint[]): Environment[] {
   const possibleLocations = [...locations]
   const possibleHazards: EnvironmentHazard[] = ["Asteroids", "Nebula", "Radiation"]
-  const numHazards = Math.floor(difficulty / 30) // More hazards with higher difficulty
+  const numHazards = Math.max(1, Math.floor(difficulty / 30)) // More hazards with higher difficulty
   const setHazards: Environment[] = []
   for (let i = 0; i < numHazards; i += 1) {
     let possibleLocationId = rand(0, possibleLocations.length - 1)

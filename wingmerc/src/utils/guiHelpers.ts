@@ -1,7 +1,43 @@
 import * as GUI from "@babylonjs/gui"
-import { Color4, DynamicTexture, ICanvasRenderingContext, Observable, Observer } from "@babylonjs/core";
-import Yoga, { Node, Edge, FlexDirection, PositionType, MeasureFunction, MeasureMode, Unit, Direction } from 'yoga-layout';
+import { Color4, DynamicTexture, Engine, ICanvasRenderingContext, Observable, Observer } from "@babylonjs/core"
+import Yoga, {
+  Node,
+  Edge,
+  FlexDirection,
+  PositionType,
+  MeasureFunction,
+  MeasureMode,
+  Unit,
+  Direction,
+} from "yoga-layout"
 
+export function setIdealSize(
+  engine: Engine,
+  advancedTexture: GUI.AdvancedDynamicTexture,
+  designWidth: number,
+  designHeight: number
+) {
+  const screenWidth = engine.getRenderWidth()
+  const screenHeight = engine.getRenderHeight()
+
+  // Calculate aspect ratios
+  const designAspectRatio = designWidth / designHeight
+  const screenAspectRatio = screenWidth / screenHeight
+
+  // Determine whether to scale by width or height
+  if (screenAspectRatio > designAspectRatio) {
+    // Screen is wider than the content, scale by height
+    advancedTexture.idealHeight = designHeight
+    advancedTexture.idealWidth = Math.round(designHeight * screenAspectRatio)
+  } else {
+    // Screen is narrower, scale by width
+    advancedTexture.idealWidth = designWidth
+    advancedTexture.idealHeight = Math.round(designWidth / screenAspectRatio)
+  }
+
+  // Enable scaling
+  advancedTexture.useSmallestIdeal = false
+}
 export class TintedImage extends GUI.Image {
   private _tint: Color4
   constructor(name?: string, url?: string) {
@@ -23,36 +59,36 @@ export class TintedImage extends GUI.Image {
     //  Preserves the luma of the bottom layer, while adopting the hue and chroma of the top layer.
     // multiply
     //  The pixels of the top layer are multiplied with the corresponding pixel of the bottom layer. A darker picture is the result.
-    let cutoutCanvas = document.createElement('canvas');
-    let cutoutContext = cutoutCanvas.getContext('2d');
+    let cutoutCanvas = document.createElement("canvas")
+    let cutoutContext = cutoutCanvas.getContext("2d")
     cutoutCanvas.width = this.imageWidth
-    cutoutCanvas.height = this.imageHeight;
+    cutoutCanvas.height = this.imageHeight
     // fill offscreen buffer with the tint color
-    cutoutContext.fillStyle = this._tint.toHexString();
-    cutoutContext.fillRect(0,0,cutoutCanvas.width,cutoutCanvas.height);
+    cutoutContext.fillStyle = this._tint.toHexString()
+    cutoutContext.fillRect(0, 0, cutoutCanvas.width, cutoutCanvas.height)
     // console.log(`--- color ${this._tint.toHexString()} background ---`)
     // console.log(cutoutCanvas.toDataURL())
     // console.log("--- color background ---")
-    // now we have a context filled with the tint color 
-    cutoutContext.globalCompositeOperation='destination-atop';
-    cutoutContext.drawImage(this.domImage as CanvasImageSource, 0, 0);
+    // now we have a context filled with the tint color
+    cutoutContext.globalCompositeOperation = "destination-atop"
+    cutoutContext.drawImage(this.domImage as CanvasImageSource, 0, 0)
     // console.log("--- color cutout ---")
     // console.log(cutoutCanvas.toDataURL())
     // console.log("--- color cutout ---")
     // now we cut out the greyscale image and have just the cutout left
     let imageCanvas = document.createElement("canvas")
-    let imageCanvasContext = imageCanvas.getContext('2d');
-    imageCanvas.width = this.imageWidth;
-    imageCanvas.height = this.imageHeight;
-    imageCanvasContext.drawImage(this.domImage as CanvasImageSource, 0, 0);
+    let imageCanvasContext = imageCanvas.getContext("2d")
+    imageCanvas.width = this.imageWidth
+    imageCanvas.height = this.imageHeight
+    imageCanvasContext.drawImage(this.domImage as CanvasImageSource, 0, 0)
     // console.log("--- greyscale ---")
     // console.log(imageCanvas.toDataURL())
     // console.log("--- greyscale ---")
     // now we have the greyscale on the image canvas
-    imageCanvasContext.globalCompositeOperation="multiply";
+    imageCanvasContext.globalCompositeOperation = "multiply"
     // imageCanvasContext.fillStyle = this._tint.toHexString();
     // imageCanvasContext.fillRect(0,0,imageCanvas.width,imageCanvas.height);
-    imageCanvasContext.drawImage(cutoutCanvas, 0, 0);
+    imageCanvasContext.drawImage(cutoutCanvas, 0, 0)
     // now we have a tinted image on the image canvas
     // is there no faster way than this?
     // console.log("--- tinted image ---")
@@ -63,7 +99,6 @@ export class TintedImage extends GUI.Image {
 }
 
 export class TextSizeAnimationComponent {
-
   textblock: GUI.TextBlock
   startSize: number
   endSize: number
@@ -72,7 +107,7 @@ export class TextSizeAnimationComponent {
   complete: () => void
 
   /**
-   * 
+   *
    * @param text the next for the text block
    * @param color the color for the textblock
    * @param startSize the start size in pixels
@@ -80,7 +115,14 @@ export class TextSizeAnimationComponent {
    * @param timeLength the length of time to lerp from start to end in milliseconds
    * @param complete a callback called at the end of the animation
    */
-  constructor (text: string, color: string, startSize: number, endSize: number, timeLength: number, complete?: () => void) {
+  constructor(
+    text: string,
+    color: string,
+    startSize: number,
+    endSize: number,
+    timeLength: number,
+    complete?: () => void
+  ) {
     this.startSize = startSize
     this.endSize = endSize
     this.timeLength = timeLength
@@ -112,7 +154,6 @@ export class TextSizeAnimationComponent {
 }
 
 export class DynamicTextureImage extends GUI.Rectangle {
-    
   private _dynamicTexture: DynamicTexture
 
   get dynamicTexture() {
@@ -120,8 +161,8 @@ export class DynamicTextureImage extends GUI.Rectangle {
   }
 
   constructor(name: string, source: DynamicTexture) {
-      super(name) 
-      this._dynamicTexture = source
+    super(name)
+    this._dynamicTexture = source
   }
 
   protected _localDraw(context: ICanvasRenderingContext): void {
@@ -129,16 +170,54 @@ export class DynamicTextureImage extends GUI.Rectangle {
     const sourceCtx = this._dynamicTexture.getContext()
     const canvas = sourceCtx.canvas
     context.save()
-    context.drawImage(canvas, this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height)
-    context.restore();
+    context.drawImage(
+      canvas,
+      this._currentMeasure.left,
+      this._currentMeasure.top,
+      this._currentMeasure.width,
+      this._currentMeasure.height
+    )
+    context.restore()
   }
 }
 
 const debug = true
-export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from 'yoga-layout';
-export type FlexContainerNode = Omit<Node, "free" | "freeRecursive" | "calculateLayout" | "getAspectRatio" |"getBorder" |"getChild" |"getChildCount" |"getComputedBorder" |"getComputedBottom" |"getComputedHeight" |"getComputedLayout" |"getComputedLeft" |"getComputedMargin" |"getComputedPadding" |"getComputedRight" |"getComputedTop" |"getComputedWidth" | "getParent" | "insertChild" | "isDirty" | "isReferenceBaseline" | "markDirty" | "hasNewLayout" | "markLayoutSeen" | "removeChild" | "reset" | "setDirtiedFunc" | "setMeasureFunc" | "unsetDirtiedFunc" | "unsetMeasureFunc">
+export { Align, Edge, FlexDirection, Gutter, Justify, PositionType } from "yoga-layout"
+export type FlexContainerNode = Omit<
+  Node,
+  | "free"
+  | "freeRecursive"
+  | "calculateLayout"
+  | "getAspectRatio"
+  | "getBorder"
+  | "getChild"
+  | "getChildCount"
+  | "getComputedBorder"
+  | "getComputedBottom"
+  | "getComputedHeight"
+  | "getComputedLayout"
+  | "getComputedLeft"
+  | "getComputedMargin"
+  | "getComputedPadding"
+  | "getComputedRight"
+  | "getComputedTop"
+  | "getComputedWidth"
+  | "getParent"
+  | "insertChild"
+  | "isDirty"
+  | "isReferenceBaseline"
+  | "markDirty"
+  | "hasNewLayout"
+  | "markLayoutSeen"
+  | "removeChild"
+  | "reset"
+  | "setDirtiedFunc"
+  | "setMeasureFunc"
+  | "unsetDirtiedFunc"
+  | "unsetMeasureFunc"
+>
 export class FlexContainer {
-  private _node = Yoga.Node.create();
+  private _node = Yoga.Node.create()
   private _dirty: boolean = false
   name: string
   host: GUI.AdvancedDynamicTexture | GUI.Container
@@ -156,10 +235,10 @@ export class FlexContainer {
     this._node.setFlexDirection(direction)
     this.host = host
     this.name = name
-    this._container = container ?? new GUI.Rectangle(`${name??"FlexContainer"}_background`)
+    this._container = container ?? new GUI.Rectangle(`${name ?? "FlexContainer"}_background`)
     this._container.horizontalAlignment = GUI.Container.HORIZONTAL_ALIGNMENT_LEFT
     this._container.verticalAlignment = GUI.Container.VERTICAL_ALIGNMENT_TOP
-    if ('thickness' in this._container) {
+    if ("thickness" in this._container) {
       this._container.thickness = debug ? 1 : 0
     }
     if (this.host == undefined) {
@@ -191,7 +270,7 @@ export class FlexContainer {
     this._container.heightInPixels = this.height
     this._container.widthInPixels = this.width
   }
-  
+
   addControl(control: GUI.Control | FlexContainer | FlexItem): FlexContainer {
     // start implementation from Control parent
     if (!control) {
@@ -201,7 +280,7 @@ export class FlexContainer {
     if (control instanceof FlexContainer) {
       const index = this._children.indexOf(control)
       if (index !== -1) {
-          return this
+        return this
       }
       this._children.push(control)
       this._node.insertChild(control.style as Node, this._children.length - 1)
@@ -238,15 +317,15 @@ export class FlexContainer {
     this._node.insertChild(newItem.node, this._children.length - 1)
     this.host.addControl(control)
 
-    return this;
+    return this
   }
 
   /** returns the removed control or undfein*/
   removeControl(control: GUI.Control | FlexContainer | FlexItem): FlexContainer | FlexItem | undefined {
-    let index = this._children.indexOf(control);
+    let index = this._children.indexOf(control)
 
     if (index !== -1) {
-      let child = this._children.splice(index, 1)[0];
+      let child = this._children.splice(index, 1)[0]
       if (control instanceof FlexContainer) {
         this._node.removeChild(control.style as Node)
       }
@@ -268,11 +347,11 @@ export class FlexContainer {
       return child
     }
 
-    return undefined;
+    return undefined
   }
 
   get children() {
-    return new Array(...this._children) as (FlexContainer|FlexItem)[]
+    return new Array(...this._children) as (FlexContainer | FlexItem)[]
   }
 
   layout() {
@@ -289,9 +368,12 @@ export class FlexContainer {
     this._updateBackground()
 
     if (debug)
-      console.log(`${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`)
-    const queue: {parent: FlexContainer, child: FlexContainer | FlexItem}[] = 
-    this._children.map((child) => { return { parent: this, child } })
+      console.log(
+        `${this.name}, \r\ntop:${this.top} / left:${this.left} \r\nheight:${this.height} / width:${this.width}\r\n---`
+      )
+    const queue: { parent: FlexContainer; child: FlexContainer | FlexItem }[] = this._children.map((child) => {
+      return { parent: this, child }
+    })
     while (queue.length > 0) {
       let next = queue.shift()
       if (next.child instanceof FlexContainer) {
@@ -306,13 +388,15 @@ export class FlexContainer {
         const width = container._node.getComputedWidth()
         container.height = height
         container.width = width
-        
+
         if (debug)
-          console.log(`${container.name}-container, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`)
+          console.log(
+            `${container.name}-container, \r\ntop:${container.top} / left:${container.left} \r\nheight:${container.height} / width:${container.width}\r\n---`
+          )
         const newItems = container._children.map((item) => {
           return {
             parent: container as FlexContainer,
-            child: item as FlexContainer | FlexItem
+            child: item as FlexContainer | FlexItem,
           }
         })
         queue.push(...newItems)
@@ -323,15 +407,23 @@ export class FlexContainer {
         control.leftInPixels = next.child.node.getComputedLeft()
         if (debug) {
           console.log(`${control.name}-parent-node, \r\ntop:${next.parent.top} / left:${next.parent.left}`)
-          console.log(`${control.name}-child-node, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`)
-          console.log(`${control.name}-item, \r\ntop:${control.topInPixels} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`)
+          console.log(
+            `${
+              control.name
+            }-child-node, \r\ntop:${next.child.node.getComputedTop()} / left:${next.child.node.getComputedLeft()}`
+          )
+          console.log(
+            `${control.name}-item, \r\ntop:${control.topInPixels} / left:${control.leftInPixels} \r\nheight:${control.heightInPixels} / width:${control.widthInPixels}\r\n---`
+          )
         }
       }
     }
   }
 
-  static CreateScrollView(name: string = "scrollViewContainer", parent: FlexContainer, direction: "vertical" |
-     "horizontal" | "both" = "vertical"
+  static CreateScrollView(
+    name: string = "scrollViewContainer",
+    parent: FlexContainer,
+    direction: "vertical" | "horizontal" | "both" = "vertical"
   ): FlexContainer {
     /**
      * (parent)[container]
@@ -368,16 +460,15 @@ export class FlexContainer {
     })
     return newRoot
   }
-  
+
   markDirty() {
     this._dirty = true
   }
 }
 
 export class FlexItem {
-
   item: GUI.Control
-  node = Yoga.Node.create();
+  node = Yoga.Node.create()
   name: string
   dirtyObserver: Observer<GUI.Control>
   /** override calculated height */
@@ -390,24 +481,26 @@ export class FlexItem {
     control.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
     control.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT
     this.name = name
-    this.node.setMeasureFunc((
-      width: number,
-      widthMode: MeasureMode,
-      height: number,
-      heightMode: MeasureMode,
-    ): {
-      width: number,
-      height: number
-    } => {
-      const size = this.getMeasure(width, widthMode, height, heightMode)
-      if (this.width != undefined) {
-        size.width = this.width
+    this.node.setMeasureFunc(
+      (
+        width: number,
+        widthMode: MeasureMode,
+        height: number,
+        heightMode: MeasureMode
+      ): {
+        width: number
+        height: number
+      } => {
+        const size = this.getMeasure(width, widthMode, height, heightMode)
+        if (this.width != undefined) {
+          size.width = this.width
+        }
+        if (this.height != undefined) {
+          size.height = this.height
+        }
+        return size
       }
-      if (this.height != undefined) {
-        size.height = this.height
-      }
-      return size
-    })
+    )
     this.dirtyObserver = this.item.onDirtyObservable.add(() => {
       setTimeout(() => {
         // wait for render cycle to finish
@@ -422,21 +515,21 @@ export class FlexItem {
     _width: number,
     _widthMode: MeasureMode,
     _height: number,
-    _heightMode: MeasureMode,
+    _heightMode: MeasureMode
   ): {
-    width: number,
+    width: number
     height: number
   } => {
     let control = this.item
     if (control != undefined) {
       return {
         width: control.widthInPixels,
-        height: control.heightInPixels
+        height: control.heightInPixels,
       }
     } else {
       return {
         width: 0,
-        height: 0
+        height: 0,
       }
     }
   }
@@ -462,7 +555,6 @@ export class FlexItem {
 }
 
 export class FlexScrollview {
-
   constructor() {
     const scrollView = new GUI.ScrollViewer("scroll1")
     scrollView.wheelPrecision = 1
@@ -483,7 +575,7 @@ export class FlexScrollview {
 }
 
 export function resizeToFitTextBlock(flexItem: FlexItem, textBlock?: GUI.TextBlock) {
-  const text = textBlock ?? flexItem.item as GUI.TextBlock
+  const text = textBlock ?? (flexItem.item as GUI.TextBlock)
   text.resizeToFit = true
   text.forceResizeWidth = true
   text.onAfterDrawObservable.addOnce(() => {

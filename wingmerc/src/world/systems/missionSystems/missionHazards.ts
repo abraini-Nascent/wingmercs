@@ -61,7 +61,7 @@ export class MissionHazardSystem implements IDisposable {
   }
   removeHazard(player: Entity, hazard: "nebula" | "radiation") {
     if (player.inHazard) {
-      delete player.inHazard[hazard]
+      player.inHazard[hazard] = undefined
     }
   }
   hasHazard(player: Entity, hazard: "nebula" | "radiation"): boolean {

@@ -2,6 +2,7 @@ import { EventState, Observable, Observer, TmpVectors } from "@babylonjs/core"
 import {
   AdvancedDynamicTexture,
   Button,
+  Checkbox,
   Container,
   Control,
   Grid,
@@ -9,6 +10,7 @@ import {
   InputText,
   Rectangle,
   ScrollViewer,
+  Slider,
   StackPanel,
   TextBlock,
   Vector2WithInfo,
@@ -650,6 +652,18 @@ export class FluentContainer extends FluentControl<Container, FluentContainer> {
     console.log(maxHeight, maxHeight * ratio)
     return this
   }
+  /** Grow to the size of the position of the furthest child */
+  public growWidth(ratio: number = 1): FluentContainer {
+    let maxWidth = 0
+    this.control.children.forEach((c) => {
+      if (c.leftInPixels + c.widthInPixels > maxWidth) {
+        maxWidth = c.topInPixels + c.heightInPixels
+      }
+    })
+    this.control.widthInPixels = maxWidth * ratio
+    console.log(maxWidth, maxWidth * ratio)
+    return this
+  }
 
   /** Apply a background color to the container */
   public background(color: string): FluentContainer {
@@ -1222,6 +1236,32 @@ export class FluentInputText extends FluentControl<InputText, FluentInputText> {
   ): FluentInputText {
     this.addObserver(this.control.onTextChangedObservable, callback, disposeBag)
     return this
+  }
+}
+
+export class FluentSlider extends FluentControl<Slider, FluentSlider> {
+  constructor(name: string)
+  constructor(existing: Slider)
+  constructor(arg1?: string | Slider) {
+    if (typeof arg1 == "string") {
+      const slider = new Slider(arg1)
+      super(slider)
+    } else if (typeof arg1 != "string") {
+      super(arg1)
+    }
+  }
+}
+
+export class FluentCheckbox extends FluentControl<Checkbox, FluentCheckbox> {
+  constructor(name: string)
+  constructor(existing: Checkbox)
+  constructor(arg1?: string | Checkbox) {
+    if (typeof arg1 == "string") {
+      const checkbox = new Checkbox(arg1)
+      super(checkbox)
+    } else if (typeof arg1 != "string") {
+      super(arg1)
+    }
   }
 }
 

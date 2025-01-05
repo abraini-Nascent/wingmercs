@@ -17,6 +17,8 @@ import { Dirk } from "./data/ships"
 import { ShipCustomizerRetroScene } from "./scenes/shipCustomizer/shipCustomizerRetroLoop"
 import { MissionSelectRetroScene } from "./scenes/missionSelectScene/missionSelectRetroLoop"
 import { debugLog } from "./utils/debuglog"
+import { ControlsMenuScene } from "./scenes/controlsMenu/controlsMenuLoop"
+import { SettingsMenuScene } from "./scenes/settingsMenu/settingsMenuLoop"
 
 class App {
   assetsManager: AssetsManager
@@ -128,6 +130,14 @@ class App {
             }
             case "mission": {
               AppContainer.instance.gameScene = new MissionSelectRetroScene()
+              break
+            }
+            case "controls": {
+              AppContainer.instance.gameScene = new ControlsMenuScene()
+              break
+            }
+            case "settings": {
+              AppContainer.instance.gameScene = new SettingsMenuScene()
               break
             }
           }

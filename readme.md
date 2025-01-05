@@ -73,13 +73,13 @@ See [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)]
 
 ## Bugs:
 - [ ] high score doesn't seem to be saved
-- [ ] if leader is killed before break formation, the chain of leaders is broken and results in undefined property access
+- [x] if leader is killed before break formation, the chain of leaders is broken and results in undefined property access
 - [x] sounds seem to be tied to the game position and not the engine position, making them silent when moving away from origin
 - [ ] ui elements are still visible in autopilot camera
   - need a demo mode that disables all gui elements
 - [x] engine trails line meshes don't work with floating origin
   - switch to triangle particles ejected from engine, use global particle system with a manual emitter
-- [ ] enemies don't seem to be firing missiles
+- [x] enemies don't seem to be firing missiles
 ## Backlog:
 - [ ] joystick controls
 - [x] VR controls
@@ -105,8 +105,8 @@ Cloned meshes reuse geometry and materials
 Disposing meshes doesn't dispose materials
 
   - [x] world.update takes ~0.15ms when there are many entities. ship ai and movement command are the largest abusers of update. update should only be used when reindexing. none of our queries have a predicate. a simpler "add component if needed" might be better
-  - [ ] draw call is too long on vr headsets.
-    - [ ] 1000 unique meshes for the nebula cell is too much, maybe this could be moved into a shader
+  - [x] draw call is too long on vr headsets.
+    - [x] 1000 unique meshes for the nebula cell is too much, maybe this could be moved into a shader
       -  dropped to 100 cells, back to ~60 fps but could be better
   - [x] computing the voice acting causes a frame skip
     - move to a background thread?
@@ -160,10 +160,10 @@ Disposing meshes doesn't dispose materials
 - [x] kill ship to revive downed friendly player
 
 ### next demo
-- [ ] dynamic missions - instant action mode
-  - [ ] mission types
+- [x] dynamic missions - instant action mode
+  - [x] mission types
     - [x] patrol
-    - [ ] search and destroy
+    - [x] search and destroy
     - [x] escort
     - [x] base defense
     - [x] base assault
@@ -175,10 +175,10 @@ Disposing meshes doesn't dispose materials
     - [x] point and exit towards navigation point
     - [x] autopilot cinematic
       - [ ] pause world during cinematic
-    - [ ] autopilot indicator in hud
-    - [ ] VR activate autopilot
-    - [ ] show right model when in autopilot
-  - [ ] escort ship
+    - [x] autopilot indicator in hud
+    - [x] VR activate autopilot
+    - [x] show right model when in autopilot
+  - [x] escort ship
     - [x] move between nav points
     - [x] stop at final nav point
     - [x] progress mission on completion
@@ -200,14 +200,14 @@ Disposing meshes doesn't dispose materials
   - [x] area investigation
   - [~] launch from command ship
   - [x] land on command ship
-- [ ] communications
-  - [/] command wingmen
-    - [ ] join formation
-    - [ ] break and attack
-    - [ ] attack my target
-    - [ ] protect me
-    - [ ] protect my target
-  - [/] taunt enemies
+- [x] communications
+  - [x] command wingmen
+    - [x] join formation
+    - [x] break and attack
+    - [x] attack my target
+    - [/] protect me
+    - [/] protect my target
+  - [x] taunt enemies
   - [x] request landing clearance
 - [x] polish and juice
   - [x] rebuild hud indicators
@@ -227,17 +227,17 @@ Disposing meshes doesn't dispose materials
 - [] polish and juice
 ### VR features
 - [] 3d cockpits
-  - [~] ~render cockpit in fp~
-  - [ ] render joystick and throttle
-    - [ ] ghost stick in zero position
-    - [ ] solid stick in current position
+  - [x] ~render cockpit in fp~
+  - [~] render joystick and throttle
+    - [~] ghost stick in zero position
+    - [~] solid stick in current position
   - [x] cockpit pilot freelook
-  - [ ] cockpit hud
+  - [x] cockpit hud
     - [x] vdu screens 
     - [x] power meter
-    - [ ] shields + armor
-    - [ ] speed
-    - [ ] VR interactable
+    - [x] shields + armor
+    - [x] speed
+    - [x] VR interactable
 ### Carrier / Bases features
 - [x] carrier ships
   - [ ] carrier ship collision
@@ -251,8 +251,8 @@ Disposing meshes doesn't dispose materials
   - [ ] capital ships turrets
 - [] space stations
 ### v1.0 full release feature complete
-- [~] configurable missions
-- [] mission selection
+- [x] configurable missions
+- [x] mission selection
 ### v1.1 distribute and .... profit?
 - [] native code capability
 - [] release on app stores

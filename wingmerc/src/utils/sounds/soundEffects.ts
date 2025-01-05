@@ -71,8 +71,8 @@ const MissileEngineFiles = ["assets/sounds/Engine01.wav", "assets/sounds/Engine0
 const SelectFiles = ["assets/sounds/Select01.wav", "assets/sounds/Select02.wav"]
 const AfterburnerFiles = ["assets/sounds/Afterburner01.wav"]
 const DriftFiles = ["assets/sounds/Drift01.wav"]
-
 const BrakeFiles = ["assets/sounds/Brake01.wav"]
+const EquipFiles = ["assets/sounds/Equip01.mp3"]
 
 export const SoundFiles = {
   LaserFiles,
@@ -91,6 +91,7 @@ export const SoundFiles = {
   AfterburnerFiles,
   DriftFiles,
   BrakeFiles,
+  EquipFiles,
 } as const
 export type SoundFiles = keyof typeof SoundFiles
 export const SoundData: { [namespace in SoundFiles]: ArrayBuffer[] } = {} as any
@@ -195,6 +196,10 @@ export namespace SoundEffects {
   export function Select(position?: Vector3 | undefined) {
     const dequeued = pool.dequeue("SelectFiles", rand(0, SoundData.SelectFiles.length - 1), true)
     resetSound(dequeued.sound, position)
+  }
+  export function Equip() {
+    const dequeued = pool.dequeue("EquipFiles", 0, true)
+    resetSound(dequeued.sound)
   }
 
   function resetMissileSounds(dequeued: SoundPool.PooledSound, position?: Vector3 | undefined): Sound {

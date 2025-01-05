@@ -9,7 +9,7 @@ import { netSyncClientSystem } from "../../../world/systems/netSystems/netClient
 import { netSyncServerSystem } from "../../../world/systems/netSystems/netServerSystem"
 import { updateRenderSystem } from "../../../world/systems/renderSystems/updateRenderSystem"
 import { Entity, NerdStats, Score, queries, world } from "../../../world/world"
-import { CombatHud } from "../hud/spaceCombatHUD"
+import { CombatHud, CombinedCombatHud } from "../hud/spaceCombatHUD"
 import "../../../world/systems/soundSystems/missileEngineSoundSystem"
 import { damagedSystemsSprayParticlePool } from "../../../visuals/damagedSystemsSprayParticles"
 import { IDisposable } from "@babylonjs/core"
@@ -27,7 +27,7 @@ import { debugLog } from "../../../utils/debuglog"
 const divFps = document.getElementById("fps")
 export class InstantActionScene implements GameScene, IDisposable {
   // screens
-  hud: CombatHud
+  hud: CombinedCombatHud
   statsScreen: StatsScreen
   missionOverScreen: MissionOverScreen
   // screen props
@@ -62,7 +62,7 @@ export class InstantActionScene implements GameScene, IDisposable {
     damagedSystemsSprayParticlePool.value.prime(5)
     shieldSprayParticlePool.value.prime(5)
 
-    this.hud = new CombatHud()
+    this.hud = new CombinedCombatHud()
     this.readyTimer = 3000
 
     MusicPlayer.instance.playSong("action")
@@ -140,6 +140,7 @@ export class InstantActionScene implements GameScene, IDisposable {
     const engine = AppContainer.instance.engine
     const scene = AppContainer.instance.scene
     const player = appContainer.player.playerEntity
+    this.hud.checkXr()
     if (!this.gameover && player.landing && Object.values(player.landing).some((landing) => landing.landed)) {
       this.gameover = true
       this.hud.landed = true
@@ -149,7 +150,7 @@ export class InstantActionScene implements GameScene, IDisposable {
 
     if (this.gameover) {
       this.gameoverTimer -= delta
-      this.hud.updateScreen(delta)
+      this.hud.update(delta)
       if (this.gameoverTimer < 0) {
         MusicPlayer.instance.playStinger(this.landed ? "win" : "fail")
         queries.deathComes.onEntityAdded.unsubscribe(this.onDeath)
@@ -167,7 +168,7 @@ export class InstantActionScene implements GameScene, IDisposable {
 
       if (this.readyTimer > 0) {
         this.hud.getReady = true
-        this.hud.updateScreen(delta)
+        this.hud.update(delta)
         scene.render()
         divFps.innerHTML = engine.getFps().toFixed() + " fps"
         return
@@ -188,12 +189,13 @@ export class InstantActionScene implements GameScene, IDisposable {
     this.spaceDebrisSystem.update(delta)
     updateRenderSystem()
     cameraSystem(appContainer.player.playerEntity, appContainer.camera)
-    this.hud.updateScreen(delta)
+    this.hud.update(delta)
     scene.render()
     divFps.innerHTML = engine.getFps().toFixed() + " fps"
   }
 
   gameOverLoop = (delta: number) => {
+    this.hud.checkXr()
     if (this.statsScreen && this.statsScreen.onDone == null) {
       this.statsScreen.onDone = () => {
         this.statsScreen.dispose()

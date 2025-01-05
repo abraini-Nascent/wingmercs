@@ -49,6 +49,7 @@ export class CombinedCombatHud implements IDisposable {
   inWorldHud: CombatHud
   _getReady: boolean = false
   _gameover: boolean = false
+  _landed: boolean = false
 
   set getReady(value: boolean) {
     this._getReady = value
@@ -66,6 +67,15 @@ export class CombinedCombatHud implements IDisposable {
     }
     if (this.inWorldHud) {
       this.inWorldHud.gameover = value
+    }
+  }
+  set landed(value: boolean) {
+    this._landed = value
+    if (this.hud) {
+      this.hud.landed = value
+    }
+    if (this.inWorldHud) {
+      this.inWorldHud.landed = value
     }
   }
   constructor() {
@@ -578,10 +588,11 @@ export class CombatHud {
               if (i == 12) {
                 // comms
                 let comms = playerEntity.commsCommand
-                if (comms) {
+                if (comms && comms.open == true) {
                   comms.open = !comms.open
                 } else {
-                  world.addComponent(playerEntity, "commsCommand", { open: true })
+                  world.addComponent(playerEntity, "openComms", playerEntity.id)
+                  playerEntity.vduState.left = "comms"
                 }
               }
               if (i == 13) {
@@ -940,7 +951,7 @@ export class CombatHud {
     switch (display) {
       case "comms":
         control = this.commsVDU.mainComponent
-        newVDU = this.debugAiVdu as any
+        newVDU = this.commsVDU as any
         break
       case "debugAi":
         control = this.debugAiVdu.mainComponent

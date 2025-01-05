@@ -17,6 +17,8 @@ import { FluentTextBlockExtra, TextBlockExtra } from "../../utils/TextBlockExtra
 import { CRTScreenGfx } from "../CRTScreenGfx"
 import { AppContainer } from "../../app.container"
 import { MainMenuScene } from "../mainMenu/mainMenuLoop"
+import { SoundEffects } from "../../utils/sounds/soundEffects"
+import { setIdealSize } from "../../utils/guiHelpers"
 
 class MissionSelectViewModel {
   missionList: FluentBehaviourState<Mission[]>
@@ -36,13 +38,9 @@ class MissionSelectViewModel {
   }
 }
 
-export class MissionSelectRetroScreen {
-  gui: AdvancedDynamicTexture
-  screen: GUI.Container
-  xrMode: boolean = false
-  xrPlane: Mesh
+export class MissionSelectRetroScreen extends MercScreen {
   xrIdealWidth = 1920
-  xrAspectRation = 16 / 10
+  xrAspectRation = 16 / 9
   useMemory: boolean = null
 
   vm: MissionSelectViewModel
@@ -55,19 +53,17 @@ export class MissionSelectRetroScreen {
   onBack: () => void = null
 
   constructor(private missions: Mission[]) {
+    super("Mission Select Screen")
     this.vm = new MissionSelectViewModel(missions)
-    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("Mission Select")
-    this.gui = advancedTexture
+
     // this.gui.dispose()
     // this.crt = new CRTScreenGfx()
     // this.gui = this.crt.gui
-    MercScreen.xrPanel(this)
+    MercScreen.xrPanel(this, true)
     this.setupMain()
   }
   dispose() {
-    // this.gui.removeControl(this.screen)
-    // this.screen.dispose()
-    this.gui.dispose()
+    super.dispose()
     if (this.crt) {
       this.crt.dispose()
     }
@@ -191,6 +187,7 @@ export class MissionSelectRetroScreen {
         tb.modifyControl(this.styleLabel)
       })
       .onPointerClick(() => {
+        SoundEffects.Select()
         action()
       })
       .modifyControl((b: any) => {
@@ -212,13 +209,16 @@ export class MissionSelectRetroScreen {
 
   setupMain() {
     RetroGui.Grid.reset()
-    RetroGui.Grid.initialize(25, 53, 1920, 1080)
-    this.gui.idealWidth = 1920
-
-    this.widthRatio = this.gui.idealWidth / AppContainer.instance.engine.getRenderWidth()
+    let width = 1920
+    let height = 1080
+    RetroGui.Grid.initialize(25, 53, width, height)
+    setIdealSize(AppContainer.instance.engine, this.gui, width, height)
+    this.gui.renderAtIdealSize = true
+    this.widthRatio = this.gui.idealRatio
     this.observers.add(
       AppContainer.instance.engine.onResizeObservable.add(() => {
-        this.widthRatio = this.gui.idealWidth / AppContainer.instance.engine.getRenderWidth()
+        this.widthRatio = this.gui.idealRatio
+        setIdealSize(AppContainer.instance.engine, this.gui, width, height)
       })
     )
     this.cellHeight = RetroGui.Grid.getGridCellHeight()
@@ -226,20 +226,21 @@ export class MissionSelectRetroScreen {
     this.fontSize = Math.floor(this.cellHeight / 5) * 5
     this.fontWidth = RetroGui.Grid.getTextWidth("A", `${this.fontSize}px monospace`)
 
-    this.screen = new FluentContainer(
-      "Mission Select Main Screen",
+    const panel = new FluentContainer(
+      "panel",
       this.Header(),
       this.MissionTitles(),
       this.MissionDetails(),
       this.MissionMap()
     )
-      // .background("gray")
       .background(RetroGui.colors.background)
-      .isPointerBlocker(true)
-      .build()
+      .width(`${width}px`)
+      .height(`${height}px`)
+    new FluentContainer(this.screen).addControl(panel).background(RetroGui.colors.background)
+
     this.screen.isPointerBlocker = true
     this.screen.isHitTestVisible = false
-    this.gui.addControl(this.screen)
+    // this.gui.addControl(this.screen)
   }
 
   private Header = () => {
@@ -255,6 +256,7 @@ export class MissionSelectRetroScreen {
           tb.modifyControl(this.styleLabel)
         })
         .onPointerClick(() => {
+          SoundEffects.Select()
           this.dispose()
           if (this.onBack) {
             this.onBack()
@@ -267,12 +269,12 @@ export class MissionSelectRetroScreen {
           RetroGui.Components.configureButton(b)
           b.isHitTestVisible = true
         }),
-      // .zIndex(15),
       new FluentSimpleButton("continue button", "CONTINUE")
         .textBlock((tb) => {
           tb.modifyControl(this.styleLabel)
         })
         .onPointerClick(() => {
+          SoundEffects.Select()
           if (this.onDone) {
             this.onDone(this.vm.activeMission.getValue())
           }
@@ -281,7 +283,6 @@ export class MissionSelectRetroScreen {
           RetroGui.Grid.moveControl(b, 0, 39, 15, 1)
           RetroGui.Components.configureButton(b)
         }),
-      // .zIndex(6),
       new FluentRectangle("screen").thickness(this.cellWidth / 8).modifyControl((r) => {
         this.styleBox(r)
         RetroGui.Grid.moveControlMidCell(r, 1, 0, 0, 24)
@@ -366,7 +367,7 @@ export class MissionSelectRetroScreen {
     if (this.crt) {
       this.crt.update(dt)
     }
-    MercScreen.xrPanel(this)
+    MercScreen.xrPanel(this, true)
   }
 
   createLabel(text: string): GUI.TextBlock {

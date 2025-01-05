@@ -14,12 +14,11 @@ import { MainMenuScene } from "./mainMenuLoop"
 import { StatsScene } from "../statsScene/statsLoop"
 import { FluentGrid, FluentTextBlock } from "../../utils/fluentGui"
 import { RetroGui } from "../../utils/retroGui"
+import { SettingsMenuScene } from "../settingsMenu/settingsMenuLoop"
 
 export class MainMenuScreen extends MercScreen {
   fullscreen: Observer<GUI.Vector2WithInfo>
   mainPanel: GUI.StackPanel
-  xrPlane: Mesh
-  xrMode = false
   xrIdealWidth = 1024
   xrAspectRation = 16 / 9
   constructor() {
@@ -31,6 +30,9 @@ export class MainMenuScreen extends MercScreen {
     if (this.fullscreen) {
       this.fullscreen.remove()
       this.fullscreen = undefined
+    }
+    if (this.xrPlane) {
+      this.xrPlane.dispose(false, true)
     }
   }
   main(): void {
@@ -176,18 +178,22 @@ export class MainMenuScreen extends MercScreen {
     })
     mainPanel.addControl(startButton)
 
-    const multiplayerButton = this.createMainMenuButton("start", "Multiplayer")
-    multiplayerButton.onPointerClickObservable.addOnce(() => {
-      setTimeout(() => {
-        SoundEffects.Select()
-        const appContainer = AppContainer.instance
-        // appContainer.server = true
-        appContainer.gameScene.dispose()
-        appContainer.gameScene = new MultiplayerMenuScene()
-        this.dispose()
-      }, 333)
-    })
-    mainPanel.addControl(multiplayerButton)
+    const urlParams = new URLSearchParams(window.location.search)
+    const debug = urlParams.has("debug")
+    if (debug) {
+      const multiplayerButton = this.createMainMenuButton("start", "Multiplayer")
+      multiplayerButton.onPointerClickObservable.addOnce(() => {
+        setTimeout(() => {
+          SoundEffects.Select()
+          const appContainer = AppContainer.instance
+          // appContainer.server = true
+          appContainer.gameScene.dispose()
+          appContainer.gameScene = new MultiplayerMenuScene()
+          this.dispose()
+        }, 333)
+      })
+      mainPanel.addControl(multiplayerButton)
+    }
 
     const backButton = this.createMainMenuButton("back", "Back")
     backButton.onPointerClickObservable.addOnce(() => {
@@ -241,16 +247,20 @@ export class MainMenuScreen extends MercScreen {
     })
     mainPanel.addControl(instantActionButton)
 
-    const shipSelection = this.createMainMenuButton("model viewer", "Ship Selection")
-    shipSelection.onPointerClickObservable.addOnce(() => {
-      SoundEffects.Select()
-      const appContainer = AppContainer.instance
-      appContainer.server = true
-      appContainer.gameScene.dispose()
-      appContainer.gameScene = new ShipSelectionScene()
-      this.dispose()
-    })
-    mainPanel.addControl(shipSelection)
+    const urlParams = new URLSearchParams(window.location.search)
+    const debug = urlParams.has("debug")
+    if (debug) {
+      const shipSelection = this.createMainMenuButton("model viewer", "Ship Selection")
+      shipSelection.onPointerClickObservable.addOnce(() => {
+        SoundEffects.Select()
+        const appContainer = AppContainer.instance
+        appContainer.server = true
+        appContainer.gameScene.dispose()
+        appContainer.gameScene = new ShipSelectionScene()
+        this.dispose()
+      })
+      mainPanel.addControl(shipSelection)
+    }
 
     const backButton = this.createMainMenuButton("back", "Back")
     backButton.onPointerClickObservable.addOnce(() => {
@@ -286,6 +296,15 @@ export class MainMenuScreen extends MercScreen {
       }, 333)
     })
     mainPanel.addControl(controlsButton)
+
+    const settingsButton = this.createMainMenuButton("controls", "Settings")
+    settingsButton.onPointerClickObservable.addOnce(() => {
+      setTimeout(() => {
+        AppContainer.instance.gameScene.dispose()
+        AppContainer.instance.gameScene = new SettingsMenuScene()
+      }, 333)
+    })
+    mainPanel.addControl(settingsButton)
 
     if (debug != undefined) {
       const debugButton = this.createMainMenuButton("model viewer", "Debug Test Sandbox")

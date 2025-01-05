@@ -38,7 +38,7 @@ import { PlayVoiceSound, VoiceSound } from "../../../utils/speaking"
 import { GunStats } from "../../../data/guns/gun"
 import { debugLog } from "../../../utils/debuglog"
 
-const DEBUG = true
+const DEBUG = false
 
 const PlanarUp = Vector3.Up()
 const BreakFormationPattern = [VeerOffUpRightData, VeerOffUpLeftData, VeerOffDownRightData, VeerOffDownLeftData]
@@ -95,6 +95,87 @@ export namespace shipIntelligence {
     }
     return true
   }
+  export const attackMyTarget = (ship: Entity, friendly: Entity) => {
+    // Get the player's target and assign it to the wing member
+    // Change mission to "Engage"
+    const target = ship.targeting?.target
+    if (target && friendly.ai?.blackboard?.targeting != undefined) {
+      // friendly.targeting.target = target
+      friendly.ai.blackboard.targeting.target = target
+      const intelegence = (friendly.ai?.blackboard as intelligenceBlackboard)?.intelligence
+      intelegence.mission = "Wingman"
+      intelegence.objective = "Engage"
+      VoiceSound(randomItem(barks.responses.attackMyTarget).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    } else {
+      VoiceSound(randomItem(barks.responses.noCanDo).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    }
+  }
+  export const breakAndEngage = (ship: Entity, friendly: Entity) => {
+    // Get the player's target and assign it to the wing member
+    // Change mission to "Engage"
+    const intelegence = (friendly.ai?.blackboard as intelligenceBlackboard)?.intelligence
+    if (intelegence) {
+      intelegence.mission = "Wingman"
+      intelegence.objective = "BreakFormation"
+      VoiceSound(randomItem(barks.responses.breakAndEngage).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    } else {
+      VoiceSound(randomItem(barks.responses.noCanDo).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    }
+  }
+  export const followMyLead = (ship: Entity, friendly: Entity) => {
+    // Get the player's target and assign it to the wing member
+    // Change mission to "Engage"
+    const intelegence = (friendly.ai?.blackboard as intelligenceBlackboard)?.intelligence
+    if (intelegence) {
+      intelegence.mission = "Wingman"
+      intelegence.objective = "HoldFormation"
+      intelegence.tactic = undefined
+      friendly.groupId = ship.groupId
+      friendly.ai.blackboard.holdFormation = undefined
+      VoiceSound(randomItem(barks.responses.followMyLead).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    } else {
+      VoiceSound(randomItem(barks.responses.noCanDo).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    }
+  }
+  export const joinMyWing = (ship: Entity, friendly: Entity) => {
+    const intelegence = (friendly.ai?.blackboard as intelligenceBlackboard)?.intelligence
+    if (intelegence) {
+      intelegence.mission = "Wingman"
+      intelegence.objective = "HoldFormation"
+      intelegence.tactic = undefined
+      friendly.groupId = ship.groupId
+      friendly.ai.blackboard.holdFormation = undefined
+      let wingLeader = ship.wingleader
+      if (wingLeader == undefined) {
+        wingLeader = {
+          wingmen: [ship.id],
+        }
+        world.addComponent(ship, "wingleader", wingLeader)
+      }
+      if (friendly.wingleader) {
+        world.removeComponent(friendly, "wingleader")
+      }
+      VoiceSound(randomItem(barks.responses.followMyLead).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    } else {
+      VoiceSound(randomItem(barks.responses.noCanDo).ipa, friendly.voice).then((sound) =>
+        PlayVoiceSound(sound, friendly)
+      )
+    }
+  }
 }
 /****
  * WINGMAN MISSION
@@ -125,6 +206,14 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
           }
           if (ship.wingleader != undefined) {
             leader = ship
+          }
+        }
+        if (leader == undefined) {
+          // am i on the players wing?
+          for (const player of queries.players) {
+            if (player.teamId == entity.groupId && player.groupId == entity.groupId && player.wingleader != undefined) {
+              leader = player
+            }
           }
         }
         if (leader == undefined) {
@@ -191,7 +280,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
       }
       SetComponent(entity, "movementCommand", movementCommand)
       // if leader is engaging we are engaging
-      if (leaderEntity.ai.blackboard.intelligence.objective == ObjectiveType.Engage) {
+      if (leaderEntity.ai?.blackboard.intelligence.objective == ObjectiveType.Engage) {
         blackboard.targeting.target = leaderEntity.ai.blackboard.targeting.target
         DEBUG &&
           debugLog(
@@ -208,7 +297,7 @@ const WingmanMission = (entity: Entity, blackboard: AIBlackboard) => {
         let checkBoard = blackboard
         while (checkBoard.holdFormation?.leader != undefined) {
           leaderEntity = EntityForId(checkBoard.holdFormation.leader)
-          checkBoard = leaderEntity.ai.blackboard
+          checkBoard = leaderEntity.ai?.blackboard
         }
         const ourPosition = leaderEntity.wingleader.wingmen.indexOf(entity.id)
         const remainder = (ourPosition - 1) % BreakFormationPattern.length
@@ -490,8 +579,6 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         DEBUG &&
           debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
         break
-      } else {
-        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} no enemy nearby`)
       }
       const missionDetails = entity.missionDetails
       const entityPosition = Vector3FromObj(entity.position, TmpVectors.Vector3[0])
@@ -548,8 +635,6 @@ const PatrolArea = (entity: Entity, blackboard: AIBlackboard) => {
         DEBUG &&
           debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} Approaching Target ${blackboard.targeting.target}`)
         break
-      } else {
-        DEBUG && debugLog(`[ShipIntelligence][PatrolArea] Ship ${entity.id} no enemy nearby`)
       }
       // head back to patrol point
       if (avoidObstaclesManeuver(entity, blackboard)) {

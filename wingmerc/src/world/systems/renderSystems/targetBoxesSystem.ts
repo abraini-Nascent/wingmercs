@@ -132,10 +132,12 @@ export class TargetBoxesSystem implements IDisposable {
     targetBoxPlane.ignoreCameraMaxZ = true
     targetBoxPlane.material = targetBoxMaterial
     targetBoxPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
+    targetBoxPlane.renderingGroupId = 1
     const talkBoxPlane = MeshBuilder.CreatePlane("constantSizePlaneTalkBox", { size: referenceSize }, scene)
     talkBoxPlane.ignoreCameraMaxZ = true
     talkBoxPlane.material = talkBoxMaterial
     talkBoxPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
+    talkBoxPlane.renderingGroupId = 1
 
     // Position the plane at the mesh position
     // targetBoxPlane.parent = node
@@ -151,6 +153,7 @@ export class TargetBoxesSystem implements IDisposable {
     interceptBoxPlane.material = interceptBoxMaterial
     interceptBoxPlane.billboardMode = Mesh.BILLBOARDMODE_ALL
     interceptBoxPlane.isVisible = false
+    interceptBoxPlane.renderingGroupId = 1
     let edgeRendering = false
     let observer = targetBoxPlane.getScene().onBeforeRenderObservable.add(() => {
       const camera = AppContainer.instance.camera

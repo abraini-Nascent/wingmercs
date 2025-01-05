@@ -8,7 +8,7 @@ import {
 } from "./../../data/ships/shipTemplate"
 import { AppContainer } from "./../../app.container"
 import { GunSelection, ShipStructureSection, ShipTemplate } from "../../data/ships/shipTemplate"
-import { Observer } from "@babylonjs/core"
+import { Mesh, Observer } from "@babylonjs/core"
 import { MercScreen } from "../screen"
 import * as GUI from "@babylonjs/gui"
 import { FluentTextBlockExtra, TextBlockExtra } from "../../utils/TextBlockExtra"
@@ -46,6 +46,8 @@ import { weightForShip } from "../../world/helpers"
 import { MainMenuScene } from "../mainMenu/mainMenuLoop"
 import { debugLog } from "../../utils/debuglog"
 import { debugDir } from "../../utils/debugDir"
+import { SoundEffects } from "../../utils/sounds/soundEffects"
+import { setIdealSize } from "../../utils/guiHelpers"
 
 type InventorySection = "Guns" | "Weapons" | "Comps"
 type ComponentType = "Afterburner" | "Engine" | "Radar" | "Shields" | "Thrusters" | "PowerPlant" | "Utility"
@@ -138,6 +140,7 @@ export class ShipCustomizerViewModel {
   }
   removePart(part: ShipCustomizerViewModel.Part, slot: ShipCustomizerViewModel.Slot) {
     // TODO: put the part back into the inventory
+    SoundEffects.Equip()
     switch (slot.slot) {
       case "Utility":
         break
@@ -600,6 +603,10 @@ export class ShipCustomizerRetroScreen extends MercScreen {
   crt: CRTScreenGfx
   observers = new Set<Observer<any>>()
 
+  // XR
+  xrIdealWidth = 1920
+  xrAspectRation = 16 / 9
+
   onSelected: (ship: ShipTemplate) => void
   onBack: () => void
 
@@ -611,19 +618,19 @@ export class ShipCustomizerRetroScreen extends MercScreen {
     // this.gui.dispose()
     // this.crt = new CRTScreenGfx()
     // this.gui = this.crt.gui
+    MercScreen.xrPanel(this, true)
     this.setupMain()
   }
   dispose(): void {
+    super.dispose()
     for (let item of this.observers) {
       let observer = item as Observer<unknown>
       observer.remove()
     }
     this.observers.clear()
-    this.screen.dispose()
     if (this.crt) {
       this.crt.dispose()
     }
-    super.dispose()
   }
 
   cellHeight: number
@@ -742,6 +749,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
         tb.modifyControl(this.styleLabel)
       })
       .onPointerClick(() => {
+        SoundEffects.Select()
         action()
       })
       .modifyControl((b: any) => {
@@ -754,6 +762,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
         tb.modifyControl(this.styleLabel)
       })
       .onPointerClick(() => {
+        SoundEffects.Select()
         action()
       })
       .modifyControl((b: any) => {
@@ -770,23 +779,25 @@ export class ShipCustomizerRetroScreen extends MercScreen {
 
   setupMain(): void {
     RetroGui.Grid.reset()
-    RetroGui.Grid.initialize(25, 53, 1920, 1080)
-    this.gui.idealWidth = 1920
-
-    this.widthRatio = this.gui.idealWidth / AppContainer.instance.engine.getRenderWidth()
+    let width = 1920
+    let height = 1080
+    RetroGui.Grid.initialize(25, 53, width, height)
+    setIdealSize(AppContainer.instance.engine, this.gui, width, height)
+    this.gui.renderAtIdealSize = true
+    this.widthRatio = this.gui.idealRatio
     this.observers.add(
       AppContainer.instance.engine.onResizeObservable.add(() => {
-        this.widthRatio = this.gui.idealWidth / AppContainer.instance.engine.getRenderWidth()
+        this.widthRatio = this.gui.idealRatio
+        setIdealSize(AppContainer.instance.engine, this.gui, width, height)
       })
     )
     this.cellHeight = RetroGui.Grid.getGridCellHeight()
     this.cellWidth = RetroGui.Grid.getGridCellWidth()
     this.fontSize = Math.floor(this.cellHeight / 5) * 5
     this.fontWidth = RetroGui.Grid.getTextWidth("A", `${this.fontSize}px monospace`)
-    this.screen.dispose()
-    this.screen = new FluentContainer(
+
+    const panel = new FluentContainer(
       "screen",
-      // this.Borders(),
       this.Header(),
       this.ShipStats(),
       this.ItemStats(),
@@ -794,10 +805,13 @@ export class ShipCustomizerRetroScreen extends MercScreen {
       this.Inventory()
     )
       .background(RetroGui.colors.background)
-      .build()
+      .width(`${width}px`)
+      .height(`${height}px`)
+    new FluentContainer(this.screen).addControl(panel).background(RetroGui.colors.background)
+
     this.screen.isPointerBlocker = true
     this.screen.isHitTestVisible = false
-    this.gui.addControl(this.screen)
+    // this.gui.addControl(this.screen)
   }
 
   private Header = () => {
@@ -806,13 +820,14 @@ export class ShipCustomizerRetroScreen extends MercScreen {
         .color(RetroGui.colors.foreground)
         .modifyControl((tb) => {
           this.styleText(tb, RetroGui.colors.foreground)
-          RetroGui.Grid.moveControl(tb, 0, 0, 34, 1)
+          RetroGui.Grid.moveControl(tb, 0, 0, 20, 1)
         }),
       new FluentSimpleButton("done button", "BACK")
         .textBlock((tb) => {
           tb.modifyControl(this.styleLabel)
         })
         .onPointerClick(() => {
+          SoundEffects.Select()
           this.dispose()
           if (this.onBack) {
             this.onBack()
@@ -823,12 +838,14 @@ export class ShipCustomizerRetroScreen extends MercScreen {
         .modifyControl((b: any) => {
           RetroGui.Grid.moveControl(b, 0, 30, 8, 1)
           RetroGui.Components.configureButton(b)
+          b.isHitTestVisible = true
         }),
       new FluentSimpleButton("continue button", "CONTINUE")
         .textBlock((tb) => {
           tb.modifyControl(this.styleLabel)
         })
         .onPointerClick(() => {
+          SoundEffects.Select()
           if (this.onSelected) {
             this.onSelected(this.vm.ship)
           }
@@ -951,6 +968,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
           tb.modifyControl(this.styleLabel)
         })
         .onPointerClick(() => {
+          SoundEffects.Select()
           this.vm.itemStatsState.setValue(null)
         })
         .modifyControl((b: any) => {
@@ -1114,6 +1132,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
                           }
                         })
                         .onPointerClick((c, e, s) => {
+                          SoundEffects.Select()
                           let currentPart = this.vm.itemStatsState.getValue()
                           let nextPart = currentPart == null || currentPart.id != part.id ? part : null
                           this.vm.itemStatsState.setValue(nextPart)
@@ -1222,6 +1241,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
                   tb.modifyControl(this.styleLabel)
                 })
                 .onPointerClick(() => {
+                  SoundEffects.Select()
                   this.vm.setSection(sectionName)
                 })
                 .modifyControl((b: any) => {
@@ -1249,6 +1269,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
                 const currentItem = this.vm.itemStatsState.getValue() as any
                 const selected = currentItem?.id == p.id
                 const onClick = () => {
+                  SoundEffects.Select()
                   const itemStats = this.vm.itemStatsState.getValue()
                   if (itemStats?.id == p.id) {
                     this.vm.itemStatsState.setValue(null)
@@ -1334,6 +1355,7 @@ export class ShipCustomizerRetroScreen extends MercScreen {
     if (this.crt) {
       this.crt.update(dt)
     }
+    MercScreen.xrPanel(this, true)
   }
 }
 
